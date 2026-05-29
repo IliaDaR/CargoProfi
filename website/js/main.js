@@ -1,5 +1,5 @@
 /*!
- * Numino Landing – minimal / secure
+ * Numino Landing — minimal / secure
  * No analytics, no third-party trackers.
  */
 
@@ -10,6 +10,77 @@
   var hdr = document.getElementById('header');
   window.addEventListener('scroll', function () {
     hdr.classList.toggle('scrolled', window.scrollY > 8);
+  });
+
+  // ===== MODAL =====
+  var modal = document.getElementById('loginModal');
+  var msgEl = document.getElementById('loginMessage');
+
+  function openModal() {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    msgEl.textContent = '';
+    msgEl.className = 'modal__msg';
+  }
+
+  document.querySelectorAll('.login-btn').forEach(function (b) {
+    b.addEventListener('click', function (e) {
+      e.preventDefault();
+      openModal();
+    });
+  });
+
+  document.getElementById('closeModal').addEventListener('click', closeModal);
+  modal.querySelector('.modal__bg').addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+  });
+
+  // ===== LOGIN / REGISTER TOGGLE =====
+  var isReg = false;
+  var registerNameField = null;
+
+  function buildNameField() {
+    var g = document.createElement('div');
+    g.style.cssText = 'display:flex;flex-direction:column;gap:4px;margin-top:2px';
+    g.innerHTML = '<label>Имя</label><input type="text" placeholder="Иван Петров" required autocomplete="name">';
+    return g;
+  }
+
+  document.getElementById('showRegister').addEventListener('click', function (e) {
+    e.preventDefault();
+    isReg = !isReg;
+    var form = document.getElementById('loginForm');
+    var submitBtn = document.getElementById('modalSubmit');
+
+    if (isReg) {
+      document.getElementById('modalTitle').textContent = 'Регистрация';
+      document.getElementById('modalSub').textContent = 'Для владельцев парка';
+      submitBtn.textContent = 'Зарегистрироваться';
+      registerNameField = buildNameField();
+      form.insertBefore(registerNameField, form.children[0]);
+    } else {
+      document.getElementById('modalTitle').textContent = 'Вход в кабинет';
+      document.getElementById('modalSub').textContent = 'Для владельцев парка';
+      submitBtn.textContent = 'Войти';
+      if (registerNameField) { registerNameField.remove(); registerNameField = null; }
+    }
+  });
+
+  // ===== LOGIN FORM — redirect to admin =====
+  document.getElementById('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    msgEl.textContent = 'Вход выполнен. Переход в кабинет...';
+    msgEl.className = 'modal__msg success';
+    setTimeout(function () {
+      window.location.href = 'admin/index.html';
+    }, 800);
   });
 
   // ===== CONTACT FORM =====
@@ -40,14 +111,7 @@
     contactForm.appendChild(hp);
   }
 
-  // ===== DOWNLOAD APK =====
-  var apkBtn = document.getElementById('downloadApk');
-  if (apkBtn) {
-    apkBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      alert('APK будет доступен после сборки приложения.\nИнструкция: cargo_app/README.md');
-    });
-  }
+  // ===== DOWNLOAD APK — handled via direct href to GitHub releases =====
 
   // ===== FEATURES CAROUSEL =====
   var track = document.getElementById('featuresTrack');
@@ -107,21 +171,13 @@
     // Mouse drag
     var isDragging = false;
     track.addEventListener('mousedown', function () {
-      isDragging = true;
-      track.classList.add('dragging');
-      clearInterval(autoTimer);
+      isDragging = true; track.classList.add('dragging'); clearInterval(autoTimer);
     });
     track.addEventListener('mouseup', function () {
-      isDragging = false;
-      track.classList.remove('dragging');
-      startAuto();
+      isDragging = false; track.classList.remove('dragging'); startAuto();
     });
     track.addEventListener('mouseleave', function () {
-      if (isDragging) {
-        isDragging = false;
-        track.classList.remove('dragging');
-        startAuto();
-      }
+      if (isDragging) { isDragging = false; track.classList.remove('dragging'); startAuto(); }
     });
 
     goTo(0);

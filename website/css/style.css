@@ -97,7 +97,7 @@ a{color:var(--blue);text-decoration:none}
 .contact h2{color:#fff;font-size:1.8rem;margin-bottom:8px}
 .contact p{color:rgba(255,255,255,.6);margin-bottom:12px;line-height:1.6}
 .contact__links{display:flex;flex-direction:column;gap:6px}
-.contact__links a{color:rgba(255,255,255,.6);font-size:.9rem;transition:color var(--tr)}
+.contact__links a,.contact__links span{color:rgba(255,255,255,.6);font-size:.9rem}
 .contact__links a:hover{color:#fff}
 .contact__form{display:flex;flex-direction:column;gap:10px}
 .contact__form input,.contact__form textarea{width:100%;padding:10px 14px;border-radius:var(--r-sm);border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:.9rem;font-family:inherit;transition:border var(--tr)}

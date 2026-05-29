@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Numino — Рабочий кабинет перевозчика</title>
   <meta name="description" content="GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты водителей — всё в одном сервисе.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com wss://*.firebaseio.com; frame-src 'self'; font-src 'self'; media-src 'self'; object-src 'none';">
   <meta name="referrer" content="no-referrer">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
@@ -24,7 +23,7 @@
         <a href="#pricing">Тарифы</a>
         <a href="#contact">Контакты</a>
       </nav>
-      <a href="admin/" class="btn btn--sm btn--primary">Войти</a>
+      <button class="btn btn--sm btn--primary login-btn">Войти</button>
     </div>
   </header>
 
@@ -35,7 +34,7 @@
         <h1>Полный контроль автопарка <span class="gradient">в одном кабинете</span></h1>
         <p>GPS-трекинг, автоматический расчёт пробега, учёт расходов с фото чеков, путевые листы по приказу Минтранса и начисление зарплаты водителям.</p>
         <div class="hero__btns">
-          <a href="admin/" class="btn btn--primary btn--lg">Войти в кабинет</a>
+          <button class="btn btn--primary btn--lg login-btn">Войти в кабинет</button>
           <a href="#download" class="btn btn--outline btn--lg">Скачать приложение</a>
         </div>
       </div>
@@ -60,7 +59,7 @@
               </svg>
             </div>
             <h3>GPS-трекинг рейсов</h3>
-            <p>Водитель нажимает «Начать рейс» — система фиксирует координаты каждую минуту. Пробег считается по формуле гаверсинусов: сумма расстояний между всеми GPS-точками. Точность до 10 м. Данные пишутся в Firestore и доступны владельцу в реальном времени. Даже при обрыве связи точки копятся локально и синхронизируются при подключении.</p>
+            <p>Водитель нажимает «Начать рейс» — система фиксирует координаты каждую минуту. Пробег считается по формуле гаверсинусов: сумма расстояний между всеми GPS-точками. Данные пишутся в Firestore и доступны владельцу в реальном времени. При обрыве связи точки копятся локально и синхронизируются при подключении.</p>
             <div class="feat-card__tags">
               <span>Формула гаверсинусов</span>
               <span>Раз в 60 сек</span>
@@ -75,7 +74,7 @@
               </svg>
             </div>
             <h3>Путевые листы</h3>
-            <p>Генерация PDF по форме, утверждённой Приказом Минтранса России. Владелец нажимает одну кнопку — и готовый документ с датой, госномером, ФИО водителя, пробегом, временем выезда и возврата. Все поля подставляются из данных рейса автоматически. PDF сохраняется в облаке, ссылка доступна в карточке рейса.</p>
+            <p>Генерация PDF по форме, утверждённой Приказом Минтранса России. Владелец нажимает одну кнопку — и готовый документ с датой, госномером, ФИО водителя, пробегом, временем выезда и возврата. Все поля подставляются из данных рейса автоматически.</p>
             <div class="feat-card__tags">
               <span>PDF одним кликом</span>
               <span>Приказ Минтранса</span>
@@ -90,7 +89,7 @@
               </svg>
             </div>
             <h3>Учёт расходов</h3>
-            <p>Водитель добавляет расход прямо во время рейса: сумма, категория (топливо, стоянка, ремонт, дорожный сбор, мойка, шины, страховка, прочее) и фото чека. GPS-координаты и время прикрепляются автоматически. Владелец видит сводную таблицу с группировкой по категориям и может открыть фото любого чека.</p>
+            <p>Водитель добавляет расход прямо во время рейса: сумма, категория (топливо, стоянка, ремонт, дорожный сбор, мойка, шины, страховка, прочее) и фото чека. GPS-координаты и время прикрепляются автоматически. Владелец видит сводную таблицу по категориям и может открыть фото любого чека.</p>
             <div class="feat-card__tags">
               <span>8 категорий</span>
               <span>Фото чеков</span>
@@ -106,7 +105,7 @@
               </svg>
             </div>
             <h3>Расчёт зарплаты</h3>
-            <p>Владелец задаёт правило для каждого водителя: процент от дохода рейса (например 15%) или фиксированная сумма за рейс (например 5 000 ₽). Расчёт зарплаты за любой период — один клик. Система соберёт все завершённые рейсы водителя за период, вычислит сумму и сохранит результат в ведомость с историей.</p>
+            <p>Владелец задаёт правило для каждого водителя: процент от дохода рейса или фиксированная сумма за рейс. Расчёт зарплаты за любой период — один клик. Система соберёт все завершённые рейсы водителя, вычислит сумму и сохранит в ведомость с историей.</p>
             <div class="feat-card__tags">
               <span>% или фикс</span>
               <span>За период</span>
@@ -122,7 +121,7 @@
               </svg>
             </div>
             <h3>Контроль автопарка</h3>
-            <p>Все машины на одном дашборде с индикатором статуса: «в рейсе» или «свободен». Владелец видит историю рейсов по каждому автомобилю, общий пробег, статистику использования. При добавлении новой машины в парк — указывается госномер, марка, модель, год выпуска и VIN.</p>
+            <p>Все машины на одном дашборде с индикатором статуса: «в рейсе» или «свободен». Владелец видит историю рейсов по каждому автомобилю, общий пробег, статистику использования. Добавление новой машины — госномер, марка, модель, год и VIN.</p>
             <div class="feat-card__tags">
               <span>Статус онлайн</span>
               <span>История</span>
@@ -137,7 +136,7 @@
               </svg>
             </div>
             <h3>Ролевой доступ</h3>
-            <p>Водитель видит только свои рейсы и расходы. Владелец — все данные по парку. Каждый запрос к базе проверяется правилами Firestore на уровне сервера: никто не получит чужие данные. Авторизация через Firebase Authentication с поддержкой email/пароля и телефона.</p>
+            <p>Водитель видит только свои рейсы и расходы. Владелец — все данные по парку. Каждый запрос к базе проверяется правилами Firestore на уровне сервера. Авторизация через Firebase Authentication: email/пароль или телефон.</p>
             <div class="feat-card__tags">
               <span>Firebase Auth</span>
               <span>Роли owner/driver</span>
@@ -147,7 +146,6 @@
 
         </div>
 
-        <!-- Навигация карусели -->
         <div class="carousel__nav">
           <button class="carousel__btn carousel__btn--prev" id="carouselPrev" aria-label="Предыдущий">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
@@ -191,7 +189,7 @@
             <li>Email-поддержка</li>
           </ul>
           <p class="plan__trial">Первые 21 день бесплатно</p>
-          <a href="admin/" class="btn btn--outline btn--full">Начать</a>
+          <button class="btn btn--outline btn--full login-btn">Начать</button>
         </div>
         <div class="plan plan--pop">
           <div class="plan__badge">Популярный</div>
@@ -204,7 +202,7 @@
             <li>Сводка по расходам</li>
             <li>Приоритетная поддержка</li>
           </ul>
-          <a href="admin/" class="btn btn--primary btn--full">Попробовать</a>
+          <button class="btn btn--primary btn--full login-btn">Попробовать</button>
         </div>
         <div class="plan">
           <h3>Корпоративный</h3>
@@ -231,7 +229,7 @@
       <div class="download__text">
         <h2>Приложение для водителя</h2>
         <p>GPS-трекинг, фото чеков, история рейсов — всегда под рукой на Android.</p>
-        <a href="#" class="btn btn--download" id="downloadApk">
+        <a href="https://github.com/IliaDaR/CargoProfi/releases/latest/download/numino-driver.apk" class="btn btn--download" id="downloadApk">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.9 17.39c-.26-.8-1.01-1.39-1.9-1.39h-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3H7c-.89 0-1.64.59-1.9 1.39L3.53 22h15.94l-1.57-4.61zM12 2L8 6h3v5h2V6h3l-4-4z"/></svg>
           Скачать APK
         </a>
@@ -247,9 +245,9 @@
         <h2>Остались вопросы?</h2>
         <p>Напишите нам — поможем с настройкой и подберём тариф.</p>
         <div class="contact__links">
-          <a href="mailto:info@numino.ru">info@numino.ru</a>
-          <a href="tel:+78000000000">8 (800) 000-00-00</a>
-          <a href="https://t.me/numino_support" target="_blank" rel="noopener">Telegram</a>
+          <a href="mailto:ilia.davkin@ya.ru">ilia.davkin@ya.ru</a>
+          <a href="tel:+79183951315">+7 (918) 395-13-15</a>
+          <span class="contact__links">MAX</span>
         </div>
       </div>
       <form class="contact__form" id="contactForm">
@@ -269,10 +267,29 @@
         <a href="#features">Функции</a>
         <a href="#pricing">Тарифы</a>
         <a href="#download">Приложение</a>
-        <a href="admin/">Войти</a>
+        <a href="admin/index.html">Войти</a>
       </nav>
     </div>
   </footer>
+
+  <!-- LOGIN MODAL -->
+  <div class="modal" id="loginModal">
+    <div class="modal__bg"></div>
+    <div class="modal__box">
+      <button class="modal__x" id="closeModal">&times;</button>
+      <h3 id="modalTitle">Вход в кабинет</h3>
+      <p id="modalSub">Для владельцев парка</p>
+      <form id="loginForm">
+        <label>Email</label>
+        <input type="email" placeholder="ivan@company.ru" required autocomplete="email">
+        <label>Пароль</label>
+        <input type="password" placeholder="••••••" required autocomplete="current-password" minlength="6">
+        <button type="submit" class="btn btn--primary btn--full" id="modalSubmit">Войти</button>
+      </form>
+      <p class="modal__switch"><a href="#" id="showRegister">Зарегистрироваться</a></p>
+      <p class="modal__msg" id="loginMessage"></p>
+    </div>
+  </div>
 
   <script src="js/main.js"></script>
 </body>
