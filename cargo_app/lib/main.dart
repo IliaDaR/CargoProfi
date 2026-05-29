@@ -11,21 +11,22 @@ import 'screens/auth/register_screen.dart';
 import 'screens/driver/driver_home_screen.dart';
 import 'screens/owner/owner_dashboard_screen.dart';
 
-// TODO: Замени на сгенерированный firebase_options.dart
+// Генерируется командой: flutterfire configure
+// Затем раскомментируй import и DefaultFirebaseOptions
 // import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Инициализация Firebase
+  // Инициализация Firebase — замени на реальные ключи после flutterfire configure
   await Firebase.initializeApp(
     // options: DefaultFirebaseOptions.currentPlatform,
     options: const FirebaseOptions(
-      apiKey: 'YOUR_API_KEY',
-      appId: 'YOUR_APP_ID',
-      messagingSenderId: 'YOUR_SENDER_ID',
-      projectId: 'YOUR_PROJECT_ID',
-      storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+      apiKey: 'AIzaSyDemoKeyReplaceMeWithRealOne',
+      appId: '1:000000000000:web:abcdef123456',
+      messagingSenderId: '000000000000',
+      projectId: 'cargoprofi-demo',
+      storageBucket: 'cargoprofi-demo.appspot.com',
     ),
   );
 

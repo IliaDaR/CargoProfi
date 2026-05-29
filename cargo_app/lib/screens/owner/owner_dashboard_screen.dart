@@ -89,9 +89,13 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
           ? NavigationBar(
               selectedIndex: _selectedIndex,
               onDestinationSelected: (i) => setState(() => _selectedIndex = i),
-              destinations: _buildDestinations()
-                  .map((d) => NavigationDestination(icon: d.icon, label: d.label))
-                  .toList(),
+              destinations: const [
+                NavigationDestination(icon: Icon(Icons.dashboard), label: 'Дашборд'),
+                NavigationDestination(icon: Icon(Icons.directions_car), label: 'Машины'),
+                NavigationDestination(icon: Icon(Icons.route), label: 'Рейсы'),
+                NavigationDestination(icon: Icon(Icons.receipt_long), label: 'Расходы'),
+                NavigationDestination(icon: Icon(Icons.payments), label: 'Зарплата'),
+              ],
             )
           : null,
     );

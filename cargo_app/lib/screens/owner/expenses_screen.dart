@@ -139,10 +139,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             isDense: true,
             contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           ),
-          items: salaryProvider.drivers.map((d) {
-            return DropdownMenuItem(
-              value: d['uid'],
-              child: Text(d['displayName'] ?? d['uid'] ?? '', overflow: TextOverflow.ellipsis),
+          items: salaryProvider.drivers.map<DropdownMenuItem<String>>((d) {
+            return DropdownMenuItem<String>(
+              value: d['uid'] as String?,
+              child: Text((d['displayName'] ?? d['uid'] ?? '') as String, overflow: TextOverflow.ellipsis),
             );
           }).toList(),
           onChanged: (v) {

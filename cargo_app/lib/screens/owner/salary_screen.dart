@@ -175,10 +175,10 @@ class _SalaryScreenState extends State<SalaryScreen> {
                 labelText: 'Водитель',
                 border: OutlineInputBorder(),
               ),
-              items: salaryProvider.drivers.map((d) {
-                return DropdownMenuItem(
-                  value: d['uid'],
-                  child: Text(d['displayName'] ?? d['uid'] ?? ''),
+              items: salaryProvider.drivers.map<DropdownMenuItem<String>>((d) {
+                return DropdownMenuItem<String>(
+                  value: d['uid'] as String?,
+                  child: Text((d['displayName'] ?? d['uid'] ?? '') as String),
                 );
               }).toList(),
               onChanged: (v) {
