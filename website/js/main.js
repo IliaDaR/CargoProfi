@@ -1,136 +1,141 @@
-// ===== HEADER SCROLL EFFECT =====
-const header = document.getElementById('header');
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 10) {
-    header.classList.add('scrolled');
-  } else {
-    header.classList.remove('scrolled');
-  }
-});
+/*!
+ * Numino Landing — minimal / secure
+ * Public scripts: header scroll effect, modal logic, forms
+ * No analytics, no third-party trackers.
+ */
 
-// ===== LOGIN MODAL =====
-const modal = document.getElementById('loginModal');
-const closeModal = document.getElementById('closeModal');
-const modalBackdrop = modal.querySelector('.modal__backdrop');
-const loginMessage = document.getElementById('loginMessage');
+(function () {
+  'use strict';
 
-function openModal() {
-  modal.classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModalFn() {
-  modal.classList.remove('active');
-  document.body.style.overflow = '';
-  loginMessage.textContent = '';
-  loginMessage.className = 'modal__info';
-}
-
-document.querySelectorAll('.login-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    e.preventDefault();
-    openModal();
+  // ===== HEADER SHADOW ON SCROLL =====
+  const hdr = document.getElementById('header');
+  window.addEventListener('scroll', function () {
+    hdr.classList.toggle('scrolled', window.scrollY > 8);
   });
-});
 
-closeModal.addEventListener('click', closeModalFn);
-modalBackdrop.addEventListener('click', closeModalFn);
+  // ===== MODAL =====
+  const modal = document.getElementById('loginModal');
+  const msgEl = document.getElementById('loginMessage');
 
-// Escape key
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && modal.classList.contains('active')) {
-    closeModalFn();
+  function openModal() {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
   }
-});
 
-// ===== LOGIN / REGISTER FORM =====
-const loginForm = document.getElementById('loginForm');
-const showRegister = document.getElementById('showRegister');
-const modalTitle = modal.querySelector('.modal__title');
-const modalSubtitle = modal.querySelector('.modal__subtitle');
-const submitBtn = loginForm.querySelector('button[type="submit"]');
-const modalLink = modal.querySelector('.modal__link');
-let isRegisterMode = false;
+  function closeModal() {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    msgEl.textContent = '';
+    msgEl.className = 'modal__msg';
+  }
 
-showRegister.addEventListener('click', (e) => {
-  e.preventDefault();
-  isRegisterMode = !isRegisterMode;
-  if (isRegisterMode) {
-    modalTitle.textContent = 'Регистрация';
-    modalSubtitle.textContent = 'Для владельцев парка';
-    submitBtn.textContent = 'Зарегистрироваться';
-    modalLink.innerHTML = 'Уже есть аккаунт? <a href="#" class="modal__switch" id="showRegister">Войти</a>';
-    // Add name field if in register mode
-    const form = document.getElementById('loginForm');
-    if (!form.querySelector('.register-name')) {
-      const nameGroup = document.createElement('div');
-      nameGroup.className = 'modal__form-group register-name';
-      nameGroup.innerHTML = '<label class="modal__label">Имя</label><input type="text" class="modal__input" placeholder="Иван Петров" required>';
-      form.insertBefore(nameGroup, form.children[0]);
+  document.querySelectorAll('.login-btn').forEach(function (b) {
+    b.addEventListener('click', function (e) {
+      e.preventDefault();
+      openModal();
+    });
+  });
+
+  document.getElementById('closeModal').addEventListener('click', closeModal);
+  modal.querySelector('.modal__bg').addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+  });
+
+  // ===== LOGIN / REGISTER TOGGLE =====
+  var isReg = false;
+  var registerNameField = null;
+
+  function buildNameField() {
+    var g = document.createElement('div');
+    g.style.cssText = 'display:flex;flex-direction:column;gap:4px;margin-top:2px';
+    g.innerHTML = '<label>Имя</label><input type="text" placeholder="Иван Петров" required autocomplete="name">';
+    return g;
+  }
+
+  document.getElementById('showRegister').addEventListener('click', function (e) {
+    e.preventDefault();
+    isReg = !isReg;
+    var form = document.getElementById('loginForm');
+    var submitBtn = document.getElementById('modalSubmit');
+
+    if (isReg) {
+      document.getElementById('modalTitle').textContent = 'Регистрация';
+      document.getElementById('modalSub').textContent = 'Для владельцев парка';
+      submitBtn.textContent = 'Зарегистрироваться';
+      registerNameField = buildNameField();
+      form.insertBefore(registerNameField, form.children[0]);
+    } else {
+      document.getElementById('modalTitle').textContent = 'Вход в кабинет';
+      document.getElementById('modalSub').textContent = 'Для владельцев парка';
+      submitBtn.textContent = 'Войти';
+      if (registerNameField) { registerNameField.remove(); registerNameField = null; }
     }
-  } else {
-    modalTitle.textContent = 'Вход в кабинет';
-    modalSubtitle.textContent = 'Для владельцев парка';
-    submitBtn.textContent = 'Войти';
-    modalLink.innerHTML = 'Нет аккаунта? <a href="#" class="modal__switch" id="showRegister">Зарегистрироваться</a>';
-    const nameField = loginForm.querySelector('.register-name');
-    if (nameField) nameField.remove();
+  });
+
+  // ===== LOGIN FORM (demo stub) =====
+  document.getElementById('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    msgEl.textContent = 'Демо-режим. В production — вход через Firebase Auth.';
+    msgEl.className = 'modal__msg success';
+  });
+
+  // ===== CONTACT FORM (demo stub) =====
+  var contactForm = document.getElementById('contactForm');
+  if (contactForm) {
+    contactForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = contactForm.querySelector('button');
+      var orig = btn.textContent;
+      btn.textContent = 'Отправлено!';
+      btn.style.background = '#22c55e';
+      btn.style.borderColor = '#22c55e';
+      setTimeout(function () {
+        btn.textContent = orig;
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        contactForm.reset();
+      }, 2200);
+    });
+
+    // Bot honey-pot (hidden field)
+    var hp = document.createElement('input');
+    hp.type = 'text';
+    hp.name = '_honey';
+    hp.style.cssText = 'position:absolute;left:-9999px;opacity:0;height:0;width:0';
+    hp.tabIndex = -1;
+    hp.autocomplete = 'off';
+    contactForm.appendChild(hp);
   }
-  // Re-bind the switch link
-  const newSwitch = modalLink.querySelector('.modal__switch');
-  if (newSwitch) {
-    newSwitch.addEventListener('click', (ev) => {
-      ev.preventDefault();
-      showRegister.click();
+
+  // ===== DOWNLOAD APK =====
+  var apkBtn = document.getElementById('downloadApk');
+  if (apkBtn) {
+    apkBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      alert('APK будет доступен после сборки приложения.\nИнструкция: cargo_app/README.md');
     });
   }
-});
 
-loginForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const inputs = loginForm.querySelectorAll('input');
-  const email = inputs[inputs.length - 2]?.value?.trim();
-  const password = inputs[inputs.length - 1]?.value?.trim();
-
-  // This is a demo landing page — in production, call Firebase Auth
-  loginMessage.textContent = 'Демо-режим. В production здесь будет вход через Firebase Auth.';
-  loginMessage.className = 'modal__info modal__info--success';
-
-  // Redirect would go here in production:
-  // setTimeout(() => { window.location.href = '/dashboard'; }, 1500);
-});
-
-// ===== CONTACT FORM =====
-const contactForm = document.getElementById('contactForm');
-contactForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const btn = contactForm.querySelector('button');
-  const originalText = btn.textContent;
-  btn.textContent = 'Отправлено!';
-  btn.style.background = '#22c55e';
-  setTimeout(() => {
-    btn.textContent = originalText;
-    btn.style.background = '';
-    contactForm.reset();
-  }, 2000);
-});
-
-// ===== DOWNLOAD APK =====
-document.getElementById('downloadApk').addEventListener('click', (e) => {
-  e.preventDefault();
-  // Placeholder: in production, link to real APK
-  alert('APK будет доступен после сборки приложения.\nСм. инструкцию в cargo_app/README.md');
-});
-
-// ===== SMOOTH SCROLL FOR ALL ANCHOR LINKS =====
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function(e) {
-    const href = this.getAttribute('href');
-    if (href === '#') return;
-    const target = document.querySelector(href);
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+  // ===== SMOOTH SCROLL =====
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var href = a.getAttribute('href');
+      if (href === '#' || href === null) return;
+      var t = document.querySelector(href);
+      if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
   });
-});
+
+  // ===== SANITIZE ALL INPUTS (XSS prevention) =====
+  function sanitize(s) {
+    return String(s).replace(/[<>]/g, '');
+  }
+
+  document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(function (el) {
+    el.addEventListener('input', function () {
+      el.value = sanitize(el.value);
+    });
+  });
+})();
