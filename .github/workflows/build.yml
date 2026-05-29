@@ -76,6 +76,11 @@ jobs:
         working-directory: cargo_app
         run: flutter pub get
 
+      - name: Установка Android SDK Platform 36
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" || true
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "platforms;android-36" || true
+
       - name: Сборка APK (debug)
         working-directory: cargo_app
         run: flutter build apk --debug
