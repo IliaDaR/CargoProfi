@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Numino — Учёт грузоперевозок</title>
+  <meta name="description" content="Рабочий кабинет перевозчика. GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты водителей.">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a href="#" class="logo">
+        <img src="assets/logo.svg" alt="Numino" class="logo__img" width="40" height="40">
+        <span class="logo__text">Numino</span>
+      </a>
+      <nav class="nav">
+        <a href="#features" class="nav__link">Возможности</a>
+        <a href="#how-it-works" class="nav__link">Как работает</a>
+        <a href="#download" class="nav__link">Приложение</a>
+        <a href="#pricing" class="nav__link">Тарифы</a>
+        <a href="#contact" class="nav__link">Контакты</a>
+      </nav>
+      <a href="#" class="btn btn--primary login-btn" id="ownerLoginBtn">Войти</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero__inner">
+      <div class="hero__content">
+        <h1 class="hero__title">
+          Полный контроль автопарка<br>
+          <span class="gradient-text">в одном кабинете</span>
+        </h1>
+        <p class="hero__subtitle">
+          GPS-трекинг рейсов, автоматический расчёт пробега,
+          учёт расходов с фото чеков, путевые листы по приказу Минтранса
+          и начисление зарплаты водителям.
+        </p>
+        <div class="hero__actions">
+          <a href="#" class="btn btn--primary btn--lg login-btn" id="heroLoginBtn">
+            Войти в кабинет
+          </a>
+          <a href="#download" class="btn btn--outline btn--lg">
+            Скачать приложение
+          </a>
+        </div>
+      </div>
+      <div class="hero__image">
+        <img src="assets/dashboard-preview.svg" alt="Дашборд Numino" class="hero__img">
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="container">
+      <h2 class="section__title">Всё, что нужно перевозчику</h2>
+      <p class="section__subtitle">Инструменты для владельца парка и водителей в одной системе</p>
+
+      <div class="features__grid">
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+            </svg>
+          </div>
+          <h3 class="feature-card__title">GPS-трекинг рейсов</h3>
+          <p class="feature-card__text">
+            Водитель нажимает «Начать рейс» — координаты пишутся каждую минуту.
+            Пробег считается автоматически по формуле гаверсинусов.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Путевые листы</h3>
+          <p class="feature-card__text">
+            PDF по форме Приказа Минтранса. Дата, госномер, водитель, пробег,
+            время выезда/возврата — подставляются автоматически из рейса.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Учёт расходов</h3>
+          <p class="feature-card__text">
+            Топливо, стоянка, ремонт — с фото чеков и GPS-меткой.
+            Сводная таблица по категориям для владельца.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Расчёт зарплаты</h3>
+          <p class="feature-card__text">
+            Правило: % от дохода рейса или фикс за рейс.
+            Расчёт за любой период, ведомость и история выплат.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="1" y="3" width="15" height="13"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8"/><circle cx="5" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Контроль автопарка</h3>
+          <p class="feature-card__text">
+            Все машины на дашборде. Статус: в рейсе или свободен.
+            История по каждому автомобилю.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-card__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h3 class="feature-card__title">Безопасность</h3>
+          <p class="feature-card__text">
+            Ролевой доступ: водитель видит свои рейсы, владелец — весь парк.
+            Данные хранятся в Firebase с шифрованием.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how-it-works">
+    <div class="container">
+      <h2 class="section__title">Как это работает</h2>
+      <div class="how__steps">
+        <div class="how__step">
+          <div class="how__step-num">1</div>
+          <h3 class="how__step-title">Регистрация</h3>
+          <p class="how__step-text">Владелец создаёт аккаунт, добавляет машины и водителей.</p>
+        </div>
+        <div class="how__arrow">&rarr;</div>
+        <div class="how__step">
+          <div class="how__step-num">2</div>
+          <h3 class="how__step-title">Рейс</h3>
+          <p class="how__step-text">Водитель нажимает «Начать рейс» — включается GPS-трекинг.</p>
+        </div>
+        <div class="how__arrow">&rarr;</div>
+        <div class="how__step">
+          <div class="how__step-num">3</div>
+          <h3 class="how__step-title">Учёт</h3>
+          <p class="how__step-text">Расходы фиксируются с фото чеков. Пробег считается автоматически.</p>
+        </div>
+        <div class="how__arrow">&rarr;</div>
+        <div class="how__step">
+          <div class="how__step-num">4</div>
+          <h3 class="how__step-title">Результат</h3>
+          <p class="how__step-text">Владелец получает путевой лист, сводку расходов и расчёт зарплаты.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD -->
+  <section class="download" id="download">
+    <div class="container download__inner">
+      <div class="download__content">
+        <h2 class="section__title section__title--light">Приложение для водителя</h2>
+        <p class="download__text">
+          Доступно на Android. GPS-трекинг в фоне, фото чеков, история рейсов.
+          Работает даже без интернета — данные синхронизируются при подключении.
+        </p>
+        <div class="download__buttons">
+          <a href="#" class="btn btn--download" id="downloadApk">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.9 17.39c-.26-.8-1.01-1.39-1.9-1.39h-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3H7c-.89 0-1.64.59-1.9 1.39L3.53 22h15.94l-1.57-4.61zM12 2L8 6h3v5h2V6h3l-4-4z"/></svg>
+            Скачать APK
+          </a>
+          <a href="#" class="btn btn--outline-light">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 0 1 0 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/></svg>
+            Google Play
+          </a>
+        </div>
+        <p class="download__version">Версия 1.0.0 &bull; Android 8.0+ &bull; 15 MB</p>
+      </div>
+      <div class="download__image">
+        <img src="assets/app-mockup.svg" alt="Приложение водителя" class="download__img">
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <h2 class="section__title">Тарифы</h2>
+      <p class="section__subtitle">Начните бесплатно — платите когда парк растёт</p>
+
+      <div class="pricing__grid">
+        <div class="pricing-card">
+          <div class="pricing-card__header">
+            <h3 class="pricing-card__name">Старт</h3>
+            <p class="pricing-card__desc">Для небольших парков до 5 машин</p>
+          </div>
+          <div class="pricing-card__price">
+            <span class="pricing-card__amount">0 ₽</span>
+            <span class="pricing-card__period">/мес</span>
+          </div>
+          <ul class="pricing-card__features">
+            <li>До 5 машин</li>
+            <li>До 3 водителей</li>
+            <li>GPS-трекинг</li>
+            <li>Путевые листы</li>
+            <li>Базовый учёт расходов</li>
+          </ul>
+          <a href="#" class="btn btn--outline btn--full login-btn">Начать бесплатно</a>
+        </div>
+
+        <div class="pricing-card pricing-card--popular">
+          <div class="pricing-card__badge">Популярный</div>
+          <div class="pricing-card__header">
+            <h3 class="pricing-card__name">Бизнес</h3>
+            <p class="pricing-card__desc">Для средних парков до 20 машин</p>
+          </div>
+          <div class="pricing-card__price">
+            <span class="pricing-card__amount">1 990 ₽</span>
+            <span class="pricing-card__period">/мес</span>
+          </div>
+          <ul class="pricing-card__features">
+            <li>До 20 машин</li>
+            <li>До 15 водителей</li>
+            <li>Расчёт зарплаты</li>
+            <li>Сводка расходов</li>
+            <li>Приоритетная поддержка</li>
+          </ul>
+          <a href="#" class="btn btn--primary btn--full login-btn">Попробовать 14 дней</a>
+        </div>
+
+        <div class="pricing-card">
+          <div class="pricing-card__header">
+            <h3 class="pricing-card__name">Корпоративный</h3>
+            <p class="pricing-card__desc">Для крупных парков от 20 машин</p>
+          </div>
+          <div class="pricing-card__price">
+            <span class="pricing-card__amount">Индив.</span>
+            <span class="pricing-card__period"></span>
+          </div>
+          <ul class="pricing-card__features">
+            <li>Безлимит машин</li>
+            <li>Безлимит водителей</li>
+            <li>API-доступ</li>
+            <li>Персональный менеджер</li>
+            <li>Интеграция с 1С</li>
+          </ul>
+          <a href="#contact" class="btn btn--outline btn--full">Связаться</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div class="container contact__inner">
+      <div class="contact__content">
+        <h2 class="section__title section__title--light">Остались вопросы?</h2>
+        <p class="contact__text">
+          Напишите нам — поможем с настройкой, подберём тариф и ответим на любые вопросы.
+        </p>
+        <div class="contact__links">
+          <a href="mailto:info@numino.ru" class="contact__link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4L12 13 2 4"/>
+            </svg>
+            info@numino.ru
+          </a>
+          <a href="tel:+78000000000" class="contact__link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+            8 (800) 000-00-00
+          </a>
+          <a href="https://t.me/numino_support" class="contact__link" target="_blank" rel="noopener">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.5 2.5L2.5 10l6 2 8-6-5 7 2 6 4-11 4-5.5z"/>
+            </svg>
+            Telegram
+          </a>
+        </div>
+      </div>
+      <form class="contact__form" id="contactForm">
+        <div class="contact__form-group">
+          <input type="text" class="contact__input" placeholder="Имя" required>
+        </div>
+        <div class="contact__form-group">
+          <input type="email" class="contact__input" placeholder="Email" required>
+        </div>
+        <div class="contact__form-group">
+          <input type="tel" class="contact__input" placeholder="Телефон">
+        </div>
+        <div class="contact__form-group">
+          <textarea class="contact__input contact__textarea" placeholder="Сообщение" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn--primary btn--full">Отправить</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <span class="logo__text logo__text--dark">Numino</span>
+        <p class="footer__copy">&copy; 2026 Numino. Все права защищены.</p>
+      </div>
+      <div class="footer__links">
+        <div class="footer__col">
+          <h4>Продукт</h4>
+          <a href="#features">Возможности</a>
+          <a href="#how-it-works">Как работает</a>
+          <a href="#pricing">Тарифы</a>
+          <a href="#" class="login-btn">Вход для владельца</a>
+        </div>
+        <div class="footer__col">
+          <h4>Приложение</h4>
+          <a href="#download">Скачать APK</a>
+          <a href="#">Google Play</a>
+          <a href="#">Документация</a>
+        </div>
+        <div class="footer__col">
+          <h4>Компания</h4>
+          <a href="#contact">Контакты</a>
+          <a href="#">Политика конфид.</a>
+          <a href="#">Договор-оферта</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- LOGIN MODAL -->
+  <div class="modal" id="loginModal">
+    <div class="modal__backdrop"></div>
+    <div class="modal__body">
+      <button class="modal__close" id="closeModal">&times;</button>
+      <h3 class="modal__title">Вход в кабинет</h3>
+      <p class="modal__subtitle">Для владельцев парка</p>
+      <form class="modal__form" id="loginForm">
+        <div class="modal__form-group">
+          <label class="modal__label">Email</label>
+          <input type="email" class="modal__input" placeholder="ivan@company.ru" required>
+        </div>
+        <div class="modal__form-group">
+          <label class="modal__label">Пароль</label>
+          <input type="password" class="modal__input" placeholder="••••••" required>
+        </div>
+        <button type="submit" class="btn btn--primary btn--full">Войти</button>
+      </form>
+      <p class="modal__link">
+        Нет аккаунта? <a href="#" class="modal__switch" id="showRegister">Зарегистрироваться</a>
+      </p>
+      <p class="modal__info" id="loginMessage"></p>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
