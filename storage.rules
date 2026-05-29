@@ -1,0 +1,66 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Вспомогательные функции
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function getUserRole() {
+      let driverDoc = firestore.get(/databases/(default)/documents/drivers/$(request.auth.uid));
+      let ownerDoc = firestore.get(/databases/(default)/documents/owners/$(request.auth.uid));
+      return (
+        (driverDoc != null && driverDoc.data.role == 'driver') ? 'driver' :
+        (ownerDoc != null && ownerDoc.data.role == 'owner') ? 'owner' :
+        null
+      );
+    }
+
+    function isOwner() {
+      return getUserRole() == 'owner';
+    }
+
+    function getDriverOwnerId() {
+      return firestore.get(/databases/(default)/documents/drivers/$(request.auth.uid)).data.ownerId;
+    }
+
+    function getOwnerDriverIds(ownerId) {
+      return firestore.get(/databases/(default)/documents/owners/$(ownerId)).data.driverIds;
+    }
+
+    // Чеки (расходы) — /receipts/{driverId}/{expenseId}.{ext}
+    match /receipts/{driverId}/{expenseId} {
+      // Водитель загружает чеки только в свою папку
+      allow create: if isAuth()
+                     && driverId == request.auth.uid
+                     && request.resource.size < 10 * 1024 * 1024  // макс 10 MB
+                     && request.resource.contentType.matches('image/.*');
+
+      // Водитель и его владелец могут читать чеки
+      allow read: if isAuth()
+                   && (request.auth.uid == driverId
+                       || (isOwner()
+                           && driverId in getOwnerDriverIds(request.auth.uid)));
+
+      // Запрет удаления и перезаписи
+      allow update, delete: if false;
+    }
+
+    // PDF путевых листов — /waybills/{ownerId}/{tripId}.pdf
+    match /waybills/{ownerId}/{tripId} {
+      allow read: if isAuth()
+                   && (isOwner() && request.auth.uid == ownerId);
+      allow create: if isAuth()
+                     && isOwner()
+                     && request.auth.uid == ownerId;
+      allow update, delete: if false;
+    }
+
+    // Запрет на всё остальное
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

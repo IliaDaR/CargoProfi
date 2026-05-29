@@ -1,0 +1,176 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+
+    // Проверка: запрос от аутентифицированного пользователя
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Получает роль пользователя из документа drivers (если он водитель)
+    // или из документа owners (если владелец)
+    function getUserRole() {
+      let driverDoc = get(/databases/$(database)/documents/drivers/$(request.auth.uid));
+      let ownerDoc = get(/databases/$(database)/documents/owners/$(request.auth.uid));
+      return (
+        (driverDoc != null && driverDoc.data.role == 'driver') ? 'driver' :
+        (ownerDoc != null && ownerDoc.data.role == 'owner') ? 'owner' :
+        null
+      );
+    }
+
+    // Проверка: пользователь — owner
+    function isOwner() {
+      return getUserRole() == 'owner';
+    }
+
+    // Проверка: пользователь — driver
+    function isDriver() {
+      return getUserRole() == 'driver';
+    }
+
+    // Возвращает ownerId для текущего водителя
+    function getDriverOwnerId() {
+      return get(/databases/$(database)/documents/drivers/$(request.auth.uid)).data.ownerId;
+    }
+
+    // Возвращает список driverId, принадлежащих данному owner
+    function getOwnerDriverIds(ownerId) {
+      return get(/databases/$(database)/documents/owners/$(ownerId)).data.driverIds;
+    }
+
+    // ===== OWNERS =====
+    match /owners/{ownerId} {
+      // Владелец видит/редактирует только свой профиль
+      allow read, write: if isAuth()
+                          && request.auth.uid == ownerId
+                          && isOwner();
+
+      // При регистрации — создание документа
+      allow create: if isAuth()
+                     && request.auth.uid == ownerId
+                     && request.resource.data.role == 'owner'
+                     && request.resource.data.driverIds is list;
+    }
+
+    // ===== DRIVERS =====
+    match /drivers/{driverId} {
+      // Водитель видит только свой профиль
+      allow read: if isAuth()
+                   && (request.auth.uid == driverId
+                       || (isOwner() && driverId in getOwnerDriverIds(request.auth.uid)));
+
+      // Владелец создаёт/редактирует профили своих водителей
+      allow write: if isAuth()
+                    && isOwner()
+                    && (request.auth.uid == driverId
+                        || driverId in getOwnerDriverIds(request.auth.uid));
+
+      allow create: if isAuth()
+                     && isOwner()
+                     && request.resource.data.role == 'driver'
+                     && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    // ===== VEHICLES =====
+    match /vehicles/{vehicleId} {
+      allow read: if isAuth()
+                   && (isOwner()
+                       && request.auth.uid == resource.data.ownerId);
+      allow write: if isAuth()
+                    && isOwner()
+                    && request.auth.uid == resource.data.ownerId;
+      allow create: if isAuth()
+                     && isOwner()
+                     && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    // ===== TRIPS =====
+    match /trips/{tripId} {
+      // Водитель видит только свои рейсы
+      // Владелец видит рейсы водителей своего парка
+      allow read: if isAuth()
+                   && (resource.data.driverId == request.auth.uid
+                       || (isOwner()
+                           && resource.data.driverId in getOwnerDriverIds(request.auth.uid)));
+
+      // Водитель может создавать рейс для себя и обновлять его
+      allow create: if isAuth()
+                     && isDriver()
+                     && request.resource.data.driverId == request.auth.uid
+                     && request.resource.data.status == 'active';
+
+      // Водитель обновляет только свои активные рейсы (трек, расходы, завершение)
+      allow update: if isAuth()
+                     && (request.auth.uid == resource.data.driverId
+                         && resource.data.status == 'active')
+                     // Водитель может только менять статус, track и конечные данные
+                     && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'track', 'endTime', 'endLocation', 'mileage', 'manualMileage', 'mileageSource']);
+
+      // Владелец может читать все рейсы своих водителей, но не менять
+      allow read: if isOwner()
+                   && resource.data.driverId in getOwnerDriverIds(request.auth.uid);
+    }
+
+    // ===== EXPENSES =====
+    match /expenses/{expenseId} {
+      // Водитель видит только свои расходы
+      // Владелец видит расходы водителей своего парка
+      allow read: if isAuth()
+                   && (resource.data.driverId == request.auth.uid
+                       || (isOwner()
+                           && resource.data.driverId in getOwnerDriverIds(request.auth.uid)));
+
+      // Водитель создаёт расходы только для своих рейсов
+      allow create: if isAuth()
+                     && isDriver()
+                     && request.resource.data.driverId == request.auth.uid
+                     && get(/databases/$(database)/documents/trips/$(request.resource.data.tripId)).data.status == 'active';
+
+      // Водитель может обновить только свои расходы
+      allow update: if isAuth()
+                     && request.auth.uid == resource.data.driverId
+                     && request.resource.data.driverId == resource.data.driverId;
+
+      // Запрет удаления расходов (только через Cloud Function при необходимости)
+      allow delete: if false;
+    }
+
+    // ===== SALARY RULES =====
+    match /salaryRules/{ruleId} {
+      // Владелец управляет правилами для своих водителей
+      allow read: if isAuth()
+                   && (isOwner()
+                       && resource.data.ownerId == request.auth.uid);
+      allow write: if isAuth()
+                    && isOwner()
+                    && request.resource.data.ownerId == request.auth.uid;
+      allow create: if isAuth()
+                     && isOwner()
+                     && request.resource.data.ownerId == request.auth.uid;
+    }
+
+    // ===== SALARY PAYMENTS =====
+    match /salaryPayments/{paymentId} {
+      allow read: if isAuth()
+                   && (resource.data.driverId == request.auth.uid
+                       || (isOwner()
+                           && resource.data.ownerId == request.auth.uid));
+      allow create: if isAuth()
+                     && isOwner()
+                     && request.resource.data.ownerId == request.auth.uid;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ===== ГЛОБАЛЬНЫЕ ПРАВИЛА =====
+    // Запрещаем доступ к неописанным коллекциям
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
