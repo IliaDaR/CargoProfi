@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Numino — Рабочий кабинет перевозчика</title>
   <meta name="description" content="GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты водителей — всё в одном сервисе.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com; frame-src 'none'; object-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com; frame-src 'none'; object-src 'none';">
   <meta name="referrer" content="no-referrer">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
@@ -31,13 +31,15 @@
   <!-- HERO -->
   <section class="hero">
     <div class="container hero__inner">
-      <h1>Учёт грузоперевозок <span class="gradient">без headache</span></h1>
-      <p>GPS-трекинг, путевые листы, расходы и зарплата водителей — всё на одном экране.</p>
-      <div class="hero__btns">
-        <button class="btn btn--primary btn--lg login-btn">Войти в кабинет</button>
-        <a href="#download" class="btn btn--outline btn--lg">Скачать приложение</a>
+      <div class="hero__text">
+        <h1>Полный контроль автопарка <span class="gradient">в одном кабинете</span></h1>
+        <p>GPS-трекинг, автоматический расчёт пробега, учёт расходов с фото чеков, путевые листы по приказу Минтранса и начисление зарплаты водителям.</p>
+        <div class="hero__btns">
+          <button class="btn btn--primary btn--lg login-btn">Войти в кабинет</button>
+          <a href="#download" class="btn btn--outline btn--lg">Скачать приложение</a>
+        </div>
       </div>
-      <div class="hero__preview">
+      <div class="hero__img">
         <img src="assets/dashboard-preview.svg" alt="Дашборд">
       </div>
     </div>
@@ -67,7 +69,7 @@
     </div>
   </section>
 
-  <!-- HOW IT WORKS -->
+  <!-- HOW -->
   <section class="how" id="how">
     <div class="container">
       <h2 class="section__title">4 шага</h2>
@@ -129,8 +131,10 @@
   <!-- DOWNLOAD -->
   <section class="download" id="download">
     <div class="container download__inner">
-      <img src="assets/app-mockup.svg" alt="Приложение" class="download__img">
-      <div class="download__content">
+      <div class="download__img">
+        <img src="assets/app-mockup.svg" alt="Приложение">
+      </div>
+      <div class="download__text">
         <h2>Приложение для водителя</h2>
         <p>GPS-трекинг, фото чеков, история рейсов — всегда под рукой на Android.</p>
         <a href="#" class="btn btn--download" id="downloadApk">
