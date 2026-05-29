@@ -164,11 +164,22 @@
   <section class="how" id="how">
     <div class="container">
       <h2 class="section__title">4 шага</h2>
-      <div class="how__steps">
-        <div class="step"><span>1</span> Владелец регистрируется и добавляет машины с водителями</div>
-        <div class="step"><span>2</span> Водитель нажимает «Начать рейс» — включается GPS</div>
-        <div class="step"><span>3</span> В пути фиксируются расходы с фото чеков</div>
-        <div class="step"><span>4</span> Владелец получает путевой лист и расчёт зарплаты</div>
+      <div class="carousel" id="howCarousel">
+        <div class="carousel__track" id="howTrack">
+          <div class="step-card"><span>1</span><h3>Регистрация</h3><p>Владелец создаёт аккаунт, добавляет машины и водителей в систему.</p></div>
+          <div class="step-card"><span>2</span><h3>Рейс</h3><p>Водитель нажимает «Начать рейс» — включается GPS-трекинг.</p></div>
+          <div class="step-card"><span>3</span><h3>Учёт</h3><p>В пути фиксируются расходы с фото чеков, пробег считается автоматически.</p></div>
+          <div class="step-card"><span>4</span><h3>Результат</h3><p>Владелец получает путевой лист, сводку расходов и расчёт зарплаты.</p></div>
+        </div>
+        <div class="carousel__nav">
+          <button class="carousel__btn carousel__btn--prev" id="howPrev" aria-label="Предыдущий">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
+          </button>
+          <div class="carousel__dots" id="howDots"></div>
+          <button class="carousel__btn carousel__btn--next" id="howNext" aria-label="Следующий">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   </section>

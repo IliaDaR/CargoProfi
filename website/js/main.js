@@ -73,14 +73,48 @@
     }
   });
 
-  // ===== LOGIN FORM — redirect to admin =====
+  // ===== LOGIN FORM — demo accounts + redirect to admin =====
   document.getElementById('loginForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    msgEl.textContent = 'Вход выполнен. Переход в кабинет...';
-    msgEl.className = 'modal__msg success';
-    setTimeout(function () {
-      window.location.href = 'admin/index.html';
-    }, 800);
+    var inputs = e.target.querySelectorAll('input');
+    var email = '';
+    var pass = '';
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].type === 'email') email = inputs[i].value.trim();
+      if (inputs[i].type === 'password') pass = inputs[i].value;
+    }
+
+    // Demo accounts (замени на Firebase Auth после настройки)
+    var accounts = {
+      'admin@numino.ru':  { pass: 'admin123',  role: 'admin', name: 'Администратор' },
+      'owner@numino.ru':  { pass: 'owner123',  role: 'owner', name: 'Владелец парка' },
+    };
+
+    if (isReg) {
+      msgEl.textContent = 'Демо-режим. Аккаунт создан! Теперь войдите.';
+      msgEl.className = 'modal__msg success';
+      // Switch back to login mode
+      isReg = true;
+      document.getElementById('showRegister').click();
+      return;
+    }
+
+    var acc = accounts[email];
+    if (acc && pass === acc.pass) {
+      msgEl.textContent = 'Добро пожаловать, ' + acc.name + '! Переход в кабинет...';
+      msgEl.className = 'modal__msg success';
+      setTimeout(function () {
+        window.location.href = 'admin/index.html';
+      }, 1000);
+    } else {
+      msgEl.textContent = 'Неверный email или пароль.';
+      msgEl.className = 'modal__msg error';
+      // Demo hint
+      var hint = document.createElement('p');
+      hint.style.cssText = 'text-align:center;font-size:.78rem;color:#64748b;margin-top:6px';
+      hint.textContent = 'Демо: admin@numino.ru / admin123';
+      msgEl.appendChild(hint);
+    }
   });
 
   // ===== CONTACT FORM =====
@@ -113,14 +147,15 @@
 
   // ===== DOWNLOAD APK — handled via direct href to GitHub releases =====
 
-  // ===== FEATURES CAROUSEL =====
-  var track = document.getElementById('featuresTrack');
-  var prevBtn = document.getElementById('carouselPrev');
-  var nextBtn = document.getElementById('carouselNext');
-  var dotsContainer = document.getElementById('carouselDots');
+  // ===== CAROUSEL FACTORY =====
+  function createCarousel(trackId, prevId, nextId, dotsId) {
+    var track = document.getElementById(trackId);
+    var prevBtn = document.getElementById(prevId);
+    var nextBtn = document.getElementById(nextId);
+    var dotsContainer = document.getElementById(dotsId);
+    if (!track || !prevBtn || !nextBtn || !dotsContainer) return;
 
-  if (track && prevBtn && nextBtn && dotsContainer) {
-    var slides = track.querySelectorAll('.feat-card');
+    var slides = track.querySelectorAll('.feat-card, .step-card');
     var totalSlides = slides.length;
     var current = 0;
     var autoTimer = null;
@@ -149,20 +184,12 @@
     nextBtn.addEventListener('click', function () { goTo(current + 1); });
     prevBtn.addEventListener('click', function () { goTo(current - 1); });
 
-    function startAuto() {
-      autoTimer = setInterval(function () { goTo(current + 1); }, INTERVAL);
-    }
-
-    function resetAuto() {
-      clearInterval(autoTimer);
-      startAuto();
-    }
+    function startAuto() { autoTimer = setInterval(function () { goTo(current + 1); }, INTERVAL); }
+    function resetAuto() { clearInterval(autoTimer); startAuto(); }
 
     // Touch swipe
     var touchStartX = 0;
-    track.addEventListener('touchstart', function (e) {
-      touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
+    track.addEventListener('touchstart', function (e) { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
     track.addEventListener('touchend', function (e) {
       var diff = touchStartX - e.changedTouches[0].screenX;
       if (Math.abs(diff) > 50) goTo(diff > 0 ? current + 1 : current - 1);
@@ -170,19 +197,17 @@
 
     // Mouse drag
     var isDragging = false;
-    track.addEventListener('mousedown', function () {
-      isDragging = true; track.classList.add('dragging'); clearInterval(autoTimer);
-    });
-    track.addEventListener('mouseup', function () {
-      isDragging = false; track.classList.remove('dragging'); startAuto();
-    });
-    track.addEventListener('mouseleave', function () {
-      if (isDragging) { isDragging = false; track.classList.remove('dragging'); startAuto(); }
-    });
+    track.addEventListener('mousedown', function () { isDragging = true; track.classList.add('dragging'); clearInterval(autoTimer); });
+    track.addEventListener('mouseup', function () { isDragging = false; track.classList.remove('dragging'); startAuto(); });
+    track.addEventListener('mouseleave', function () { if (isDragging) { isDragging = false; track.classList.remove('dragging'); startAuto(); } });
 
     goTo(0);
     startAuto();
   }
+
+  // Init both carousels
+  createCarousel('featuresTrack', 'carouselPrev', 'carouselNext', 'carouselDots');
+  createCarousel('howTrack', 'howPrev', 'howNext', 'howDots');
 
   // ===== SMOOTH SCROLL =====
   document.querySelectorAll('a[href^="#"]').forEach(function (a) {
