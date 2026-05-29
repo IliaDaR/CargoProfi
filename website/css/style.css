@@ -44,14 +44,26 @@ a{color:var(--blue);text-decoration:none}
 .hero__img{display:flex;justify-content:center}
 .hero__img img{max-width:100%;filter:drop-shadow(0 20px 40px rgba(37,99,235,.15))}
 
-/* Features */
+/* Features — Carousel */
 .features{padding:80px 0;background:var(--gray-50)}
-.features__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.feat{padding:28px 24px;border-radius:var(--r);background:#fff;border:1px solid var(--gray-300);transition:all var(--tr)}
-.feat:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.08);border-color:var(--blue-l)}
-.feat__icon{font-size:1.4rem;color:var(--blue);margin-bottom:12px}
-.feat h3{font-size:1.05rem;font-weight:600;margin-bottom:6px}
-.feat p{color:var(--gray-500);font-size:.9rem;line-height:1.6}
+.carousel{position:relative;max-width:780px;margin:0 auto;overflow:hidden}
+.carousel__track{display:flex;transition:transform .45s cubic-bezier(.25,.8,.25,1);will-change:transform}
+.carousel__track.dragging{transition:none}
+.feat-card{flex:0 0 100%;padding:36px 32px}
+.feat-card__icon{width:64px;height:64px;display:flex;align-items:center;justify-content:center;border-radius:var(--r);background:var(--blue-l);margin-bottom:16px}
+.feat-card h3{font-size:1.25rem;font-weight:700;margin-bottom:10px}
+.feat-card p{color:var(--gray-500);font-size:.95rem;line-height:1.7;margin-bottom:16px}
+.feat-card__tags{display:flex;flex-wrap:wrap;gap:8px}
+.feat-card__tags span{padding:4px 10px;border-radius:100px;background:var(--blue-l);color:var(--blue);font-size:.78rem;font-weight:600}
+
+/* Carousel navigation */
+.carousel__nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:24px}
+.carousel__btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--gray-300);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--tr);color:var(--gray-500)}
+.carousel__btn:hover{border-color:var(--blue);color:var(--blue);box-shadow:0 2px 8px rgba(37,99,235,.15)}
+.carousel__btn:disabled{opacity:.3;pointer-events:none}
+.carousel__dots{display:flex;gap:8px}
+.carousel__dot{width:10px;height:10px;border-radius:50%;background:var(--gray-300);border:none;cursor:pointer;transition:all var(--tr);padding:0}
+.carousel__dot.active{background:var(--blue);width:28px;border-radius:5px}
 
 /* How */
 .how{padding:80px 0}

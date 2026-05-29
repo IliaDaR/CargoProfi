@@ -109,6 +109,102 @@
     contactForm.appendChild(hp);
   }
 
+  // ===== FEATURES CAROUSEL =====
+  var track = document.getElementById('featuresTrack');
+  var prevBtn = document.getElementById('carouselPrev');
+  var nextBtn = document.getElementById('carouselNext');
+  var dotsContainer = document.getElementById('carouselDots');
+  var slides = track.querySelectorAll('.feat-card');
+  var totalSlides = slides.length;
+  var current = 0;
+  var autoTimer = null;
+  var INTERVAL = 5000;
+
+  // Build dots
+  for (var i = 0; i < totalSlides; i++) {
+    var dot = document.createElement('button');
+    dot.className = 'carousel__dot';
+    dot.setAttribute('aria-label', 'Слайд ' + (i + 1));
+    dot.addEventListener('click', (function (idx) {
+      return function () { goTo(idx); };
+    })(i));
+    dotsContainer.appendChild(dot);
+  }
+  var dots = dotsContainer.querySelectorAll('.carousel__dot');
+
+  function goTo(idx) {
+    if (idx < 0) idx = totalSlides - 1;
+    if (idx >= totalSlides) idx = 0;
+    current = idx;
+    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    dots.forEach(function (d, i) { d.classList.toggle('active', i === current); });
+    resetAuto();
+  }
+
+  nextBtn.addEventListener('click', function () { goTo(current + 1); });
+  prevBtn.addEventListener('click', function () { goTo(current - 1); });
+
+  function startAuto() {
+    autoTimer = setInterval(function () { goTo(current + 1); }, INTERVAL);
+  }
+
+  function resetAuto() {
+    clearInterval(autoTimer);
+    startAuto();
+  }
+
+  // Touch / swipe
+  var touchStartX = 0;
+  var touchEndX = 0;
+
+  track.addEventListener('touchstart', function (e) {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  track.addEventListener('touchend', function (e) {
+    touchEndX = e.changedTouches[0].screenX;
+    var diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) {
+      goTo(diff > 0 ? current + 1 : current - 1);
+    }
+  }, { passive: true });
+
+  // Mouse drag
+  var isDragging = false;
+  var startX = 0;
+
+  track.addEventListener('mousedown', function (e) {
+    isDragging = true;
+    startX = e.pageX;
+    track.classList.add('dragging');
+    clearInterval(autoTimer);
+  });
+
+  track.addEventListener('mouseup', function () {
+    if (!isDragging) return;
+    isDragging = false;
+    track.classList.remove('dragging');
+    startAuto();
+  });
+
+  track.addEventListener('mouseleave', function () {
+    if (!isDragging) return;
+    isDragging = false;
+    track.classList.remove('dragging');
+    startAuto();
+  });
+
+  track.addEventListener('mousemove', function (e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    var diff = e.pageX - startX;
+    // small visual drag — not needed for swipe, just for feel
+  });
+
+  // Init
+  goTo(0);
+  startAuto();
+
   // ===== DOWNLOAD APK =====
   var apkBtn = document.getElementById('downloadApk');
   if (apkBtn) {
