@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Numino — Рабочий кабинет перевозчика</title>
   <meta name="description" content="GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты водителей — всё в одном сервисе.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com; frame-src 'none'; object-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com wss://*.firebaseio.com; frame-src 'self'; font-src 'self'; media-src 'self'; object-src 'none';">
   <meta name="referrer" content="no-referrer">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
@@ -24,7 +24,7 @@
         <a href="#pricing">Тарифы</a>
         <a href="#contact">Контакты</a>
       </nav>
-      <button class="btn btn--sm btn--primary login-btn">Войти</button>
+      <a href="admin/" class="btn btn--sm btn--primary">Войти</a>
     </div>
   </header>
 
@@ -35,7 +35,7 @@
         <h1>Полный контроль автопарка <span class="gradient">в одном кабинете</span></h1>
         <p>GPS-трекинг, автоматический расчёт пробега, учёт расходов с фото чеков, путевые листы по приказу Минтранса и начисление зарплаты водителям.</p>
         <div class="hero__btns">
-          <button class="btn btn--primary btn--lg login-btn">Войти в кабинет</button>
+          <a href="admin/" class="btn btn--primary btn--lg">Войти в кабинет</a>
           <a href="#download" class="btn btn--outline btn--lg">Скачать приложение</a>
         </div>
       </div>
@@ -191,7 +191,7 @@
             <li>Email-поддержка</li>
           </ul>
           <p class="plan__trial">Первые 21 день бесплатно</p>
-          <button class="btn btn--outline btn--full login-btn">Начать</button>
+          <a href="admin/" class="btn btn--outline btn--full">Начать</a>
         </div>
         <div class="plan plan--pop">
           <div class="plan__badge">Популярный</div>
@@ -204,7 +204,7 @@
             <li>Сводка по расходам</li>
             <li>Приоритетная поддержка</li>
           </ul>
-          <button class="btn btn--primary btn--full login-btn">Попробовать</button>
+          <a href="admin/" class="btn btn--primary btn--full">Попробовать</a>
         </div>
         <div class="plan">
           <h3>Корпоративный</h3>
@@ -269,29 +269,10 @@
         <a href="#features">Функции</a>
         <a href="#pricing">Тарифы</a>
         <a href="#download">Приложение</a>
-        <a href="#" class="login-btn">Войти</a>
+        <a href="admin/">Войти</a>
       </nav>
     </div>
   </footer>
-
-  <!-- LOGIN MODAL -->
-  <div class="modal" id="loginModal">
-    <div class="modal__bg"></div>
-    <div class="modal__box">
-      <button class="modal__x" id="closeModal">&times;</button>
-      <h3 id="modalTitle">Вход в кабинет</h3>
-      <p id="modalSub">Для владельцев парка</p>
-      <form id="loginForm">
-        <label>Email</label>
-        <input type="email" placeholder="ivan@company.ru" required autocomplete="email">
-        <label>Пароль</label>
-        <input type="password" placeholder="••••••" required autocomplete="current-password" minlength="6">
-        <button type="submit" class="btn btn--primary btn--full" id="modalSubmit">Войти</button>
-      </form>
-      <p class="modal__switch"><a href="#" id="showRegister">Зарегистрироваться</a></p>
-      <p class="modal__msg" id="loginMessage"></p>
-    </div>
-  </div>
 
   <script src="js/main.js"></script>
 </body>
