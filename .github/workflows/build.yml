@@ -1,0 +1,92 @@
+name: Сборка приложения
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+
+  # ===== Сборка Flutter Web (админка) + лендинг =====
+  build-web:
+    name: Сборка Web (админка + лендинг)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Установка Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27'
+          channel: 'stable'
+          cache: true
+          cache-path: '${{ runner.tool_cache }}/flutter'
+
+      - name: Flutter pub get
+        working-directory: cargo_app
+        run: flutter pub get
+
+      - name: Сборка Flutter Web
+        working-directory: cargo_app
+        run: flutter build web --release
+
+      - name: Копирование админки в папку сайта
+        run: |
+          rm -rf website/admin
+          cp -r cargo_app/build/web website/admin
+
+      - name: Архивация сайта
+        run: |
+          cd website
+          zip -r ../numino-site.zip ./*
+
+      - name: Выгрузка артефакта (сайт)
+        uses: actions/upload-artifact@v4
+        with:
+          name: numino-site
+          path: numino-site.zip
+          retention-days: 30
+
+  # ===== Сборка Android APK (приложение водителя) =====
+  build-android:
+    name: Сборка Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Установка Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Установка Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27'
+          channel: 'stable'
+          cache: true
+          cache-path: '${{ runner.tool_cache }}/flutter'
+
+      - name: Flutter pub get
+        working-directory: cargo_app
+        run: flutter pub get
+
+      - name: Сборка APK (debug)
+        working-directory: cargo_app
+        run: flutter build apk --debug
+
+      - name: Переименование APK
+        run: |
+          mv cargo_app/build/app/outputs/flutter-apk/app-debug.apk numino-driver.apk
+
+      - name: Выгрузка артефакта (APK)
+        uses: actions/upload-artifact@v4
+        with:
+          name: numino-driver-apk
+          path: numino-driver.apk
+          retention-days: 30
