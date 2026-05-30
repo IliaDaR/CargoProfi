@@ -14,6 +14,7 @@ class SalaryScreen extends StatefulWidget {
 
 class _SalaryScreenState extends State<SalaryScreen> {
   String? _driver;
+  bool _usePercent = true;
   final _percentCtrl = TextEditingController(text: '15');
 
   @override
