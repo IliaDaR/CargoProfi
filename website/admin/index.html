@@ -7,37 +7,13 @@
   <link rel="manifest" href="manifest.json">
   <style>
     html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #f8fafc; }
-    #loading {
-      display: flex; align-items: center; justify-content: center; height: 100%;
-      font-family: system-ui, -apple-system, sans-serif; color: #64748b;
-      flex-direction: column; gap: 12px;
-    }
-    #loading .spinner {
-      width: 32px; height: 32px; border: 3px solid #e2e8f0;
-      border-top-color: #2563eb; border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
+    #loading { display: flex; align-items: center; justify-content: center; height: 100%; font-family: system-ui, sans-serif; color: #64748b; flex-direction: column; gap: 12px; }
+    #loading .spinner { width: 32px; height: 32px; border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <div id="loading">
-    <div class="spinner"></div>
-    <span id="loadingText">Numino загружается...</span>
-  </div>
-  <script>
-    setTimeout(function(){
-      var el = document.getElementById('loadingText');
-      if (el) {
-        el.innerHTML = '<div style="text-align:center">'+
-          '<div style="font-size:48px;margin-bottom:16px">&#9888;</div>'+
-          '<b>Не удалось загрузить кабинет</b><br><br>'+
-          '<span style="font-size:14px">Проверьте подключение к интернету<br>'+
-          'или выполните <code>flutterfire configure</code><br>'+
-          'и пересоберите приложение.</span></div>';
-      }
-    }, 10000);
-  </script>
+  <div id="loading"><div class="spinner"></div><span>Numino загружается...</span></div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
