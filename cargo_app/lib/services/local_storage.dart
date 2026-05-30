@@ -53,6 +53,8 @@ class LocalStorage {
       users.add({'uid': 'admin', 'email': 'admin@numino.ru', 'password': 'admin123', 'displayName': 'Администратор', 'role': 'superadmin', 'phone': '+79183951315'});
       // Владелец парка
       users.add({'uid': 'owner1', 'email': 'owner@numino.ru', 'password': 'owner123', 'displayName': 'Владелец парка', 'role': 'owner', 'phone': '+79161234567'});
+      // Водитель
+      users.add({'uid': 'driver1', 'email': 'driver@numino.ru', 'password': 'driver123', 'displayName': 'Иван Петров', 'role': 'driver', 'phone': '+79169876543'});
       _prefs!.setString(_kUsers, jsonEncode(users));
     } else {
       _loadAll();

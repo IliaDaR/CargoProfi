@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/local_storage.dart';
 import '../../providers/vehicle_provider.dart';
 import '../owner/owner_dashboard_screen.dart';
+import '../driver/driver_home_screen.dart';
 
 /// Экран: две кнопки (Владелец / Водитель).
 /// При нажатии — форма логина/пароля для выбранной роли.
@@ -96,9 +97,8 @@ class _LoginDialogState extends State<_LoginDialog> {
       widget.storage.setCurrentUser(user);
       Navigator.of(context).popUntil((route) => route.isFirst);
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) {
-        if (widget.role == 'owner') return const OwnerDashboardScreen();
-        // Driver placeholder
-        return Scaffold(appBar: AppBar(title: const Text('Кабинет водителя')), body: const Center(child: Text('Приложение водителя в разработке', textAlign: TextAlign.center, style: TextStyle(fontSize: 18, color: Colors.grey))));
+        if (widget.role == 'driver') return DriverHomeScreen(driverId: user['uid'] ?? 'driver');
+        return const OwnerDashboardScreen();
       }));
     } else {
       setState(() { _error = 'Неверный email или пароль'; _loading = false; });
