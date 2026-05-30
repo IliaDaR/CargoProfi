@@ -39,10 +39,11 @@ class _TripsScreenState extends State<TripsScreen> {
       ])),
       Expanded(child: list.isEmpty ? const Center(child: Text('Нет рейсов'))
         : isWide ? SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(columns: const [
-            DataColumn(label: Text('Дата')), DataColumn(label: Text('Маршрут')), DataColumn(label: Text('Пробег')), DataColumn(label: Text('Доход')), DataColumn(label: Text('Статус')),
+            DataColumn(label: Text('Дата')), DataColumn(label: Text('Маршрут')), DataColumn(label: Text('Пробег')), DataColumn(label: Text('Доход')), DataColumn(label: Text('Статус')), DataColumn(label: Text('')),
           ], rows: list.map((t) => DataRow(cells: [
             DataCell(Text(df.format(t.startTime))), DataCell(Text(t.routeDescription ?? '—')), DataCell(Text('${t.mileage.toStringAsFixed(1)} км')),
             DataCell(Text(t.income != null ? '${t.income!.toStringAsFixed(0)} ₽' : '—')), DataCell(_chip(t.status)),
+            DataCell(_buildWaybillBtn(t)),
           ])).toList()))
         : ListView.builder(padding: const EdgeInsets.symmetric(horizontal: 8), itemCount: list.length, itemBuilder: (ctx, i) {
             final t = list[i];
@@ -51,9 +52,24 @@ class _TripsScreenState extends State<TripsScreen> {
               const SizedBox(height: 4),
               Text(df.format(t.startTime), style: const TextStyle(color: Colors.grey, fontSize: 12)),
               Text('${t.mileage.toStringAsFixed(1)} км${t.income != null ? ' • ${t.income!.toStringAsFixed(0)} ₽' : ''}'),
+              if (t.status == TripStatus.completed) _buildWaybillBtn(t),
             ])));
           })),
     ]);
+  }
+
+  Widget _buildWaybillBtn(Trip t) {
+    if (t.status != TripStatus.completed) return const SizedBox.shrink();
+    return OutlinedButton.icon(
+      icon: const Icon(Icons.description, size: 14),
+      label: const Text('Путевой лист', style: TextStyle(fontSize: 11)),
+      onPressed: () {
+        // Демо: в production вызывает generateWaybill Cloud Function
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Путевой лист сформирован! (PDF доступен в production-режиме)'), backgroundColor: Colors.green),
+        );
+      },
+    );
   }
 
   Widget _chip(TripStatus s) => Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: (s == TripStatus.active ? Colors.green : Colors.blue).withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(tripStatusLabel(s), style: TextStyle(color: s == TripStatus.active ? Colors.green : Colors.blue, fontSize: 11, fontWeight: FontWeight.w600)));

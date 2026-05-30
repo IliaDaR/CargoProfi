@@ -13,18 +13,26 @@ class VehiclesScreen extends StatefulWidget {
 class _VehiclesScreenState extends State<VehiclesScreen> {
   void _addVehicle(LocalStorage store) {
     final plateCtrl = TextEditingController(), brandCtrl = TextEditingController(), modelCtrl = TextEditingController();
+    final yearCtrl = TextEditingController(), vinCtrl = TextEditingController();
     showDialog(context: context, builder: (ctx) => AlertDialog(
       title: const Text('Добавить автомобиль'),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: plateCtrl, decoration: const InputDecoration(labelText: 'Госномер', border: OutlineInputBorder())),
-        const SizedBox(height: 10), TextField(controller: brandCtrl, decoration: const InputDecoration(labelText: 'Марка', border: OutlineInputBorder())),
-        const SizedBox(height: 10), TextField(controller: modelCtrl, decoration: const InputDecoration(labelText: 'Модель', border: OutlineInputBorder())),
-      ]),
+      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: plateCtrl, decoration: const InputDecoration(labelText: 'Госномер *', border: OutlineInputBorder())),
+        const SizedBox(height: 10), TextField(controller: brandCtrl, decoration: const InputDecoration(labelText: 'Марка *', border: OutlineInputBorder())),
+        const SizedBox(height: 10), TextField(controller: modelCtrl, decoration: const InputDecoration(labelText: 'Модель *', border: OutlineInputBorder())),
+        const SizedBox(height: 10), TextField(controller: yearCtrl, decoration: const InputDecoration(labelText: 'Год выпуска', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+        const SizedBox(height: 10), TextField(controller: vinCtrl, decoration: const InputDecoration(labelText: 'VIN', border: OutlineInputBorder())),
+      ])),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
         ElevatedButton(onPressed: () {
           if (plateCtrl.text.isEmpty || brandCtrl.text.isEmpty) return;
-          context.read<VehicleProvider>().addVehicle(Vehicle(id: 'v${DateTime.now().millisecondsSinceEpoch}', ownerId: 'local', plateNumber: plateCtrl.text, brand: brandCtrl.text, model: modelCtrl.text, createdAt: DateTime.now()));
+          context.read<VehicleProvider>().addVehicle(Vehicle(
+            id: 'v${DateTime.now().millisecondsSinceEpoch}', ownerId: 'local',
+            plateNumber: plateCtrl.text, brand: brandCtrl.text, model: modelCtrl.text,
+            year: int.tryParse(yearCtrl.text), vin: vinCtrl.text.isEmpty ? null : vinCtrl.text,
+            createdAt: DateTime.now(),
+          ));
           Navigator.pop(ctx);
         }, child: const Text('Добавить')),
       ],
