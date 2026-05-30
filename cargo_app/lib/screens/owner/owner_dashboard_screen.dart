@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/vehicle_provider.dart';
+import '../../models/vehicle.dart';
+import '../../models/trip.dart';
+import '../../models/demo_data.dart';
 import '../../widgets/common_widgets.dart';
 import 'vehicles_screen.dart';
 import 'trips_screen.dart';
 import 'expenses_screen.dart';
 import 'salary_screen.dart';
 
-/// Дашборд владельца парка.
-/// Показывает сводную статистику и навигацию по разделам.
 class OwnerDashboardScreen extends StatefulWidget {
   const OwnerDashboardScreen({super.key});
 
@@ -25,7 +26,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
-      context.read<VehicleProvider>().loadVehicles(auth.profile!.uid);
+      context.read<VehicleProvider>().loadVehicles(auth.profile?.uid ?? 'demo');
     });
   }
 
@@ -35,7 +36,6 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
     final vehicleProvider = context.watch<VehicleProvider>();
 
     final screens = <Widget>[
-      // Главная — дашборд
       _buildDashboard(vehicleProvider),
       const VehiclesScreen(),
       const TripsScreen(),
@@ -53,7 +53,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
               children: [
                 const Icon(Icons.account_circle, size: 20),
                 const SizedBox(width: 6),
-                Text(auth.profile?.displayName ?? ''),
+                Text(auth.profile?.displayName ?? 'Администратор'),
                 const SizedBox(width: 12),
                 TextButton.icon(
                   onPressed: () => auth.signOut(),
@@ -67,7 +67,6 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       ),
       body: LayoutBuilder(
         builder: (ctx, constraints) {
-          // Адаптивная навигация: боковое меню на широком экране, вкладки снизу на узком
           if (constraints.maxWidth >= 800) {
             return Row(
               children: [
@@ -75,7 +74,13 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                   selectedIndex: _selectedIndex,
                   onDestinationSelected: (i) => setState(() => _selectedIndex = i),
                   labelType: NavigationRailLabelType.all,
-                  destinations: _buildDestinations(),
+                  destinations: const [
+                    NavigationRailDestination(icon: Icon(Icons.dashboard), label: Text('Дашборд')),
+                    NavigationRailDestination(icon: Icon(Icons.directions_car), label: Text('Машины')),
+                    NavigationRailDestination(icon: Icon(Icons.route), label: Text('Рейсы')),
+                    NavigationRailDestination(icon: Icon(Icons.receipt_long), label: Text('Расходы')),
+                    NavigationRailDestination(icon: Icon(Icons.payments), label: Text('Зарплата')),
+                  ],
                 ),
                 const VerticalDivider(width: 1),
                 Expanded(child: screens[_selectedIndex]),
@@ -101,98 +106,82 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
     );
   }
 
-  List<NavigationRailDestination> _buildDestinations() {
-    return const [
-      NavigationRailDestination(icon: Icon(Icons.dashboard), label: Text('Дашборд')),
-      NavigationRailDestination(icon: Icon(Icons.directions_car), label: Text('Машины')),
-      NavigationRailDestination(icon: Icon(Icons.route), label: Text('Рейсы')),
-      NavigationRailDestination(icon: Icon(Icons.receipt_long), label: Text('Расходы')),
-      NavigationRailDestination(icon: Icon(Icons.payments), label: Text('Зарплата')),
-    ];
-  }
-
   static const _titles = ['Дашборд', 'Автомобили', 'Рейсы', 'Расходы', 'Зарплата'];
 
-  Widget _buildDashboard(VehicleProvider vehicleProvider) {
+  Widget _buildDashboard(VehicleProvider vp) {
+    final vehicles = vp.vehicles;
+    final trips = DemoData.trips;
+    final completedTrips = trips.where((t) => t.status == TripStatus.completed);
+    final totalIncome = completedTrips.fold(0.0, (s, t) => s + (t.income ?? 0));
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Обзор парка', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 20),
-          // Статистика
-          LayoutBuilder(
-            builder: (ctx, constraints) => Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                SizedBox(
-                  width: constraints.maxWidth >= 600 ? 200 : constraints.maxWidth,
-                  child: AppWidgets.statCard(
-                    title: 'Всего машин',
-                    value: '${vehicleProvider.vehicles.length}',
-                    icon: Icons.directions_car,
-                    color: Colors.blue,
-                  ),
-                ),
-                SizedBox(
-                  width: constraints.maxWidth >= 600 ? 200 : constraints.maxWidth,
-                  child: AppWidgets.statCard(
-                    title: 'В рейсе',
-                    value: '${vehicleProvider.activeCount}',
-                    icon: Icons.drive_eta,
-                    color: Colors.green,
-                  ),
-                ),
-                SizedBox(
-                  width: constraints.maxWidth >= 600 ? 200 : constraints.maxWidth,
-                  child: AppWidgets.statCard(
-                    title: 'Свободны',
-                    value: '${vehicleProvider.freeCount}',
-                    icon: Icons.local_parking,
-                    color: Colors.orange,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 16),
+          Wrap(spacing: 12, runSpacing: 12, children: [
+            SizedBox(width: 180, child: AppWidgets.statCard(title: 'Всего машин', value: '${vehicles.length}', icon: Icons.directions_car, color: Colors.blue)),
+            SizedBox(width: 180, child: AppWidgets.statCard(title: 'В рейсе', value: '${vp.activeCount}', icon: Icons.drive_eta, color: Colors.green)),
+            SizedBox(width: 180, child: AppWidgets.statCard(title: 'Свободны', value: '${vp.freeCount}', icon: Icons.local_parking, color: Colors.orange)),
+            SizedBox(width: 180, child: AppWidgets.statCard(title: 'Рейсов', value: '${completedTrips.length}', icon: Icons.route, color: Colors.purple)),
+            SizedBox(width: 180, child: AppWidgets.statCard(title: 'Доход', value: '$totalIncome ₽', icon: Icons.attach_money, color: Colors.green.shade700)),
+          ]),
+          const SizedBox(height: 24),
           Text('Быстрые действия', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _buildQuickAction(Icons.route, 'Все рейсы', () => setState(() => _selectedIndex = 2)),
-              _buildQuickAction(Icons.receipt_long, 'Расходы', () => setState(() => _selectedIndex = 3)),
-              _buildQuickAction(Icons.payments, 'Зарплата', () => setState(() => _selectedIndex = 4)),
-              _buildQuickAction(Icons.directions_car, 'Автопарк', () => setState(() => _selectedIndex = 1)),
-            ],
-          ),
+          const SizedBox(height: 10),
+          Wrap(spacing: 10, runSpacing: 10, children: [
+            _actionBtn(Icons.add_circle, 'Добавить авто', () { setState(() => _selectedIndex = 1); _showAddVehicle(); }),
+            _actionBtn(Icons.route, 'Все рейсы', () => setState(() => _selectedIndex = 2)),
+            _actionBtn(Icons.receipt_long, 'Расходы', () => setState(() => _selectedIndex = 3)),
+            _actionBtn(Icons.payments, 'Зарплата', () => setState(() => _selectedIndex = 4)),
+          ]),
         ],
       ),
     );
   }
 
-  Widget _buildQuickAction(IconData icon, String label, VoidCallback onTap) {
+  Widget _actionBtn(IconData icon, String label, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 140,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 8),
-            Text(label, textAlign: TextAlign.center),
-          ],
-        ),
+        width: 140, padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12)),
+        child: Column(children: [Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary), const SizedBox(height: 8), Text(label, textAlign: TextAlign.center)]),
+      ),
+    );
+  }
+
+  void _showAddVehicle() {
+    final plateCtrl = TextEditingController();
+    final brandCtrl = TextEditingController();
+    final modelCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Добавить автомобиль'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(controller: plateCtrl, decoration: const InputDecoration(labelText: 'Госномер', border: OutlineInputBorder())),
+          const SizedBox(height: 10),
+          TextField(controller: brandCtrl, decoration: const InputDecoration(labelText: 'Марка', border: OutlineInputBorder())),
+          const SizedBox(height: 10),
+          TextField(controller: modelCtrl, decoration: const InputDecoration(labelText: 'Модель', border: OutlineInputBorder())),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
+          ElevatedButton(onPressed: () {
+            final vp = context.read<VehicleProvider>();
+            vp.addVehicle(Vehicle(
+              id: 'v${vp.vehicles.length + 10}', ownerId: 'demo',
+              plateNumber: plateCtrl.text, brand: brandCtrl.text, model: modelCtrl.text,
+              createdAt: DateTime.now(),
+            ));
+            Navigator.pop(ctx);
+            AppWidgets.showSuccess(context, 'Автомобиль добавлен!');
+          }, child: const Text('Добавить')),
+        ],
       ),
     );
   }

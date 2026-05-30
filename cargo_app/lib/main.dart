@@ -136,6 +136,10 @@ class _AuthGateState extends State<AuthGate> {
   Future<void> _init() async {
     final auth = context.read<AuthProvider>();
     await auth.initialize();
+    // Демо-режим: если нет профиля — создаём и переходим сразу в дашборд
+    if (!auth.isLoggedIn) {
+      auth.loginDemo();
+    }
     if (mounted) setState(() => _initialized = true);
   }
 

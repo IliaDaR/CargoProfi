@@ -106,6 +106,19 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Демо-вход: сразу создаёт профиль владельца без формы логина.
+  void loginDemo() {
+    _profile = UserProfile(
+      uid: 'demo-admin',
+      role: UserRole.owner,
+      displayName: 'Администратор',
+      email: 'admin@numino.ru',
+      phone: '+79183951315',
+      companyName: 'Numino',
+    );
+    notifyListeners();
+  }
+
   /// Выход.
   Future<void> signOut() async {
     await _authService.signOut();
