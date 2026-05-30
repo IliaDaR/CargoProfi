@@ -261,13 +261,16 @@
           <span class="contact__tag">MAX</span>
         </div>
       </div>
-      <form class="contact__form" id="contactForm">
+      <form class="contact__form" id="contactForm" action="https://formsubmit.co/ilia.davkin@ya.ru" method="POST">
         <label class="sr-only" for="contactName">Имя</label>
-        <input type="text" id="contactName" placeholder="Имя" required autocomplete="name">
+        <input type="text" id="contactName" name="name" placeholder="Имя" required autocomplete="name">
         <label class="sr-only" for="contactEmail">Email</label>
-        <input type="email" id="contactEmail" placeholder="Email" required autocomplete="email">
+        <input type="email" id="contactEmail" name="email" placeholder="Email" required autocomplete="email">
         <label class="sr-only" for="contactMsg">Сообщение</label>
-        <textarea id="contactMsg" placeholder="Сообщение" rows="3" required></textarea>
+        <textarea id="contactMsg" placeholder="Сообщение" rows="3" name="message" required></textarea>
+        <input type="hidden" name="_subject" value="Новое сообщение с Numino">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_next" value="">
         <button type="submit" class="btn btn--primary btn--full">Отправить</button>
       </form>
     </div>

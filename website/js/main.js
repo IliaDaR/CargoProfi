@@ -83,7 +83,9 @@
     }
   });
 
-  // ===== LOGIN FORM — demo accounts + redirect to admin =====
+  // ===== LOGIN FORM — демо-режим =====
+  // В production: заменить на Firebase Authentication
+  // Демо-аккаунты существуют только для тестирования UI.
   document.getElementById('loginForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var inputs = e.target.querySelectorAll('input');
@@ -93,8 +95,6 @@
       if (inputs[i].type === 'email') email = inputs[i].value.trim();
       if (inputs[i].type === 'password') pass = inputs[i].value;
     }
-
-    // Demo accounts (замени на Firebase Auth после настройки)
     var accounts = {
       'admin@numino.ru':  { pass: 'admin123',  role: 'owner', name: 'Администратор' },
       'owner@numino.ru':  { pass: 'owner123',  role: 'owner', name: 'Владелец парка' },
@@ -127,24 +127,9 @@
     }
   });
 
-  // ===== CONTACT FORM =====
+  // ===== CONTACT FORM — отправляется через FormSubmit =====
   var contactForm = document.getElementById('contactForm');
   if (contactForm) {
-    contactForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var btn = contactForm.querySelector('button');
-      var orig = btn.textContent;
-      btn.textContent = 'Отправлено!';
-      btn.style.background = '#22c55e';
-      btn.style.borderColor = '#22c55e';
-      setTimeout(function () {
-        btn.textContent = orig;
-        btn.style.background = '';
-        btn.style.borderColor = '';
-        contactForm.reset();
-      }, 2200);
-    });
-
     // Bot honey-pot
     var hp = document.createElement('input');
     hp.type = 'text';

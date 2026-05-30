@@ -68,6 +68,6 @@ class _AuthGateState extends State<AuthGate> {
     final auth = context.watch<AuthProvider>();
     if (!auth.isLoggedIn) return const LoginScreen();
     if (auth.isOwner) return const OwnerDashboardScreen();
-    return const OwnerDashboardScreen(); // другие роли — позже
+    return const LoginScreen(); // driver — пока нет экрана, остаёмся на логине
   }
 }
