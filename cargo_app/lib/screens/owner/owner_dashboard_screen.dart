@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../services/local_storage.dart';
 import '../../models/vehicle.dart';
@@ -22,7 +21,6 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
     final vp = context.watch<VehicleProvider>();
     final storage = context.watch<LocalStorage>();
 
@@ -32,8 +30,8 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       appBar: AppBar(title: Text(_titles[_idx]), actions: [
         Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Row(children: [
           const Icon(Icons.account_circle, size: 20), const SizedBox(width: 6),
-          Text(auth.displayName ?? 'Владелец'), const SizedBox(width: 12),
-          TextButton.icon(onPressed: () => auth.logout(), icon: const Icon(Icons.logout, size: 18), label: const Text('Выйти')),
+          const Text('Владелец'), const SizedBox(width: 12),
+          TextButton.icon(onPressed: () => Navigator.pushReplacementNamed(context, '/'), icon: const Icon(Icons.logout, size: 18), label: const Text('Выйти')),
         ])),
       ]),
       body: LayoutBuilder(builder: (ctx, c) => c.maxWidth >= 800
