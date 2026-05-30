@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../models/vehicle.dart';
-import '../../models/trip.dart';
+import '../../utils/constants.dart';
 import '../../models/demo_data.dart';
 import '../../widgets/common_widgets.dart';
 import 'vehicles_screen.dart';
