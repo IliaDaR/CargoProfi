@@ -17,32 +17,19 @@ import 'screens/owner/owner_dashboard_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  bool firebaseOk = false;
-  String firebaseError = '';
+  // Firebase будет инициализирован лениво при первом обращении.
+  // Для полноценной работы выполни: flutterfire configure
+  // и раскомментируй строки ниже.
+  //
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
+  // );
 
-  try {
-    await Firebase.initializeApp(
-      // options: DefaultFirebaseOptions.currentPlatform,
-      options: const FirebaseOptions(
-        apiKey: 'AIzaSyDemoKeyReplaceMeWithRealOne',
-        appId: '1:000000000000:web:abcdef123456',
-        messagingSenderId: '000000000000',
-        projectId: 'cargoprofi-demo',
-        storageBucket: 'cargoprofi-demo.appspot.com',
-      ),
-    ).timeout(const Duration(seconds: 8));
-    firebaseOk = true;
-  } catch (e) {
-    firebaseError = e.toString();
-  }
-
-  runApp(CargoApp(firebaseOk: firebaseOk, firebaseError: firebaseError));
+  runApp(const CargoApp());
 }
 
 class CargoApp extends StatelessWidget {
-  final bool firebaseOk;
-  final String firebaseError;
-  const CargoApp({super.key, required this.firebaseOk, this.firebaseError = ''});
+  const CargoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
