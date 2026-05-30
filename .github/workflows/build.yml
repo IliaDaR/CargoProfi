@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   actions: write
 
 jobs:
@@ -90,3 +90,13 @@ jobs:
           name: numino-driver-apk
           path: numino-driver.apk
           retention-days: 30
+
+      - name: Создание Release с APK
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Сборка ${{ github.sha }}
+          tag_name: build-${{ github.run_number }}
+          files: numino-driver.apk
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
