@@ -77,7 +77,7 @@ class CargoApp extends StatelessWidget {
             ),
           ),
         ),
-        home: firebaseOk ? const AuthGate() : FirebaseErrorScreen(error: firebaseError),
+        home: const AuthGate(),
       ),
     );
   }

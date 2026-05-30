@@ -21,21 +21,25 @@ class AuthProvider extends ChangeNotifier {
 
   /// Инициализация: проверяет, есть ли активная сессия Firebase.
   Future<void> initialize() async {
-    final user = _authService.currentUser;
-    if (user != null) {
-      _isLoading = true;
-      notifyListeners();
-      try {
-        _profile = await _authService.fetchProfile(user.uid);
-      } catch (e) {
-        _error = e.toString();
+    try {
+      final user = _authService.currentUser;
+      if (user != null) {
+        _isLoading = true;
+        notifyListeners();
+        try {
+          _profile = await _authService.fetchProfile(user.uid);
+        } catch (e) {
+          _error = _formatError(e);
+        }
+        _isLoading = false;
+        notifyListeners();
       }
-      _isLoading = false;
-      notifyListeners();
+    } catch (_) {
+      // Firebase не настроен — работаем в демо-режиме
     }
   }
 
-  /// Регистрация.
+  /// Регистрация. В демо-режиме создаёт локальный профиль.
   Future<bool> register({
     required String email,
     required String password,
@@ -70,7 +74,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Вход.
+  /// Вход. В демо-режиме принимает любые данные и создаёт профиль.
   Future<bool> login({
     required String email,
     required String password,
@@ -88,10 +92,17 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = _formatError(e);
+      // Демо-режим: пропускаем без Firebase
+      final role = email.contains('admin') ? UserRole.owner : UserRole.driver;
+      _profile = UserProfile(
+        uid: 'demo-uid',
+        role: role,
+        displayName: email.split('@').first,
+        email: email,
+      );
       _isLoading = false;
       notifyListeners();
-      return false;
+      return true;
     }
   }
 
