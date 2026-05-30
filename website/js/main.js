@@ -82,12 +82,26 @@
     }
   });
 
-  // ===== LOGIN FORM → редирект в кабинет =====
+  // ===== LOGIN FORM → редирект в кабинет с передачей сессии =====
   document.getElementById('loginForm').addEventListener('submit', function (e) {
     e.preventDefault();
+    var email = '';
+    var pass = '';
+    var name = '';
+    var inputs = e.target.querySelectorAll('input');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].type === 'email') email = inputs[i].value.trim();
+      if (inputs[i].type === 'password') pass = inputs[i].value;
+      if (inputs[i].type === 'text') name = inputs[i].value.trim();
+    }
+    if (!email || !pass) { msgEl.textContent = 'Заполните все поля'; msgEl.className = 'modal__msg error'; return; }
     msgEl.textContent = 'Переход в кабинет...';
     msgEl.className = 'modal__msg success';
-    setTimeout(function () { window.location.href = 'admin/index.html'; }, 600);
+    // Сохраняем в browser localStorage и передаём в Flutter через hash
+    var role = 'owner'; // по умолчанию владелец
+    if (email === 'admin@numino.ru' && pass === 'admin123') role = 'admin';
+    var hash = 'role=' + role + '&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(name || email.split('@')[0]);
+    setTimeout(function () { window.location.href = 'admin/index.html#' + hash; }, 500);
   });
 
   document.querySelectorAll('.login-btn').forEach(function (b) {
