@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
     auth.clearError();
     bool ok;
     if (_isReg) {
-      ok = await auth.register(_emailCtrl.text.trim(), _passCtrl.text, _nameCtrl.text.trim(), 'owner');
+      ok = await auth.register(_emailCtrl.text.trim(), _passCtrl.text, _nameCtrl.text.trim(), 'owner'); // по умолчанию — владелец
     } else {
       ok = await auth.login(_emailCtrl.text.trim(), _passCtrl.text);
     }

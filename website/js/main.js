@@ -96,7 +96,7 @@
 
     // Demo accounts (замени на Firebase Auth после настройки)
     var accounts = {
-      'admin@numino.ru':  { pass: 'admin123',  role: 'admin', name: 'Администратор' },
+      'admin@numino.ru':  { pass: 'admin123',  role: 'owner', name: 'Администратор' },
       'owner@numino.ru':  { pass: 'owner123',  role: 'owner', name: 'Владелец парка' },
     };
 

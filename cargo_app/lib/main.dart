@@ -67,6 +67,7 @@ class _AuthGateState extends State<AuthGate> {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final auth = context.watch<AuthProvider>();
     if (!auth.isLoggedIn) return const LoginScreen();
-    return const OwnerDashboardScreen();
+    if (auth.isOwner) return const OwnerDashboardScreen();
+    return const OwnerDashboardScreen(); // другие роли — позже
   }
 }
