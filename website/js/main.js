@@ -14,7 +14,6 @@
 
   // ===== MODAL =====
   var modal = document.getElementById('loginModal');
-  var msgEl = document.getElementById('loginMessage');
 
   function openModal() {
     modal.classList.add('active');
@@ -24,9 +23,21 @@
   function closeModal() {
     modal.classList.remove('active');
     document.body.style.overflow = '';
-    msgEl.textContent = '';
-    msgEl.className = 'modal__msg';
   }
+
+  document.querySelectorAll('.login-btn').forEach(function (b) {
+    b.addEventListener('click', function (e) {
+      e.preventDefault();
+      openModal();
+    });
+  });
+
+  document.getElementById('closeModal').addEventListener('click', closeModal);
+  modal.querySelector('.modal__bg').addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+  });
 
   // Focus trap for modal
   modal.addEventListener('keydown', function(e) {
@@ -50,53 +61,6 @@
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
-  });
-
-  // ===== LOGIN / REGISTER TOGGLE =====
-  var isReg = false;
-  var registerNameField = null;
-
-  function buildNameField() {
-    var g = document.createElement('div');
-    g.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-top:2px';
-    g.innerHTML = '<label>Имя</label><input type="text" placeholder="Иван Петров" required autocomplete="name">';
-    return g;
-  }
-
-  document.getElementById('showRegister').addEventListener('click', function (e) {
-    e.preventDefault();
-    isReg = !isReg;
-    var form = document.getElementById('loginForm');
-    var submitBtn = document.getElementById('modalSubmit');
-
-    if (isReg) {
-      document.getElementById('modalTitle').textContent = 'Регистрация';
-      document.getElementById('modalSub').textContent = 'Для владельцев парка';
-      submitBtn.textContent = 'Зарегистрироваться';
-      registerNameField = buildNameField();
-      form.insertBefore(registerNameField, form.children[0]);
-    } else {
-      document.getElementById('modalTitle').textContent = 'Вход в кабинет';
-      document.getElementById('modalSub').textContent = 'Для владельцев парка';
-      submitBtn.textContent = 'Войти';
-      if (registerNameField) { registerNameField.remove(); registerNameField = null; }
-    }
-  });
-
-  // ===== LOGIN FORM — редирект в кабинет =====
-  // Приложение Numino само показывает выбор роли (Владелец / Водитель).
-  document.getElementById('loginForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    if (isReg) {
-      msgEl.textContent = 'Переход в кабинет...';
-      msgEl.className = 'modal__msg success';
-    } else {
-      msgEl.textContent = 'Переход в кабинет...';
-      msgEl.className = 'modal__msg success';
-    }
-    setTimeout(function () {
-      window.location.href = 'admin/index.html';
-    }, 600);
   });
 
   // ===== CONTACT FORM — отправляется через FormSubmit =====
