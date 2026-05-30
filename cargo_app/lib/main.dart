@@ -7,7 +7,6 @@ import 'providers/expense_provider.dart';
 import 'providers/vehicle_provider.dart';
 import 'providers/salary_provider.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/auth/register_screen.dart';
 import 'screens/driver/driver_home_screen.dart';
 import 'screens/owner/owner_dashboard_screen.dart';
 
@@ -18,24 +17,32 @@ import 'screens/owner/owner_dashboard_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Инициализация Firebase — замени на реальные ключи после flutterfire configure
-  await Firebase.initializeApp(
-    // options: DefaultFirebaseOptions.currentPlatform,
-    options: const FirebaseOptions(
-      apiKey: 'AIzaSyDemoKeyReplaceMeWithRealOne',
-      appId: '1:000000000000:web:abcdef123456',
-      messagingSenderId: '000000000000',
-      projectId: 'cargoprofi-demo',
-      storageBucket: 'cargoprofi-demo.appspot.com',
-    ),
-  );
+  bool firebaseOk = false;
+  String firebaseError = '';
 
-  runApp(const CargoApp());
+  try {
+    await Firebase.initializeApp(
+      // options: DefaultFirebaseOptions.currentPlatform,
+      options: const FirebaseOptions(
+        apiKey: 'AIzaSyDemoKeyReplaceMeWithRealOne',
+        appId: '1:000000000000:web:abcdef123456',
+        messagingSenderId: '000000000000',
+        projectId: 'cargoprofi-demo',
+        storageBucket: 'cargoprofi-demo.appspot.com',
+      ),
+    );
+    firebaseOk = true;
+  } catch (e) {
+    firebaseError = e.toString();
+  }
+
+  runApp(CargoApp(firebaseOk: firebaseOk, firebaseError: firebaseError));
 }
 
-/// Корневой виджет. Настраивает Provider и MaterialApp.
 class CargoApp extends StatelessWidget {
-  const CargoApp({super.key});
+  final bool firebaseOk;
+  final String firebaseError;
+  const CargoApp({super.key, required this.firebaseOk, this.firebaseError = ''});
 
   @override
   Widget build(BuildContext context) {
@@ -48,13 +55,11 @@ class CargoApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SalaryProvider()),
       ],
       child: MaterialApp(
-        title: 'Рабочий кабинет перевозчика',
+        title: 'Numino',
         debugShowCheckedModeBanner: false,
-
-        // Тема
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF1565C0), // синий
+            seedColor: const Color(0xFF1565C0),
             brightness: Brightness.light,
           ),
           useMaterial3: true,
@@ -72,16 +77,59 @@ class CargoApp extends StatelessWidget {
             ),
           ),
         ),
-
-        // Роутинг по ролям
-        home: const AuthGate(),
+        home: firebaseOk ? const AuthGate() : FirebaseErrorScreen(error: firebaseError),
       ),
     );
   }
 }
 
-/// Определяет, куда направить пользователя: на логин, в кабинет водителя
-/// или в панель владельца.
+/// Экран ошибки при невозможности подключиться к Firebase.
+class FirebaseErrorScreen extends StatelessWidget {
+  final String error;
+  const FirebaseErrorScreen({super.key, required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off, size: 64, color: Colors.red),
+              const SizedBox(height: 20),
+              Text(
+                'Firebase не настроен',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Выполните команду:\nflutterfire configure\n\nи пересоберите приложение.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey, fontSize: 15),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  error.length > 200 ? '${error.substring(0, 200)}...' : error,
+                  style: const TextStyle(fontSize: 12, color: Colors.red, fontFamily: 'monospace'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
