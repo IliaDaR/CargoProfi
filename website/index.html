@@ -218,7 +218,7 @@
         <div class="plan">
           <h3>Корпоративный</h3>
           <p class="plan__cars">от 6 машин</p>
-          <div class="plan__price">Индивидуально<span></span></div>
+          <div class="plan__price">Индивидуально</div>
           <ul>
             <li>Всё из Бизнеса</li>
             <li>API-доступ</li>
@@ -258,13 +258,16 @@
         <div class="contact__links">
           <a href="mailto:ilia.davkin@ya.ru">ilia.davkin@ya.ru</a>
           <a href="tel:+79183951315">+7 (918) 395-13-15</a>
-          <span class="contact__links">MAX</span>
+          <span class="contact__tag">MAX</span>
         </div>
       </div>
       <form class="contact__form" id="contactForm">
-        <input type="text" placeholder="Имя" required autocomplete="name">
-        <input type="email" placeholder="Email" required autocomplete="email">
-        <textarea placeholder="Сообщение" rows="3" required></textarea>
+        <label class="sr-only" for="contactName">Имя</label>
+        <input type="text" id="contactName" placeholder="Имя" required autocomplete="name">
+        <label class="sr-only" for="contactEmail">Email</label>
+        <input type="email" id="contactEmail" placeholder="Email" required autocomplete="email">
+        <label class="sr-only" for="contactMsg">Сообщение</label>
+        <textarea id="contactMsg" placeholder="Сообщение" rows="3" required></textarea>
         <button type="submit" class="btn btn--primary btn--full">Отправить</button>
       </form>
     </div>
@@ -284,7 +287,7 @@
   </footer>
 
   <!-- LOGIN MODAL -->
-  <div class="modal" id="loginModal">
+  <div class="modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal__bg"></div>
     <div class="modal__box">
       <button class="modal__x" id="closeModal">&times;</button>

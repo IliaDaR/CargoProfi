@@ -28,6 +28,16 @@
     msgEl.className = 'modal__msg';
   }
 
+  // Focus trap for modal
+  modal.addEventListener('keydown', function(e) {
+    if (e.key !== 'Tab' || !modal.classList.contains('active')) return;
+    var focusable = modal.querySelectorAll('input,button,a');
+    if (focusable.length === 0) return;
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+
   document.querySelectorAll('.login-btn').forEach(function (b) {
     b.addEventListener('click', function (e) {
       e.preventDefault();
@@ -48,7 +58,7 @@
 
   function buildNameField() {
     var g = document.createElement('div');
-    g.style.cssText = 'display:flex;flex-direction:column;gap:4px;margin-top:2px';
+    g.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-top:2px';
     g.innerHTML = '<label>Имя</label><input type="text" placeholder="Иван Петров" required autocomplete="name">';
     return g;
   }
@@ -196,10 +206,28 @@
     }, { passive: true });
 
     // Mouse drag
-    var isDragging = false;
-    track.addEventListener('mousedown', function () { isDragging = true; track.classList.add('dragging'); clearInterval(autoTimer); });
-    track.addEventListener('mouseup', function () { isDragging = false; track.classList.remove('dragging'); startAuto(); });
-    track.addEventListener('mouseleave', function () { if (isDragging) { isDragging = false; track.classList.remove('dragging'); startAuto(); } });
+    var isDragging = false, startX = 0;
+    track.addEventListener('mousedown', function (e) {
+      isDragging = true; startX = e.pageX;
+      track.classList.add('dragging'); clearInterval(autoTimer);
+    });
+    track.addEventListener('mousemove', function (e) {
+      if (!isDragging) return;
+      e.preventDefault();
+    });
+    track.addEventListener('mouseup', function (e) {
+      if (!isDragging) return;
+      isDragging = false; track.classList.remove('dragging'); startAuto();
+      var diff = startX - e.pageX;
+      if (Math.abs(diff) > 50) goTo(diff > 0 ? current + 1 : current - 1);
+    });
+    track.addEventListener('mouseleave', function () {
+      if (isDragging) { isDragging = false; track.classList.remove('dragging'); startAuto(); }
+    });
+
+    // Pause on hover
+    track.addEventListener('mouseenter', function () { clearInterval(autoTimer); });
+    track.addEventListener('mouseleave', function () { startAuto(); });
 
     goTo(0);
     startAuto();
