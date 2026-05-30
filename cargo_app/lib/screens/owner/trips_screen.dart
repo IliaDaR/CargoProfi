@@ -63,8 +63,7 @@ class _TripsScreenState extends State<TripsScreen> {
       DataCell(Text(t.routeDescription ?? '—', maxLines: 2)),
       DataCell(Text(_driverName(t.driverId))),
       DataCell(Text('${t.mileage.toStringAsFixed(1)} км')),
-      DataCell(Text(t.income != null ? '${t.income!.toStringAsFixed(0)} ₽' : '—
-    ')),
+      DataCell(Text(t.income != null ? '${t.income!.toStringAsFixed(0)} ₽' : '—')),
       DataCell(_chip(t.status)),
     ])).toList())));
   }

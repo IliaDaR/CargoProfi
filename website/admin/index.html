@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Numino — Панель владельца</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #f8fafc; }
+    #loading { display: flex; align-items: center; justify-content: center; height: 100%; font-family: system-ui, sans-serif; color: #64748b; flex-direction: column; gap: 12px; }
+    #loading .spinner { width: 32px; height: 32px; border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="loading"><div class="spinner"></div><span>Numino загружается...</span></div>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
