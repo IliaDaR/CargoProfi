@@ -61,7 +61,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void loginDemo() {
-    _user = {'uid': 'admin', 'email': 'admin@numino.ru', 'displayName': 'Администратор', 'role': 'superadmin', 'phone': '+79183951315'};
+    _user = {'uid': 'owner1', 'email': 'owner@numino.ru', 'displayName': 'Владелец парка', 'role': 'owner', 'phone': '+79161234567'};
     _storage.setCurrentUser(_user);
     notifyListeners();
   }
