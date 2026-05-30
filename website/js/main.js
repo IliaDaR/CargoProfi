@@ -96,7 +96,7 @@
       if (inputs[i].type === 'password') pass = inputs[i].value;
     }
     var accounts = {
-      'admin@numino.ru':  { pass: 'admin123',  role: 'owner', name: 'Администратор' },
+      'admin@numino.ru':  { pass: 'admin123',  role: 'superadmin', name: 'Администратор системы' },
       'owner@numino.ru':  { pass: 'owner123',  role: 'owner', name: 'Владелец парка' },
     };
 

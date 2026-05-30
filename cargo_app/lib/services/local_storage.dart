@@ -49,8 +49,10 @@ class LocalStorage {
       _saveDrivers(DemoData.drivers);
       _saveSalaryRules(DemoData.salaryRules);
       _saveSalaryPayments(DemoData.salaryPayments);
-      // Дефолтный админ
-      users.add({'uid': 'admin', 'email': 'admin@numino.ru', 'password': 'admin123', 'displayName': 'Администратор', 'role': 'owner', 'phone': '+79183951315'});
+      // Суперадмин
+      users.add({'uid': 'admin', 'email': 'admin@numino.ru', 'password': 'admin123', 'displayName': 'Администратор', 'role': 'superadmin', 'phone': '+79183951315'});
+      // Владелец парка
+      users.add({'uid': 'owner1', 'email': 'owner@numino.ru', 'password': 'owner123', 'displayName': 'Владелец парка', 'role': 'owner', 'phone': '+79161234567'});
       _prefs!.setString(_kUsers, jsonEncode(users));
     } else {
       _loadAll();
@@ -165,4 +167,42 @@ class LocalStorage {
     'ruleType': p.ruleType.name, 'ruleValue': p.ruleValue, 'status': p.status.name,
     'createdAt': p.createdAt.toIso8601String(), 'paidAt': p.paidAt?.toIso8601String(),
   };
+
+  // ===== СУПЕРАДМИН: управление пользователями =====
+
+  void addUser(String email, String password, String name, String role) {
+    users.add({'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'password': password, 'displayName': name, 'role': role, 'active': true});
+    _prefs!.setString(_kUsers, jsonEncode(users));
+  }
+
+  void saveUsers() {
+    _prefs!.setString(_kUsers, jsonEncode(users));
+  }
+
+  // ===== ТАРИФЫ =====
+
+  String? getOwnerTariff(String uid) {
+    return _prefs!.getString('tariff_$uid');
+  }
+
+  void setOwnerTariff(String uid, String tariff) {
+    _prefs!.setString('tariff_$uid', tariff);
+  }
+
+  // ===== ТИКЕТЫ =====
+
+  List<Map<String,dynamic>> get tickets {
+    final s = _prefs!.getString('tickets');
+    return s != null ? List<Map<String,dynamic>>.from(jsonDecode(s)) : [];
+  }
+
+  void addTicket(String name, String email, String message) {
+    final list = tickets;
+    list.add({'name': name, 'email': email, 'message': message, 'status': 'new', 'createdAt': DateTime.now().toIso8601String()});
+    _prefs!.setString('tickets', jsonEncode(list));
+  }
+
+  void saveTickets() {
+    // решается через addTicket / прямой доступ
+  }
 }

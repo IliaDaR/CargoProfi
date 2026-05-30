@@ -10,7 +10,8 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider(this._storage);
 
   bool get isLoggedIn => _user != null;
-  bool get isOwner => _user?['role'] == 'owner';
+  bool get isOwner => _user?['role'] == 'owner' || _user?['role'] == 'superadmin';
+  bool get isSuperadmin => _user?['role'] == 'superadmin';
   String? get displayName => _user?['displayName'];
   String? get email => _user?['email'];
   bool get isLoading => _isLoading;
@@ -60,7 +61,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void loginDemo() {
-    _user = {'uid': 'admin', 'email': 'admin@numino.ru', 'displayName': 'Администратор', 'role': 'owner', 'phone': '+79183951315'};
+    _user = {'uid': 'admin', 'email': 'admin@numino.ru', 'displayName': 'Администратор', 'role': 'superadmin', 'phone': '+79183951315'};
     _storage.setCurrentUser(_user);
     notifyListeners();
   }
