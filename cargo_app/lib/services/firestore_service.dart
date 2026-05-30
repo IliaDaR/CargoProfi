@@ -9,19 +9,25 @@ import '../models/vehicle.dart';
 import '../models/salary_rule.dart';
 import '../models/salary_payment.dart';
 
-/// Универсальный сервис для работы с Firestore, Storage и Cloud Functions.
 class FirestoreService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseFunctions _functions = FirebaseFunctions.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseFirestore? _fs;
+  FirebaseFunctions? _fn;
+  FirebaseStorage? _st;
+  FirebaseAuth? _au;
 
-  String get _uid => _auth.currentUser!.uid;
+  FirebaseFirestore get db => _fs ??= FirebaseFirestore.instance;
+  FirebaseFunctions get fn => _fn ??= FirebaseFunctions.instance;
+  FirebaseStorage get st => _st ??= FirebaseStorage.instance;
+  FirebaseAuth get au => _au ??= FirebaseAuth.instance;
+
+  String get uid {
+    try { return au.currentUser!.uid; } catch (_) { return ''; }
+  }
 
   // ===== АВТОМОБИЛИ =====
 
   Future<List<Vehicle>> getVehicles(String ownerId) async {
-    final snapshot = await _firestore
+    final snapshot = await db
         .collection('vehicles')
         .where('ownerId', isEqualTo: ownerId)
         .get();
@@ -30,9 +36,8 @@ class FirestoreService {
         .map((doc) => Vehicle.fromMap(doc.id, doc.data()))
         .toList();
 
-    // Определяем статус: проверяем активные рейсы для каждой машины
     for (int i = 0; i < vehicles.length; i++) {
-      final activeTrips = await _firestore
+      final activeTrips = await db
           .collection('trips')
           .where('vehicleId', isEqualTo: vehicles[i].id)
           .where('status', isEqualTo: 'active')
@@ -53,7 +58,6 @@ class FirestoreService {
 
   // ===== РЕЙСЫ =====
 
-  /// Начать рейс через Cloud Function.
   Future<String> startTrip({
     required String vehicleId,
     required double latitude,
@@ -61,7 +65,7 @@ class FirestoreService {
     String? cargoDescription,
     String? routeDescription,
   }) async {
-    final result = await _functions.httpsCallable('startTrip').call({
+    final result = await fn.httpsCallable('startTrip').call({
       'vehicleId': vehicleId,
       'latitude': latitude,
       'longitude': longitude,
@@ -72,31 +76,28 @@ class FirestoreService {
     return (result.data as Map<String, dynamic>)['tripId'];
   }
 
-  /// Добавить GPS-точку к активному рейсу.
   Future<void> addTrackPoint({
     required String tripId,
     required double latitude,
     required double longitude,
   }) async {
-    await _functions.httpsCallable('addTrackPoint').call({
+    await fn.httpsCallable('addTrackPoint').call({
       'tripId': tripId,
       'latitude': latitude,
       'longitude': longitude,
     });
   }
 
-  /// Добавить батч GPS-точек.
   Future<void> addTrackPointsBatch({
     required String tripId,
     required List<Map<String, dynamic>> points,
   }) async {
-    await _functions.httpsCallable('addTrackPointsBatch').call({
+    await fn.httpsCallable('addTrackPointsBatch').call({
       'tripId': tripId,
       'points': points,
     });
   }
 
-  /// Завершить рейс.
   Future<Map<String, dynamic>> endTrip({
     required String tripId,
     required double latitude,
@@ -104,7 +105,7 @@ class FirestoreService {
     double? manualMileage,
     double? income,
   }) async {
-    final result = await _functions.httpsCallable('endTrip').call({
+    final result = await fn.httpsCallable('endTrip').call({
       'tripId': tripId,
       'latitude': latitude,
       'longitude': longitude,
@@ -116,11 +117,10 @@ class FirestoreService {
     return result.data as Map<String, dynamic>;
   }
 
-  /// Получить активный рейс текущего водителя.
   Future<Trip?> getActiveTrip() async {
-    final snapshot = await _firestore
+    final snapshot = await db
         .collection('trips')
-        .where('driverId', isEqualTo: _uid)
+        .where('driverId', isEqualTo: uid)
         .where('status', isEqualTo: 'active')
         .limit(1)
         .get();
@@ -130,11 +130,10 @@ class FirestoreService {
     return Trip.fromMap(snapshot.docs.first.id, snapshot.docs.first.data());
   }
 
-  /// Поток активного рейса (real-time).
   Stream<Trip?> activeTripStream() {
-    return _firestore
+    return db
         .collection('trips')
-        .where('driverId', isEqualTo: _uid)
+        .where('driverId', isEqualTo: uid)
         .where('status', isEqualTo: 'active')
         .limit(1)
         .snapshots()
@@ -147,11 +146,10 @@ class FirestoreService {
     });
   }
 
-  /// Получить рейсы водителя.
   Future<List<Trip>> getDriverTrips({int limit = 20}) async {
-    final snapshot = await _firestore
+    final snapshot = await db
         .collection('trips')
-        .where('driverId', isEqualTo: _uid)
+        .where('driverId', isEqualTo: uid)
         .orderBy('startTime', descending: true)
         .limit(limit)
         .get();
@@ -161,9 +159,8 @@ class FirestoreService {
         .toList();
   }
 
-  /// Получить все рейсы (для owner — фильтруется правилами Firestore).
   Stream<List<Trip>> allTripsStream() {
-    return _firestore
+    return db
         .collection('trips')
         .orderBy('startTime', descending: true)
         .snapshots()
@@ -172,12 +169,11 @@ class FirestoreService {
             .toList());
   }
 
-  /// Получить рейсы для конкретного водителя (owner).
   Future<List<Trip>> getTripsByDriver(
     String driverId, {
     String? statusFilter,
   }) async {
-    var query = _firestore
+    var query = db
         .collection('trips')
         .where('driverId', isEqualTo: driverId)
         .orderBy('startTime', descending: true);
@@ -194,7 +190,6 @@ class FirestoreService {
 
   // ===== РАСХОДЫ =====
 
-  /// Добавить расход через Cloud Function.
   Future<String> addExpense({
     required String tripId,
     required double amount,
@@ -204,7 +199,7 @@ class FirestoreService {
     String? description,
     String? receiptUrl,
   }) async {
-    final result = await _functions.httpsCallable('addExpense').call({
+    final result = await fn.httpsCallable('addExpense').call({
       'tripId': tripId,
       'amount': amount,
       'category': category,
@@ -217,21 +212,19 @@ class FirestoreService {
     return (result.data as Map<String, dynamic>)['expenseId'];
   }
 
-  /// Загрузить фото чека в Storage.
   Future<String> uploadReceipt(File file, String expenseId) async {
-    final ref = _storage
+    final ref = st
         .ref()
         .child('receipts')
-        .child(_uid)
+        .child(uid)
         .child('$expenseId.jpg');
 
     await ref.putFile(file);
     return ref.getDownloadURL();
   }
 
-  /// Получить расходы по рейсу.
   Future<List<Expense>> getTripExpenses(String tripId) async {
-    final snapshot = await _firestore
+    final snapshot = await db
         .collection('expenses')
         .where('tripId', isEqualTo: tripId)
         .orderBy('createdAt', descending: true)
@@ -242,13 +235,12 @@ class FirestoreService {
         .toList();
   }
 
-  /// Сводка расходов (owner).
   Future<List<Expense>> getDriverExpenses({
     required String driverId,
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    final result = await _functions
+    final result = await fn
         .httpsCallable('getDriverExpensesReport')
         .call({
       'driverId': driverId,
@@ -268,14 +260,13 @@ class FirestoreService {
 
   // ===== ЗАРПЛАТА =====
 
-  /// Задать правило зарплаты.
   Future<void> setSalaryRule({
     required String driverId,
-    required String type, // 'percent' или 'fixed'
+    required String type,
     double? percentValue,
     double? fixedValue,
   }) async {
-    await _functions.httpsCallable('setSalaryRule').call({
+    await fn.httpsCallable('setSalaryRule').call({
       'driverId': driverId,
       'type': type,
       if (percentValue != null) 'percentValue': percentValue,
@@ -283,9 +274,8 @@ class FirestoreService {
     });
   }
 
-  /// Получить активное правило зарплаты для водителя.
   Future<SalaryRule?> getSalaryRule(String driverId) async {
-    final result = await _functions.httpsCallable('getSalaryRule').call({
+    final result = await fn.httpsCallable('getSalaryRule').call({
       'driverId': driverId,
     });
 
@@ -300,13 +290,12 @@ class FirestoreService {
     );
   }
 
-  /// Рассчитать зарплату за период.
   Future<SalaryPayment> calculateSalary({
     required String driverId,
-    required String periodStart, // 'YYYY-MM-DD'
+    required String periodStart,
     required String periodEnd,
   }) async {
-    final result = await _functions.httpsCallable('calculateSalary').call({
+    final result = await fn.httpsCallable('calculateSalary').call({
       'driverId': driverId,
       'periodStart': periodStart,
       'periodEnd': periodEnd,
@@ -316,9 +305,8 @@ class FirestoreService {
     return SalaryPayment.fromMap(data['paymentId'] ?? '', data);
   }
 
-  /// История расчётов зарплаты.
   Future<List<SalaryPayment>> getSalaryHistory(String driverId) async {
-    final result = await _functions.httpsCallable('getSalaryHistory').call({
+    final result = await fn.httpsCallable('getSalaryHistory').call({
       'driverId': driverId,
     });
 
@@ -336,9 +324,8 @@ class FirestoreService {
 
   // ===== ПУТЕВОЙ ЛИСТ =====
 
-  /// Сформировать PDF путевого листа.
   Future<String> generateWaybill(String tripId) async {
-    final result = await _functions.httpsCallable('generateWaybill').call({
+    final result = await fn.httpsCallable('generateWaybill').call({
       'tripId': tripId,
     });
 
@@ -347,9 +334,8 @@ class FirestoreService {
 
   // ===== ВОДИТЕЛИ (для owner) =====
 
-  /// Получить список водителей владельца.
   Future<List<Map<String, dynamic>>> getDrivers(String ownerId) async {
-    final snapshot = await _firestore
+    final snapshot = await db
         .collection('drivers')
         .where('ownerId', isEqualTo: ownerId)
         .get();

@@ -5,11 +5,26 @@ import '../utils/constants.dart';
 
 /// Сервис аутентификации и управления профилем пользователя.
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseAuth? _auth;
+  FirebaseFirestore? _firestore;
 
-  User? get currentUser => _auth.currentUser;
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  User? get currentUser {
+    try {
+      _auth ??= FirebaseAuth.instance;
+      return _auth!.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Stream<User?> get authStateChanges {
+    try {
+      _auth ??= FirebaseAuth.instance;
+      return _auth!.authStateChanges();
+    } catch (_) {
+      return const Stream.empty();
+    }
+  }
 
   /// Регистрация пользователя с указанием роли.
   Future<UserProfile> register({
@@ -22,7 +37,10 @@ class AuthService {
     String? companyName,
     String? assignedVehicleId,
   }) async {
-    final credential = await _auth.createUserWithEmailAndPassword(
+    _auth ??= FirebaseAuth.instance;
+    _firestore ??= FirebaseFirestore.instance;
+
+    final credential = await _auth!.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
@@ -42,19 +60,18 @@ class AuthService {
     );
 
     if (role == UserRole.owner) {
-      await _firestore.collection('owners').doc(uid).set({
+      await _firestore!.collection('owners').doc(uid).set({
         ...profile.toMap(),
         'createdAt': FieldValue.serverTimestamp(),
       });
     } else {
-      await _firestore.collection('drivers').doc(uid).set({
+      await _firestore!.collection('drivers').doc(uid).set({
         ...profile.toMap(),
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // Добавляем driverId владельцу
       if (ownerId != null) {
-        await _firestore.collection('owners').doc(ownerId).update({
+        await _firestore!.collection('owners').doc(ownerId).update({
           'driverIds': FieldValue.arrayUnion([uid]),
         });
       }
@@ -68,7 +85,9 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final credential = await _auth.signInWithEmailAndPassword(
+    _auth ??= FirebaseAuth.instance;
+
+    final credential = await _auth!.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
@@ -78,19 +97,22 @@ class AuthService {
 
   /// Выход.
   Future<void> signOut() async {
-    await _auth.signOut();
+    try {
+      _auth ??= FirebaseAuth.instance;
+      await _auth!.signOut();
+    } catch (_) {}
   }
 
   /// Загружает профиль пользователя из Firestore.
   Future<UserProfile> fetchProfile(String uid) async {
-    // Пробуем найти в owners
-    final ownerDoc = await _firestore.collection('owners').doc(uid).get();
+    _firestore ??= FirebaseFirestore.instance;
+
+    final ownerDoc = await _firestore!.collection('owners').doc(uid).get();
     if (ownerDoc.exists) {
       return UserProfile.fromMap(uid, ownerDoc.data()!);
     }
 
-    // Пробуем найти в drivers
-    final driverDoc = await _firestore.collection('drivers').doc(uid).get();
+    final driverDoc = await _firestore!.collection('drivers').doc(uid).get();
     if (driverDoc.exists) {
       return UserProfile.fromMap(uid, driverDoc.data()!);
     }
