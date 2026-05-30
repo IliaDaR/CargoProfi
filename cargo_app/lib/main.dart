@@ -61,7 +61,7 @@ class _AuthGateState extends State<AuthGate> {
 
   Future<void> _init() async {
     // Пробуем получить сессию из URL hash (передана с лендинга)
-    _session = _parseHash();
+    _session = _parseSession();
     if (_session != null) {
       // Авто-вход через сессию с сайта
       final role = _session!['role'] ?? 'owner';
@@ -75,11 +75,8 @@ class _AuthGateState extends State<AuthGate> {
     if (mounted) setState(() => _ready = true);
   }
 
-  Map<String, String>? _parseHash() {
-    // URL hash: #role=admin&email=...&name=...
-    final uri = Uri.base;
-    if (uri.fragment.isEmpty) return null;
-    final params = Uri.splitQueryString(uri.fragment);
+  Map<String, String>? _parseSession() {
+    final params = Uri.base.queryParameters;
     if (params['role'] == null || params['email'] == null) return null;
     return {'role': params['role']!, 'email': params['email']!, 'name': params['name'] ?? params['email']!.split('@').first};
   }

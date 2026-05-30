@@ -101,7 +101,7 @@
     var role = 'owner';
     if (email === 'admin@numino.ru' && pass === 'admin123') role = 'admin';
     var hash = 'role=' + role + '&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(name || email.split('@')[0]);
-    setTimeout(function () { window.location.href = 'admin/index.html#' + hash; }, 500);
+    setTimeout(function () { window.location.href = 'admin/index.html?role=' + role + '&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(name || email.split('@')[0]); }, 500);
   });
 
   document.querySelectorAll('.login-btn').forEach(function (b) {
