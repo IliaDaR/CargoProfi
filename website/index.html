@@ -294,11 +294,17 @@
     <div class="modal__bg"></div>
     <div class="modal__box">
       <button class="modal__x" id="closeModal">&times;</button>
-      <h3 id="modalTitle">Перейти в кабинет</h3>
-      <p id="modalSub">Выберите роль</p>
-      <a href="admin/index.html" class="btn btn--primary btn--full" style="margin-bottom:12px">Я владелец автопарка</a>
-      <a href="admin/index.html" class="btn btn--outline btn--full">Я водитель</a>
-      <p class="modal__switch"><a href="admin/index.html">Или откройте кабинет напрямую</a></p>
+      <h3 id="modalTitle">Вход в кабинет</h3>
+      <p id="modalSub">Владелец автопарка или водитель</p>
+      <form id="loginForm">
+        <label>Email</label>
+        <input type="email" placeholder="ivan@company.ru" required autocomplete="email">
+        <label>Пароль</label>
+        <input type="password" placeholder="••••••" required autocomplete="current-password" minlength="6">
+        <button type="submit" class="btn btn--primary btn--full" id="modalSubmit">Войти</button>
+      </form>
+      <p class="modal__switch"><a href="#" id="showRegister">Зарегистрироваться</a></p>
+      <p class="modal__msg" id="loginMessage"></p>
     </div>
   </div>
 

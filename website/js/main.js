@@ -14,6 +14,7 @@
 
   // ===== MODAL =====
   var modal = document.getElementById('loginModal');
+  var msgEl = document.getElementById('loginMessage');
 
   function openModal() {
     modal.classList.add('active');
@@ -23,6 +24,8 @@
   function closeModal() {
     modal.classList.remove('active');
     document.body.style.overflow = '';
+    msgEl.textContent = '';
+    msgEl.className = 'modal__msg';
   }
 
   document.querySelectorAll('.login-btn').forEach(function (b) {
@@ -39,7 +42,7 @@
     if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
   });
 
-  // Focus trap for modal
+  // Focus trap
   modal.addEventListener('keydown', function(e) {
     if (e.key !== 'Tab' || !modal.classList.contains('active')) return;
     var focusable = modal.querySelectorAll('input,button,a');
@@ -47,6 +50,44 @@
     var first = focusable[0], last = focusable[focusable.length - 1];
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+
+  // ===== LOGIN / REGISTER TOGGLE =====
+  var isReg = false;
+  var registerNameField = null;
+
+  function buildNameField() {
+    var g = document.createElement('div');
+    g.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-top:2px';
+    g.innerHTML = '<label>Имя</label><input type="text" placeholder="Иван Петров" required autocomplete="name">';
+    return g;
+  }
+
+  document.getElementById('showRegister').addEventListener('click', function (e) {
+    e.preventDefault();
+    isReg = !isReg;
+    var form = document.getElementById('loginForm');
+    var submitBtn = document.getElementById('modalSubmit');
+    if (isReg) {
+      document.getElementById('modalTitle').textContent = 'Регистрация';
+      document.getElementById('modalSub').textContent = 'Владелец автопарка';
+      submitBtn.textContent = 'Зарегистрироваться';
+      registerNameField = buildNameField();
+      form.insertBefore(registerNameField, form.children[0]);
+    } else {
+      document.getElementById('modalTitle').textContent = 'Вход в кабинет';
+      document.getElementById('modalSub').textContent = 'Владелец автопарка или водитель';
+      submitBtn.textContent = 'Войти';
+      if (registerNameField) { registerNameField.remove(); registerNameField = null; }
+    }
+  });
+
+  // ===== LOGIN FORM → редирект в кабинет =====
+  document.getElementById('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    msgEl.textContent = 'Переход в кабинет...';
+    msgEl.className = 'modal__msg success';
+    setTimeout(function () { window.location.href = 'admin/index.html'; }, 600);
   });
 
   document.querySelectorAll('.login-btn').forEach(function (b) {
