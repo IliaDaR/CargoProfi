@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../models/expense.dart';
 import '../../utils/constants.dart';
 import '../../services/local_storage.dart';
-import '../../utils/constants.dart';
 
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
@@ -30,7 +29,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         onChanged: (v) => setState(() => _driver = v),
       )),
       if (list.isNotEmpty) Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Card(color: Colors.green.shade50, child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [Text('Всего: ${total.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))])))),
-      Expanded(child: list.isEmpty ? const Center(child: Text('Выберите водителя')) : isWide ? _table(list, df) : _list(list, df)),
+      Expanded(child: list.isEmpty ? const Center(child: Text('Нет расходов')) : isWide ? _table(list, df) : _list(list, df)),
     ]);
   }
 

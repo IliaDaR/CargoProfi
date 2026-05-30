@@ -14,8 +14,7 @@ class SalaryScreen extends StatefulWidget {
 
 class _SalaryScreenState extends State<SalaryScreen> {
   String? _driver;
-  final _percentCtrl = TextEditingController();
-  bool _usePercent = true;
+  final _percentCtrl = TextEditingController(text: '15');
 
   @override
   void dispose() { _percentCtrl.dispose(); super.dispose(); }

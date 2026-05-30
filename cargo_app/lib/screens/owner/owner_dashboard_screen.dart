@@ -72,12 +72,21 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       Text('Обзор парка', style: Theme.of(context).textTheme.headlineSmall),
       const SizedBox(height: 12),
       Wrap(spacing: 10, runSpacing: 10, children: [
-        SizedBox(width: 170, child: AppWidgets.statCard(title: 'Всего машин', value: '${vp.vehicles.length}', icon: Icons.directions_car, color: Colors.blue)),
-        SizedBox(width: 170, child: AppWidgets.statCard(title: 'В рейсе', value: '${vp.activeCount}', icon: Icons.drive_eta, color: Colors.green)),
-        SizedBox(width: 170, child: AppWidgets.statCard(title: 'Свободны', value: '${vp.freeCount}', icon: Icons.local_parking, color: Colors.orange)),
-        SizedBox(width: 170, child: AppWidgets.statCard(title: 'Рейсов', value: '${completed.length}', icon: Icons.route, color: Colors.purple)),
-        SizedBox(width: 170, child: AppWidgets.statCard(title: 'Доход', value: '${income.toStringAsFixed(0)} ₽', icon: Icons.attach_money, color: Colors.green.shade700)),
+        _statCard('Всего машин', '${vp.vehicles.length}', Icons.directions_car, Colors.blue),
+        _statCard('В рейсе', '${vp.activeCount}', Icons.drive_eta, Colors.green),
+        _statCard('Свободны', '${vp.freeCount}', Icons.local_parking, Colors.orange),
+        _statCard('Рейсов', '${completed.length}', Icons.route, Colors.purple),
+        _statCard('Доход', '${income.toStringAsFixed(0)} ₽', Icons.attach_money, Colors.green.shade700),
       ]),
     ]));
+  }
+
+  Widget _statCard(String title, String value, IconData icon, Color color) {
+    return LayoutBuilder(builder: (ctx, constraints) {
+      return SizedBox(
+        width: constraints.maxWidth > 400 ? 180 : constraints.maxWidth / 2 - 16,
+        child: AppWidgets.statCard(title: title, value: value, icon: icon, color: color),
+      );
+    });
   }
 }

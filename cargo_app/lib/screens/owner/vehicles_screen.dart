@@ -64,24 +64,23 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
         const SizedBox(width: 8),
         ElevatedButton.icon(onPressed: () => _addDriver(store), icon: const Icon(Icons.person_add, size: 16), label: const Text('Водитель')),
       ])),
-      Expanded(child: Column(children: [
-        if (vp.vehicles.isNotEmpty) Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: const Align(alignment: Alignment.centerLeft, child: Text('АВТОМОБИЛИ', style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)))),
-        Expanded(child: vp.vehicles.isEmpty ? const Center(child: Text('Нет автомобилей')) : ListView.builder(itemCount: vp.vehicles.length, itemBuilder: (ctx, i) {
-          final v = vp.vehicles[i];
-          return Card(margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), child: ListTile(
+      Expanded(child: ListView(children: [
+        if (vp.vehicles.isNotEmpty) ...[
+          const Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('АВТОМОБИЛИ', style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold))),
+          ...vp.vehicles.map((v) => Card(margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), child: ListTile(
             leading: CircleAvatar(backgroundColor: v.isActive ? Colors.green.shade100 : Colors.grey.shade200, child: Icon(v.isActive ? Icons.drive_eta : Icons.local_parking, color: v.isActive ? Colors.green : Colors.grey)),
             title: Text(v.plateNumber, style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text('${v.brand} ${v.model}'),
             trailing: Text(v.isActive ? 'В рейсе' : 'Свободен', style: TextStyle(color: v.isActive ? Colors.green : Colors.grey, fontSize: 12)),
-          ));
-        })),
-        if (store.drivers.isNotEmpty) Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: const Align(alignment: Alignment.centerLeft, child: Text('ВОДИТЕЛИ', style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)))),
-        Expanded(child: store.drivers.isEmpty ? const SizedBox() : ListView.builder(itemCount: store.drivers.length, itemBuilder: (ctx, i) {
-          final d = store.drivers[i];
-          return Card(margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), child: ListTile(
+          ))),
+        ],
+        if (store.drivers.isNotEmpty) ...[
+          const Padding(padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8), child: Text('ВОДИТЕЛИ', style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold))),
+          ...store.drivers.map((d) => Card(margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), child: ListTile(
             leading: const CircleAvatar(child: Icon(Icons.person)),
             title: Text(d['displayName'] ?? ''), subtitle: Text(d['phone'] ?? ''),
-          ));
-        })),
+          ))),
+        ],
+        if (vp.vehicles.isEmpty && store.drivers.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(32), child: Text('Нет автомобилей и водителей'))),
       ])),
     ]);
   }

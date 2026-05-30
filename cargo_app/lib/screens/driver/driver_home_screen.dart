@@ -84,7 +84,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Выйти',
-            onPressed: () => auth.signOut(),
+            onPressed: () => auth.logout(),
           ),
         ],
       ),
