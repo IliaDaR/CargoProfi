@@ -22,7 +22,6 @@ dependencies:
 
   # GPS / Location
   geolocator: ^12.0.0
-  geocoding: ^3.0.0
 
   # Camera & Gallery
   image_picker: ^1.1.0
