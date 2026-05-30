@@ -4,17 +4,18 @@ import 'package:provider/provider.dart';
 import '../../services/local_storage.dart';
 
 class SuperadminScreen extends StatefulWidget {
-  const SuperadminScreen({super.key});
+  final LocalStorage storage;
+  const SuperadminScreen({super.key, required this.storage});
   @override
   State<SuperadminScreen> createState() => _SuperadminScreenState();
 }
 
 class _SuperadminScreenState extends State<SuperadminScreen> {
   int _tab = 0;
+  LocalStorage get store => widget.storage;
 
   @override
   Widget build(BuildContext context) {
-    final store = context.watch<LocalStorage>();
     final owners = store.users.where((u) => u['role'] == 'owner').toList();
     final drivers = store.users.where((u) => u['role'] == 'driver').toList();
 
