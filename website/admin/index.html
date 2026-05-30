@@ -23,8 +23,22 @@
 <body>
   <div id="loading">
     <div class="spinner"></div>
-    <span>Numino загружается...</span>
+    <span id="loadingText">Numino загружается...</span>
   </div>
+  <script>
+    // Если Flutter не загрузился за 10 сек — показать ошибку
+    setTimeout(function(){
+      var el = document.getElementById('loadingText');
+      if (el) {
+        el.innerHTML = '<div style="text-align:center">'+
+          '<div style="font-size:48px;margin-bottom:16px">&#9888;</div>'+
+          '<b>Не удалось загрузить кабинет</b><br><br>'+
+          '<span style="font-size:14px">Проверьте подключение к интернету<br>'+
+          'или выполните <code>flutterfire configure</code><br>'+
+          'и пересоберите приложение.</span></div>';
+      }
+    }, 10000);
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

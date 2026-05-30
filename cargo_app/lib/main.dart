@@ -30,7 +30,7 @@ void main() async {
         projectId: 'cargoprofi-demo',
         storageBucket: 'cargoprofi-demo.appspot.com',
       ),
-    );
+    ).timeout(const Duration(seconds: 8));
     firebaseOk = true;
   } catch (e) {
     firebaseError = e.toString();
