@@ -5,7 +5,7 @@ import 'providers/auth_provider.dart';
 import 'providers/vehicle_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/owner/owner_dashboard_screen.dart';
-import 'screens/owner/superadmin_screen.dart';
+// import 'screens/owner/superadmin_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,7 +73,7 @@ class _AuthGateState extends State<AuthGate> {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final auth = context.watch<AuthProvider>();
     if (!auth.isLoggedIn) return const LoginScreen();
-    if (auth.isSuperadmin) return const SuperadminScreen();
+    if (auth.isSuperadmin) return const OwnerDashboardScreen(); // TODO: SuperadminScreen
     if (auth.isOwner) return const OwnerDashboardScreen();
     return const LoginScreen();
   }
