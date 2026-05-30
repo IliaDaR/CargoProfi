@@ -98,7 +98,7 @@
     msgEl.textContent = 'Переход в кабинет...';
     msgEl.className = 'modal__msg success';
     // Сохраняем в browser localStorage и передаём в Flutter через hash
-    var role = 'owner'; // по умолчанию владелец
+    var role = 'owner';
     if (email === 'admin@numino.ru' && pass === 'admin123') role = 'admin';
     var hash = 'role=' + role + '&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(name || email.split('@')[0]);
     setTimeout(function () { window.location.href = 'admin/index.html#' + hash; }, 500);

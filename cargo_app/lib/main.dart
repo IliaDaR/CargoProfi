@@ -90,13 +90,12 @@ class _AuthGateState extends State<AuthGate> {
 
     final user = widget.storage.currentUser;
     if (user != null) {
-      // Уже есть сессия — сразу в дашборд по роли
       final role = user['role'] ?? 'owner';
       if (role == 'admin') return SuperadminScreen(storage: widget.storage);
       return const OwnerDashboardScreen();
     }
 
-    // Нет сессии — экран выбора роли (Android) или логин
+    // Нет сессии: экран выбора роли (только на Android, не на вебе)
     return RoleScreen(storage: widget.storage);
   }
 }
