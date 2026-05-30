@@ -51,7 +51,7 @@ jobs:
           path: numino-site.zip
           retention-days: 30
 
-  # ===== Сборка Android APK (приложение водителя) =====
+  # ===== Сборка Android APK (владелец + водитель) =====
   build-android:
     name: Сборка Android APK
     runs-on: ubuntu-latest
@@ -76,27 +76,27 @@ jobs:
         working-directory: cargo_app
         run: flutter pub get
 
-      - name: Сборка APK (debug)
+      - name: Сборка APK (владелец)
         working-directory: cargo_app
         run: flutter build apk --debug
 
-      - name: Переименование APK
+      - name: Сохранить APK владельца
         run: |
-          mv cargo_app/build/app/outputs/flutter-apk/app-debug.apk numino-driver.apk
+          cp cargo_app/build/app/outputs/flutter-apk/app-debug.apk numino-owner.apk
 
-      - name: Выгрузка артефакта (APK)
+      - name: Сборка APK (водитель)
+        working-directory: cargo_app
+        run: flutter build apk --debug -t lib/main_driver.dart
+
+      - name: Сохранить APK водителя
+        run: |
+          cp cargo_app/build/app/outputs/flutter-apk/app-debug.apk numino-driver.apk
+
+      - name: Выгрузка артефактов
         uses: actions/upload-artifact@v4
         with:
-          name: numino-driver-apk
-          path: numino-driver.apk
+          name: numino-apks
+          path: |
+            numino-owner.apk
+            numino-driver.apk
           retention-days: 30
-
-      - name: Создание Release с APK
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Сборка ${{ github.sha }}
-          tag_name: build-${{ github.run_number }}
-          files: numino-driver.apk
-          fail_on_unmatched_files: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

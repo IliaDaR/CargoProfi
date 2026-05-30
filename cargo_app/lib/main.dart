@@ -59,6 +59,11 @@ class _AuthGateState extends State<AuthGate> {
   Future<void> _init() async {
     final auth = context.read<AuthProvider>();
     auth.checkSavedSession();
+    // Демо-режим: если нет сессии — авто-вход
+    if (!auth.isLoggedIn) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      auth.loginDemo();
+    }
     if (mounted) setState(() => _ready = true);
   }
 
