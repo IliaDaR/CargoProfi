@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/salary_payment.dart';
+import '../../models/trip.dart';
+import '../../utils/constants.dart';
 import '../../services/local_storage.dart';
 
 class SalaryScreen extends StatefulWidget {
