@@ -1,150 +1,63 @@
 import 'package:flutter/material.dart';
-import '../models/user_profile.dart';
-import '../services/auth_service.dart';
-import '../utils/constants.dart';
+import '../services/local_storage.dart';
 
-/// Провайдер аутентификации. Управляет состоянием входа/регистрации,
-/// хранит текущий профиль пользователя и его роль.
 class AuthProvider extends ChangeNotifier {
-  final AuthService _authService = AuthService();
-
-  UserProfile? _profile;
+  final LocalStorage _storage;
+  Map<String, dynamic>? _user;
   bool _isLoading = false;
   String? _error;
 
-  UserProfile? get profile => _profile;
+  AuthProvider(this._storage);
+
+  bool get isLoggedIn => _user != null;
+  bool get isOwner => _user?['role'] == 'owner';
+  String? get displayName => _user?['displayName'];
+  String? get email => _user?['email'];
   bool get isLoading => _isLoading;
   String? get error => _error;
-  bool get isLoggedIn => _profile != null;
-  bool get isOwner => _profile?.role == UserRole.owner;
-  bool get isDriver => _profile?.role == UserRole.driver;
 
-  /// Инициализация: проверяет, есть ли активная сессия Firebase.
-  Future<void> initialize() async {
-    try {
-      final user = _authService.currentUser;
-      if (user != null) {
-        _isLoading = true;
-        notifyListeners();
-        try {
-          _profile = await _authService.fetchProfile(user.uid);
-        } catch (e) {
-          _error = _formatError(e);
-        }
-        _isLoading = false;
-        notifyListeners();
-      }
-    } catch (_) {
-      // Firebase не настроен — работаем в демо-режиме
-    }
+  Map<String, dynamic>? get profile => _user;
+
+  void checkSavedSession() {
+    _user = _storage.loadCurrentUser();
+    notifyListeners();
   }
 
-  /// Регистрация. В демо-режиме создаёт локальный профиль.
-  Future<bool> register({
-    required String email,
-    required String password,
-    required String displayName,
-    required UserRole role,
-    String? phone,
-    String? ownerId,
-    String? companyName,
-  }) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      _profile = await _authService.register(
-        email: email,
-        password: password,
-        displayName: displayName,
-        role: role,
-        phone: phone,
-        ownerId: ownerId,
-        companyName: companyName,
-      );
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = _formatError(e);
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  /// Вход. В демо-режиме принимает любые данные и создаёт профиль.
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      _profile = await _authService.login(
-        email: email,
-        password: password,
-      );
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      // Демо-режим: пропускаем без Firebase
-      final role = email.contains('admin') ? UserRole.owner : UserRole.driver;
-      _profile = UserProfile(
-        uid: 'demo-uid',
-        role: role,
-        displayName: email.split('@').first,
-        email: email,
-      );
-      _isLoading = false;
-      notifyListeners();
+  Future<bool> login(String email, String password) async {
+    _isLoading = true; _error = null; notifyListeners();
+    await Future.delayed(const Duration(milliseconds: 300));
+    final u = _storage.findUser(email, password);
+    if (u != null) {
+      _user = u;
+      _storage.setCurrentUser(u);
+      _isLoading = false; notifyListeners();
       return true;
     }
+    _error = 'Неверный email или пароль';
+    _isLoading = false; notifyListeners();
+    return false;
   }
 
-  /// Демо-вход: сразу создаёт профиль владельца без формы логина.
-  void loginDemo() {
-    _profile = UserProfile(
-      uid: 'demo-admin',
-      role: UserRole.owner,
-      displayName: 'Администратор',
-      email: 'admin@numino.ru',
-      phone: '+79183951315',
-      companyName: 'Numino',
-    );
+  Future<bool> register(String email, String password, String name, String role) async {
+    _isLoading = true; _error = null; notifyListeners();
+    await Future.delayed(const Duration(milliseconds: 300));
+    final u = _storage.registerUser(email, password, name, role);
+    if (u != null) {
+      _user = u;
+      _storage.setCurrentUser(u);
+      _isLoading = false; notifyListeners();
+      return true;
+    }
+    _error = 'Пользователь с таким email уже существует';
+    _isLoading = false; notifyListeners();
+    return false;
+  }
+
+  void logout() {
+    _storage.setCurrentUser(null);
+    _user = null;
     notifyListeners();
   }
 
-  /// Выход.
-  Future<void> signOut() async {
-    await _authService.signOut();
-    _profile = null;
-    notifyListeners();
-  }
-
-  void clearError() {
-    _error = null;
-    notifyListeners();
-  }
-
-  String _formatError(dynamic e) {
-    final msg = e.toString();
-    if (msg.contains('email-already-in-use')) {
-      return 'Этот email уже зарегистрирован';
-    }
-    if (msg.contains('invalid-email')) {
-      return 'Неверный формат email';
-    }
-    if (msg.contains('weak-password')) {
-      return 'Пароль слишком простой (минимум 6 символов)';
-    }
-    if (msg.contains('wrong-password') || msg.contains('user-not-found')) {
-      return 'Неверный email или пароль';
-    }
-    return msg.replaceFirst('Exception: ', '');
-  }
+  void clearError() { _error = null; notifyListeners(); }
 }
