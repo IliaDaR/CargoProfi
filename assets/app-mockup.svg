@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 480" fill="none">
+  <!-- Phone frame -->
+  <rect x="10" y="10" width="260" height="460" rx="32" fill="#1e293b"/>
+  <rect x="14" y="14" width="252" height="452" rx="28" fill="#0f172a"/>
+  
+  <!-- Status bar -->
+  <rect x="14" y="14" width="252" height="40" rx="28" fill="#0f172a"/>
+  <rect x="14" y="40" width="252" height="14" fill="#0f172a"/>
+  <text x="140" y="38" text-anchor="middle" font-family="system-ui" font-size="11" fill="#64748b">12:30</text>
+  <circle cx="70" cy="36" r="3" fill="#22c55e"/>
+  <text x="80" y="39" font-family="system-ui" font-size="9" fill="#64748b">GPS</text>
+  
+  <!-- App header -->
+  <rect x="26" y="62" width="125" height="12" rx="4" fill="#f8fafc"/>
+  <rect x="26" y="82" width="90" height="8" rx="3" fill="#64748b"/>
+  
+  <!-- Timer card -->
+  <rect x="26" y="106" width="228" height="72" rx="12" fill="#1e293b"/>
+  <text x="140" y="130" text-anchor="middle" font-family="system-ui" font-size="10" fill="#64748b">ВРЕМЯ В ПУТИ</text>
+  <text x="140" y="162" text-anchor="middle" font-family="monospace" font-size="32" fill="#22c55e" font-weight="bold">02:34:15</text>
+  
+  <!-- Stats mini cards -->
+  <rect x="26" y="192" width="110" height="52" rx="8" fill="#1e293b"/>
+  <text x="81" y="215" text-anchor="middle" font-family="system-ui" font-size="9" fill="#64748b">Пробег</text>
+  <text x="81" y="234" text-anchor="middle" font-family="system-ui" font-size="16" fill="#f8fafc" font-weight="bold">125.4 км</text>
+  
+  <rect x="146" y="192" width="108" height="52" rx="8" fill="#1e293b"/>
+  <text x="200" y="215" text-anchor="middle" font-family="system-ui" font-size="9" fill="#64748b">GPS-точек</text>
+  <text x="200" y="234" text-anchor="middle" font-family="system-ui" font-size="16" fill="#f8fafc" font-weight="bold">156</text>
+  
+  <!-- Add expense button -->
+  <rect x="26" y="258" width="228" height="44" rx="10" fill="#f59e0b" opacity="0.9"/>
+  <text x="140" y="284" text-anchor="middle" font-family="system-ui" font-size="14" fill="#0f172a" font-weight="bold">+ Добавить расход</text>
+  
+  <!-- Map placeholder -->
+  <rect x="26" y="316" width="228" height="100" rx="12" fill="#1e293b"/>
+  <line x1="26" y1="366" x2="254" y2="366" stroke="#334155" stroke-width="1"/>
+  <polyline points="50,360 90,330 140,340 180,310 220,320" stroke="#2563eb" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <circle cx="50" cy="360" r="4" fill="#22c55e"/>
+  <circle cx="220" cy="320" r="4" fill="#ef4444"/>
+  <text x="48" y="386" font-family="system-ui" font-size="8" fill="#22c55e">Старт</text>
+  <text x="195" y="310" font-family="system-ui" font-size="8" fill="#ef4444">Текущее</text>
+  
+  <!-- End trip button -->
+  <rect x="26" y="428" width="228" height="42" rx="10" fill="#ef4444" opacity="0.8"/>
+  <text x="140" y="454" text-anchor="middle" font-family="system-ui" font-size="14" fill="#fff" font-weight="bold">Завершить рейс</text>
+</svg>
