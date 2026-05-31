@@ -45,6 +45,8 @@ class _SalaryScreenState extends State<SalaryScreen> {
     for (var r in store.salaryRules.where((r) => r.driverId == _driver).toList()) {
       store.salaryRules.remove(r);
     }
+    store.saveSalaryRules();
+    store.saveSalaryRules();
     store.addSalaryRule(SalaryRule(
       id: DateTime.now().millisecondsSinceEpoch.toString(), ownerId: 'local', driverId: _driver!,
       type: _usePercent ? SalaryRuleType.percent : SalaryRuleType.fixed,
@@ -108,6 +110,7 @@ class _SalaryScreenState extends State<SalaryScreen> {
             onSelected: (v) { setState(() {
               final idx = store.salaryPayments.indexOf(p);
               if (idx >= 0) { store.salaryPayments[idx] = SalaryPayment(id: p.id, ownerId: p.ownerId, driverId: p.driverId, periodStart: p.periodStart, periodEnd: p.periodEnd, tripIds: p.tripIds, totalIncome: p.totalIncome, calculatedSalary: p.calculatedSalary, ruleType: p.ruleType, ruleValue: p.ruleValue, status: v == 'paid' ? SalaryPaymentStatus.paid : SalaryPaymentStatus.cancelled, createdAt: p.createdAt); }
+              store.saveSalaryPayments();
             }); },
           ) : Text(p.status == SalaryPaymentStatus.paid ? 'Оплачено' : 'Отменено', style: TextStyle(color: p.status == SalaryPaymentStatus.paid ? Colors.green : Colors.red, fontSize: 11)),
         )),
