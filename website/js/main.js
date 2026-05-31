@@ -6,7 +6,32 @@
 (function () {
   'use strict';
 
-  // ===== HEADER SHADOW ON SCROLL =====
+  // ===== BURGER MENU =====
+  var burgerBtn = document.getElementById('burgerBtn');
+  var mainNav = document.getElementById('mainNav');
+  if (burgerBtn && mainNav) {
+    burgerBtn.addEventListener('click', function() {
+      burgerBtn.classList.toggle('open');
+      mainNav.classList.toggle('open');
+    });
+    mainNav.querySelectorAll('a').forEach(function(a) {
+      a.addEventListener('click', function() {
+        burgerBtn.classList.remove('open');
+        mainNav.classList.remove('open');
+      });
+    });
+  }
+
+  // ===== SCROLL TO TOP =====
+  var scrollBtn = document.createElement('button');
+  scrollBtn.className = 'scroll-top';
+  scrollBtn.innerHTML = '&#8593;';
+  scrollBtn.setAttribute('aria-label', 'Наверх');
+  scrollBtn.addEventListener('click', function() { window.scrollTo({top:0,behavior:'smooth'}); });
+  document.body.appendChild(scrollBtn);
+  window.addEventListener('scroll', function() {
+    scrollBtn.classList.toggle('visible', window.scrollY > 500);
+  });
   var hdr = document.getElementById('header');
   window.addEventListener('scroll', function () {
     hdr.classList.toggle('scrolled', window.scrollY > 8);
@@ -115,7 +140,7 @@
       // Регистрация
       if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; return; }
       if (users[email]) { msgEl.textContent = 'Пользователь уже существует'; msgEl.className = 'modal__msg error'; return; }
-      if (pass.length < 4) { msgEl.textContent = 'Пароль минимум 4 символа'; msgEl.className = 'modal__msg error'; return; }
+      if (pass.length < 6) { msgEl.textContent = 'Пароль минимум 6 символов'; msgEl.className = 'modal__msg error'; return; }
       users[email] = { pass: pass, name: name, role: 'owner' };
       saveUsers(users);
       msgEl.textContent = 'Регистрация успешна! Выполните вход.';
@@ -132,8 +157,11 @@
       return;
     }
 
-    msgEl.textContent = 'Добро пожаловать, ' + user.name + '!';
+    msgEl.textContent = '⏳ Выполняется вход...';
     msgEl.className = 'modal__msg success';
+    // Блокируем кнопку
+    var btn = e.target.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
     // Передаём только роль и имя, без пароля
     var role = user.role || 'owner';
     setTimeout(function () {

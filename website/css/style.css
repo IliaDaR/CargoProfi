@@ -39,6 +39,20 @@ a{color:var(--blue);text-decoration:none}
 .nav a{color:var(--gray-500);font-size:.9rem;font-weight:500}
 .nav a:hover{color:var(--blue)}
 
+/* Burger menu */
+.burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px;z-index:101}
+.burger span{display:block;width:24px;height:2px;background:var(--gray-700);border-radius:2px;transition:all var(--tr)}
+.burger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+.burger.open span:nth-child(2){opacity:0}
+.burger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+
+@media(max-width:800px){
+  .burger{display:flex}
+  .nav{position:fixed;top:60px;left:0;right:0;background:#fff;flex-direction:column;padding:16px 24px;gap:16px;border-bottom:1px solid var(--gray-300);transform:translateY(-120%);transition:transform var(--tr);z-index:99;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .nav.open{transform:translateY(0)}
+  .nav a{font-size:1.05rem;padding:8px 0}
+}
+
 /* Hero — side by side */
 .hero{padding:100px 0 40px;background:linear-gradient(180deg,#eff6ff 0%,#fff 100%)}
 .hero__inner{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center}
@@ -91,6 +105,17 @@ a{color:var(--blue);text-decoration:none}
 .plan ul li{padding:4px 0;font-size:.87rem;border-bottom:1px solid var(--gray-100)}
 .plan ul li::before{content:'\2713';color:#22c55e;margin-right:8px;font-weight:700}
 .plan__trial{text-align:center;color:#22c55e;font-size:.82rem;font-weight:600;margin:-8px 0 12px}
+
+/* Testimonials */
+.testimonials{padding:50px 0;background:var(--gray-50)}
+.testimonials__card{max-width:600px;margin:0 auto;background:#fff;padding:24px;border-radius:var(--r);box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.testimonials__quote{font-size:1.1rem;color:var(--gray-700);line-height:1.5;font-style:italic}
+.testimonials__author{margin-top:12px;font-weight:600;color:var(--gray-900)}
+
+/* Scroll to top */
+.scroll-top{position:fixed;bottom:24px;right:24px;width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,.3);display:none;align-items:center;justify-content:center;z-index:90;font-size:1.3rem;transition:all var(--tr)}
+.scroll-top:hover{background:var(--blue-d);transform:translateY(-2px)}
+.scroll-top.visible{display:flex}
 
 .download{padding:50px 0;background:var(--gray-900)}
 .download__inner{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center}
