@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/local_storage.dart';
 import '../../providers/vehicle_provider.dart';
 import '../owner/owner_dashboard_screen.dart';
+import '../owner/superadmin_screen.dart';
 import '../driver/driver_home_screen.dart';
 
 /// Экран: две кнопки (Владелец / Водитель).
@@ -33,9 +34,9 @@ class RoleScreen extends StatelessWidget {
           const SizedBox(height: 16),
           SizedBox(width: 280, height: 56,
             child: OutlinedButton.icon(
-              onPressed: () => _showLogin(context, 'driver', 'Водитель'),
-              icon: const Icon(Icons.person, size: 24),
-              label: const Text('Водитель', style: TextStyle(fontSize: 16)),
+              onPressed: () => _showLogin(context, 'admin', 'Администратор'),
+              icon: const Icon(Icons.admin_panel_settings, size: 24),
+              label: const Text('Администратор', style: TextStyle(fontSize: 16)),
               style: OutlinedButton.styleFrom(foregroundColor: Colors.grey.shade700, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), side: BorderSide(color: Colors.grey.shade400)),
             ),
           ),
@@ -98,6 +99,7 @@ class _LoginDialogState extends State<_LoginDialog> {
       Navigator.of(context).popUntil((route) => route.isFirst);
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) {
         if (widget.role == 'driver') return DriverHomeScreen(driverId: user['uid'] ?? 'driver');
+        if (widget.role == 'admin') return SuperadminScreen(storage: widget.storage);
         return const OwnerDashboardScreen();
       }));
     } else {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'screens/auth/login_screen.dart';
 import 'screens/auth/role_screen.dart';
 import 'screens/owner/owner_dashboard_screen.dart';
 import 'screens/owner/superadmin_screen.dart';
@@ -52,7 +51,6 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   bool _ready = false;
-  Map<String, String>? _session;
 
   @override
   void initState() {
@@ -61,14 +59,13 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _init() async {
-    // Пробуем получить сессию из URL hash (передана с лендинга)
-    _session = _parseSession();
-    if (_session != null) {
-      // Проверяем, что пользователь существует в LocalStorage
-      final email = _session!['email'] ?? '';
+    // Парсим URL параметры (переданы с лендинга: admin/index.html?role=...&email=...&name=...)
+    final params = _parseQueryParams();
+    if (params['role'] != null && params['email'] != null) {
+      final email = params['email']!;
       final existingUser = widget.storage.findUserByEmail(email);
-      final role = existingUser?['role'] ?? _session!['role'] ?? 'owner';
-      final name = existingUser?['displayName'] ?? _session!['name'] ?? 'Пользователь';
+      final role = existingUser?['role'] ?? params['role'] ?? 'owner';
+      final name = existingUser?['displayName'] ?? params['name'] ?? email.split('@').first;
       widget.storage.setCurrentUser({
         'uid': email, 'email': email, 'displayName': name, 'role': role,
       });
@@ -76,10 +73,20 @@ class _AuthGateState extends State<AuthGate> {
     if (mounted) setState(() => _ready = true);
   }
 
-  Map<String, String>? _parseSession() {
-    final params = Uri.base.queryParameters;
-    if (params['role'] == null || params['email'] == null) return null;
-    return {'role': params['role']!, 'email': params['email']!, 'name': params['name'] ?? params['email']!.split('@').first};
+  /// Надёжный парсинг параметров: на вебе через dart:html, нативно через Uri.
+  Map<String, String> _parseQueryParams() {
+    try {
+      // Попытка через dart:html (работает на Flutter Web)
+      // ignore: avoid_web_libraries_in_flutter
+      final search = Uri.base.query;
+      if (search.isNotEmpty) return Uri.splitQueryString(search);
+    } catch (_) {}
+    // Fallback: Uri.base.queryParameters
+    try {
+      final p = Uri.base.queryParameters;
+      if (p.isNotEmpty) return Map<String, String>.from(p);
+    } catch (_) {}
+    return {};
   }
 
   @override
@@ -93,7 +100,7 @@ class _AuthGateState extends State<AuthGate> {
       return const OwnerDashboardScreen();
     }
 
-    // Нет сессии: экран выбора роли (только на Android, не на вебе)
+    // Нет сессии: на вебе — редирект на лендинг, на Android — экран ролей
     return RoleScreen(storage: widget.storage);
   }
 }
