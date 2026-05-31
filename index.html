@@ -16,11 +16,14 @@
 
   <header class="header" id="header">
     <div class="container header__inner">
-      <a href="#" class="logo">
+      <a href="#" class="logo" id="logoTop">
         <img src="assets/logo.svg" alt="Numino" width="36" height="36">
         <span>Numino</span>
       </a>
-      <nav class="nav">
+      <button class="burger" id="burgerBtn" aria-label="Меню">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav" id="mainNav">
         <a href="#features">Функции</a>
         <a href="#how">Как работает</a>
         <a href="#pricing">Тарифы</a>
@@ -261,14 +264,13 @@
   </section>
 
   <!-- TESTIMONIALS -->
-  <section class="testimonials" style="padding:50px 0;background:var(--gray-50)">
+  <section class="testimonials">
     <div class="container" style="text-align:center">
       <h2 class="section__title">Нам доверяют</h2>
-      <div style="max-width:600px;margin:0 auto">
-        <div style="background:#fff;padding:24px;border-radius:var(--r);box-shadow:0 4px 12px rgba(0,0,0,.04);margin-bottom:16px">
-          <p style="font-size:1.1rem;color:var(--gray-700);line-height:1.5;font-style:italic">«С Numino перестали терять чеки и путаться в зарплате водителей. Раньше уходило полдня на бумажки — теперь всё в телефоне.»</p>
-          <p style="margin-top:12px;font-weight:600;color:var(--gray-900)">— Алексей, владелец парка на 4 машины</p>
-        </div>
+      <div class="testimonials__card">
+        <p class="testimonials__quote">«С Numino перестали терять чеки и путаться в зарплате водителей. Раньше уходило полдня на бумажки — теперь всё в телефоне.»</p>
+        <p class="testimonials__author">— Алексей, владелец парка на 4 машины</p>
+      </div>
       </div>
     </div>
   </section>
@@ -294,7 +296,7 @@
         <textarea id="contactMsg" placeholder="Сообщение" rows="3" name="message" required></textarea>
         <input type="hidden" name="_subject" value="Новое сообщение с Numino">
         <input type="hidden" name="_captcha" value="true">
-        <input type="hidden" name="_next" value="">
+        <input type="hidden" name="_next" value="https://numino.ru/thanks">
         <button type="submit" class="btn btn--primary btn--full">Отправить</button>
       </form>
     </div>
