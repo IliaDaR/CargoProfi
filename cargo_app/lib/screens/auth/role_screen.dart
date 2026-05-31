@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/local_storage.dart';
 import '../../providers/vehicle_provider.dart';
 import '../owner/owner_dashboard_screen.dart';
+import '../owner/superadmin_screen.dart';
 import '../driver/driver_home_screen.dart';
 
 /// Экран: две кнопки (Владелец / Водитель).
@@ -97,7 +98,9 @@ class _LoginDialogState extends State<_LoginDialog> {
       widget.storage.setCurrentUser(user);
       Navigator.of(context).popUntil((route) => route.isFirst);
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) {
-        if (widget.role == 'driver') return DriverHomeScreen(driverId: user['uid'] ?? 'driver');
+        final actualRole = user['role'] ?? widget.role;
+        if (actualRole == 'driver') return DriverHomeScreen(driverId: user['uid'] ?? 'driver');
+        if (actualRole == 'admin' || actualRole == 'superadmin') return SuperadminScreen(storage: widget.storage);
         return const OwnerDashboardScreen();
       }));
     } else {

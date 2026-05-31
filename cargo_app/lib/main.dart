@@ -59,16 +59,24 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _init() async {
+    // Пробуем восстановить сохранённую сессию (после обновления страницы)
+    final saved = widget.storage.loadCurrentUser();
+    if (saved != null) {
+      widget.storage.setCurrentUser(saved);
+    }
+
     // Парсим URL параметры (переданы с лендинга: admin/index.html?role=...&email=...&name=...)
-    final params = _parseQueryParams();
-    if (params['role'] != null && params['email'] != null) {
-      final email = params['email']!;
-      final existingUser = widget.storage.findUserByEmail(email);
-      final role = existingUser?['role'] ?? params['role'] ?? 'owner';
-      final name = existingUser?['displayName'] ?? params['name'] ?? email.split('@').first;
-      widget.storage.setCurrentUser({
-        'uid': email, 'email': email, 'displayName': name, 'role': role,
-      });
+    if (saved == null) {
+      final params = _parseQueryParams();
+      if (params['role'] != null && params['email'] != null) {
+        final email = params['email']!;
+        final existingUser = widget.storage.findUserByEmail(email);
+        final role = existingUser?['role'] ?? params['role'] ?? 'owner';
+        final name = existingUser?['displayName'] ?? params['name'] ?? email.split('@').first;
+        widget.storage.setCurrentUser({
+          'uid': email, 'email': email, 'displayName': name, 'role': role,
+        });
+      }
     }
     if (mounted) setState(() => _ready = true);
   }
@@ -100,7 +108,9 @@ class _AuthGateState extends State<AuthGate> {
       return const OwnerDashboardScreen();
     }
 
-    // Нет сессии: на вебе — редирект на лендинг, на Android — экран ролей
+    // Нет сессии:
+    // Android — показываем RoleScreen (Владелец / Водитель)
+    // Web — редирект на лендинг (админ заходит только через сайт)
     return RoleScreen(storage: widget.storage);
   }
 }
