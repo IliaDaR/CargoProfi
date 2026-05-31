@@ -63,13 +63,13 @@ class _AuthGateState extends State<AuthGate> {
     // Пробуем получить сессию из URL hash (передана с лендинга)
     _session = _parseSession();
     if (_session != null) {
-      // Авто-вход через сессию с сайта
-      final role = _session!['role'] ?? 'owner';
+      // Проверяем, что пользователь существует в LocalStorage
+      final email = _session!['email'] ?? '';
+      final existingUser = widget.storage.findUserByEmail(email);
+      final role = existingUser?['role'] ?? _session!['role'] ?? 'owner';
+      final name = existingUser?['displayName'] ?? _session!['name'] ?? 'Пользователь';
       widget.storage.setCurrentUser({
-        'uid': _session!['email'] ?? 'user',
-        'email': _session!['email'] ?? '',
-        'displayName': _session!['name'] ?? 'Пользователь',
-        'role': role,
+        'uid': email, 'email': email, 'displayName': name, 'role': role,
       });
     }
     if (mounted) setState(() => _ready = true);

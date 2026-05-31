@@ -5,6 +5,7 @@ import '../../services/local_storage.dart';
 import '../../models/vehicle.dart';
 import '../../utils/constants.dart';
 import '../../widgets/common_widgets.dart';
+import '../auth/role_screen.dart';
 import 'vehicles_screen.dart';
 import 'trips_screen.dart';
 import 'expenses_screen.dart';
@@ -31,7 +32,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
         Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Row(children: [
           const Icon(Icons.account_circle, size: 20), const SizedBox(width: 6),
           const Text('Владелец'), const SizedBox(width: 12),
-          TextButton.icon(onPressed: () => Navigator.pushReplacementNamed(context, '/'), icon: const Icon(Icons.logout, size: 18), label: const Text('Выйти')),
+          TextButton.icon(onPressed: () { Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => RoleScreen(storage: storage)), (_) => false); }, icon: const Icon(Icons.logout, size: 18), label: const Text('Выйти')),
         ])),
       ]),
       body: LayoutBuilder(builder: (ctx, c) => c.maxWidth >= 800

@@ -85,6 +85,12 @@ class LocalStorage {
     } catch (_) { return null; }
   }
 
+  Map<String, dynamic>? findUserByEmail(String email) {
+    try {
+      return users.where((u) => u['email'] == email).firstOrNull;
+    } catch (_) { return null; }
+  }
+
   Map<String, dynamic>? registerUser(String email, String password, String name, String role) {
     if (users.any((u) => u['email'] == email)) return null;
     final user = {'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'password': password, 'displayName': name, 'role': role};
