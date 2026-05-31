@@ -7,6 +7,9 @@
   <meta name="description" content="GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты водителей — всё в одном сервисе.">
   <meta name="referrer" content="no-referrer">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -32,7 +35,12 @@
     <div class="container hero__inner">
       <div class="hero__text">
         <h1>Полный контроль автопарка <span class="gradient">в одном кабинете</span></h1>
-        <p>GPS-трекинг, автоматический расчёт пробега, учёт расходов с фото чеков, путевые листы по приказу Минтранса и начисление зарплаты водителям.</p>
+        <p>GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты — всё в одном кабинете для владельца автопарка.</p>
+        <div class="hero__stats">
+          <span>🚛 3 роли</span>
+          <span>📍 GPS онлайн</span>
+          <span>📄 PDF по Минтрансу</span>
+        </div>
         <div class="hero__btns">
           <button class="btn btn--primary btn--lg login-btn">Войти в кабинет</button>
           <a href="#download" class="btn btn--outline btn--lg">Скачать приложение</a>
@@ -191,6 +199,7 @@
       <div class="pricing__grid">
         <div class="plan">
           <h3>Старт</h3>
+          <p style="font-size:2rem;margin-bottom:4px">🚚</p>
           <p class="plan__cars">1–2 машины</p>
           <div class="plan__price">990 ₽<span>/мес</span></div>
           <ul>
@@ -205,6 +214,7 @@
         <div class="plan plan--pop">
           <div class="plan__badge">Популярный</div>
           <h3>Бизнес</h3>
+          <p style="font-size:2rem;margin-bottom:4px">🚛</p>
           <p class="plan__cars">3–5 машин</p>
           <div class="plan__price">1 990 ₽<span>/мес</span></div>
           <ul>
@@ -217,6 +227,7 @@
         </div>
         <div class="plan">
           <h3>Корпоративный</h3>
+          <p style="font-size:2rem;margin-bottom:4px">🏢</p>
           <p class="plan__cars">от 6 машин</p>
           <div class="plan__price">Индивидуально</div>
           <ul>
@@ -245,6 +256,19 @@
           Скачать APK
         </a>
         <p class="download__ver">Версия 1.0 &bull; Android 8+ &bull; ~15 MB</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials" style="padding:50px 0;background:var(--gray-50)">
+    <div class="container" style="text-align:center">
+      <h2 class="section__title">Нам доверяют</h2>
+      <div style="max-width:600px;margin:0 auto">
+        <div style="background:#fff;padding:24px;border-radius:var(--r);box-shadow:0 4px 12px rgba(0,0,0,.04);margin-bottom:16px">
+          <p style="font-size:1.1rem;color:var(--gray-700);line-height:1.5;font-style:italic">«С Numino перестали терять чеки и путаться в зарплате водителей. Раньше уходило полдня на бумажки — теперь всё в телефоне.»</p>
+          <p style="margin-top:12px;font-weight:600;color:var(--gray-900)">— Алексей, владелец парка на 4 машины</p>
+        </div>
       </div>
     </div>
   </section>

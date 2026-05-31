@@ -236,6 +236,29 @@
   createCarousel('featuresTrack', 'carouselPrev', 'carouselNext', 'carouselDots');
   createCarousel('howTrack', 'howPrev', 'howNext', 'howDots');
 
+  // ===== SCROLL ANIMATIONS =====
+  (function() {
+    var items = document.querySelectorAll('.feat-card, .step-card, .plan, .hero__text, .hero__img');
+    items.forEach(function(el) {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(30px)';
+      el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    });
+    function check() {
+      var h = window.innerHeight;
+      items.forEach(function(el) {
+        var rect = el.getBoundingClientRect();
+        if (rect.top < h - 80) {
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+        }
+      });
+    }
+    window.addEventListener('scroll', check, {passive: true});
+    window.addEventListener('resize', check);
+    check();
+  })();
+
   // ===== SMOOTH SCROLL =====
   document.querySelectorAll('a[href^="#"]').forEach(function (a) {
     a.addEventListener('click', function (e) {
