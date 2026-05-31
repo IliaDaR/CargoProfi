@@ -82,28 +82,63 @@
     }
   });
 
-  // ===== LOGIN FORM → редирект в кабинет с передачей сессии =====
+  // ===== LOGIN / REGISTER — localStorage-based auth =====
+  function getUsers() {
+    try { return JSON.parse(localStorage.getItem('numino_users')) || {}; } catch(_) { return {}; }
+  }
+  function saveUsers(u) { localStorage.setItem('numino_users', JSON.stringify(u)); }
+
+  // Создаём админа при первом запуске
+  (function() {
+    var u = getUsers();
+    if (!u['admin@numino.ru']) {
+      u['admin@numino.ru'] = { pass: 'admin123', name: 'Администратор', role: 'admin' };
+      u['owner@numino.ru'] = { pass: 'owner123', name: 'Владелец парка', role: 'owner' };
+      saveUsers(u);
+    }
+  })();
+
   document.getElementById('loginForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    var email = '';
-    var pass = '';
-    var name = '';
+    var email = '', pass = '', name = '';
     var inputs = e.target.querySelectorAll('input');
     for (var i = 0; i < inputs.length; i++) {
-      if (inputs[i].type === 'email') email = inputs[i].value.trim();
+      if (inputs[i].type === 'email') email = inputs[i].value.trim().toLowerCase();
       if (inputs[i].type === 'password') pass = inputs[i].value;
       if (inputs[i].type === 'text') name = inputs[i].value.trim();
     }
     if (!email || !pass) { msgEl.textContent = 'Заполните все поля'; msgEl.className = 'modal__msg error'; return; }
-    if (!isReg) {
-      // Проверка учётных данных (демо). В production: Firebase Auth.
-      // admin@numino.ru → админ-панель, любой другой → панель владельца.
+
+    var users = getUsers();
+
+    if (isReg) {
+      // Регистрация
+      if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; return; }
+      if (users[email]) { msgEl.textContent = 'Пользователь уже существует'; msgEl.className = 'modal__msg error'; return; }
+      if (pass.length < 4) { msgEl.textContent = 'Пароль минимум 4 символа'; msgEl.className = 'modal__msg error'; return; }
+      users[email] = { pass: pass, name: name, role: 'owner' };
+      saveUsers(users);
+      msgEl.textContent = 'Регистрация успешна! Выполните вход.';
+      msgEl.className = 'modal__msg success';
+      isReg = true; document.getElementById('showRegister').click(); // переключаем на режим входа
+      return;
     }
-    msgEl.textContent = 'Переход в кабинет...';
+
+    // Вход
+    var user = users[email];
+    if (!user || user.pass !== pass) {
+      msgEl.textContent = 'Неверный email или пароль';
+      msgEl.className = 'modal__msg error';
+      return;
+    }
+
+    msgEl.textContent = 'Добро пожаловать, ' + user.name + '!';
     msgEl.className = 'modal__msg success';
-    var role = 'owner';
-    if (email === 'admin@numino.ru' && pass === 'admin123') role = 'admin';
-    setTimeout(function () { window.location.href = 'admin/index.html?role=' + role + '&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(name || email.split('@')[0]); }, 500);
+    // Передаём только роль и имя, без пароля
+    var role = user.role || 'owner';
+    setTimeout(function () {
+      window.location.href = 'admin/index.html?role=' + role + '&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(user.name);
+    }, 600);
   });
 
   // ===== CONTACT FORM — отправляется через FormSubmit =====
