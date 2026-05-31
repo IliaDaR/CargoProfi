@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../services/local_storage.dart';
 import '../../models/trip.dart';
 import '../../models/expense.dart';
 import '../../utils/constants.dart';
 import '../auth/role_screen.dart';
+
+Position? _lastPosition;
 
 class DriverHomeScreen extends StatefulWidget {
   final String driverId;
@@ -40,7 +46,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     });
   }
 
-  void _startTrip() {
+  void _startTrip() async {
     final store = context.read<LocalStorage>();
     final vehicles = store.vehicles.where((v) => !v.isActive).toList();
     if (vehicles.isEmpty) {
@@ -48,11 +54,20 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       return;
     }
 
+    // Получаем реальные GPS-координаты (веб: browser, Android: GPS)
+    double lat = 55.75, lon = 37.61;
+    try {
+      final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).timeout(const Duration(seconds: 10));
+      lat = pos.latitude; lon = pos.longitude;
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Не удалось получить GPS. Использованы координаты по умолчанию.'), backgroundColor: Colors.orange));
+    }
+
     final tripId = DateTime.now().millisecondsSinceEpoch.toString();
     final now = DateTime.now();
     store.addTrip(Trip(
       id: tripId, driverId: widget.driverId, vehicleId: vehicles.first.id, status: TripStatus.active,
-      startTime: now, startLatitude: 55.7558, startLongitude: 37.6173,
+      startTime: now, startLatitude: lat, startLongitude: lon,
       cargoDescription: _cargoCtrl.text.trim().isEmpty ? null : _cargoCtrl.text.trim(),
       routeDescription: _routeCtrl.text.trim().isEmpty ? null : _routeCtrl.text.trim(),
       mileage: 0, mileageSource: MileageSource.auto, createdAt: now,
@@ -131,10 +146,14 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
     });
   }
 
-  void _addExpense() {
+  void _addExpense() async {
     final amountCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     ExpenseCategory cat = ExpenseCategory.fuel;
+
+    // Получаем GPS
+    double lat = 55.75, lon = 37.61;
+    try { final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).timeout(const Duration(seconds: 10)); lat = pos.latitude; lon = pos.longitude; } catch (_) {}
 
     showDialog(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, setD) => AlertDialog(
       title: const Text('Добавить расход'),
@@ -155,7 +174,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
           final a = double.tryParse(amountCtrl.text);
           if (a == null || a <= 0) return;
           final now = DateTime.now();
-          context.read<LocalStorage>().addExpense(Expense(id: now.millisecondsSinceEpoch.toString(), tripId: widget.tripId, driverId: widget.driverId, amount: a, category: cat, description: descCtrl.text, latitude: 55.75, longitude: 37.61, photoTimestamp: now, createdAt: now));
+          context.read<LocalStorage>().addExpense(Expense(id: now.millisecondsSinceEpoch.toString(), tripId: widget.tripId, driverId: widget.driverId, amount: a, category: cat, description: descCtrl.text, latitude: lat, longitude: lon, photoTimestamp: now, createdAt: now));
           Navigator.pop(ctx);
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Расход добавлен'), backgroundColor: Colors.green));
         }, child: const Text('Сохранить')),
@@ -163,9 +182,12 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
     )));
   }
 
-  void _endTrip() {
+  void _endTrip() async {
     final incomeCtrl = TextEditingController();
     final mileageCtrl = TextEditingController();
+
+    double lat = 55.75, lon = 37.61;
+    try { final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).timeout(const Duration(seconds: 10)); lat = pos.latitude; lon = pos.longitude; } catch (_) {}
 
     showDialog(context: context, builder: (ctx) => AlertDialog(
       title: const Text('Завершить рейс'),
@@ -185,7 +207,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
           store.trips[idx] = Trip(
             id: old.id, driverId: old.driverId, vehicleId: old.vehicleId, status: TripStatus.completed,
             startTime: old.startTime, startLatitude: old.startLatitude, startLongitude: old.startLongitude,
-            endTime: DateTime.now(), endLatitude: 55.8, endLongitude: 37.6,
+            endTime: DateTime.now(), endLatitude: lat, endLongitude: lon,
             mileage: mileage > 0 ? mileage : 100.0, mileageSource: mileage > 0 ? MileageSource.manual : MileageSource.auto,
             income: double.tryParse(incomeCtrl.text), routeDescription: old.routeDescription, cargoDescription: old.cargoDescription,
             createdAt: old.createdAt,
