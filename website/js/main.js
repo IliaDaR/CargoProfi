@@ -95,27 +95,15 @@
       if (inputs[i].type === 'text') name = inputs[i].value.trim();
     }
     if (!email || !pass) { msgEl.textContent = 'Заполните все поля'; msgEl.className = 'modal__msg error'; return; }
+    if (!isReg) {
+      // Проверка учётных данных (демо). В production: Firebase Auth.
+      // admin@numino.ru → админ-панель, любой другой → панель владельца.
+    }
     msgEl.textContent = 'Переход в кабинет...';
     msgEl.className = 'modal__msg success';
-    // Сохраняем в browser localStorage и передаём в Flutter через hash
     var role = 'owner';
     if (email === 'admin@numino.ru' && pass === 'admin123') role = 'admin';
-    var hash = 'role=' + role + '&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(name || email.split('@')[0]);
     setTimeout(function () { window.location.href = 'admin/index.html?role=' + role + '&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(name || email.split('@')[0]); }, 500);
-  });
-
-  document.querySelectorAll('.login-btn').forEach(function (b) {
-    b.addEventListener('click', function (e) {
-      e.preventDefault();
-      openModal();
-    });
-  });
-
-  document.getElementById('closeModal').addEventListener('click', closeModal);
-  modal.querySelector('.modal__bg').addEventListener('click', closeModal);
-
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
   });
 
   // ===== CONTACT FORM — отправляется через FormSubmit =====
