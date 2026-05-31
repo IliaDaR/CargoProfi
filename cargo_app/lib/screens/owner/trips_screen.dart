@@ -39,9 +39,9 @@ class _TripsScreenState extends State<TripsScreen> {
       ])),
       Expanded(child: list.isEmpty ? const Center(child: Text('Нет рейсов'))
         : isWide ? SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(columns: const [
-            DataColumn(label: Text('Дата')), DataColumn(label: Text('Маршрут')), DataColumn(label: Text('Пробег')), DataColumn(label: Text('Доход')), DataColumn(label: Text('Статус')), DataColumn(label: Text('')),
+            DataColumn(label: Text('Дата')), DataColumn(label: Text('Водитель')), DataColumn(label: Text('Маршрут')), DataColumn(label: Text('Пробег')), DataColumn(label: Text('Доход')), DataColumn(label: Text('Статус')), DataColumn(label: Text('')),
           ], rows: list.map((t) => DataRow(cells: [
-            DataCell(Text(df.format(t.startTime))), DataCell(Text(t.routeDescription ?? '—')), DataCell(Text('${t.mileage.toStringAsFixed(1)} км')),
+            DataCell(Text(df.format(t.startTime))), DataCell(Text(_driverName(t.driverId))), DataCell(Text(t.routeDescription ?? '—')), DataCell(Text('${t.mileage.toStringAsFixed(1)} км')),
             DataCell(Text(t.income != null ? '${t.income!.toStringAsFixed(0)} ₽' : '—')), DataCell(_chip(t.status)),
             DataCell(_buildWaybillBtn(t)),
           ])).toList()))

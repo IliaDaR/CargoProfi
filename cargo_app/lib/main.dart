@@ -36,6 +36,7 @@ class CargoApp extends StatelessWidget {
           elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)))),
         ),
         home: AuthGate(storage: storage),
+        routes: {'/': (_) => AuthGate(storage: storage)},
       ),
     );
   }

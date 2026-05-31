@@ -5,6 +5,12 @@ import '../../models/expense.dart';
 import '../../utils/constants.dart';
 import '../../services/local_storage.dart';
 
+Map<String, double> _byCategory(List<Expense> list) {
+  final m = <String, double>{};
+  for (final e in list) { m[e.category.name] = (m[e.category.name] ?? 0) + e.amount; }
+  return m;
+}
+
 class ExpensesScreen extends StatefulWidget {
   const ExpensesScreen({super.key});
   @override
@@ -28,8 +34,22 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         items: store.drivers.map<DropdownMenuItem<String>>((d) => DropdownMenuItem<String>(value: d['uid'], child: Text(d['displayName'] ?? d['uid'] ?? ''))).toList(),
         onChanged: (v) => setState(() => _driver = v),
       )),
-      if (list.isNotEmpty) Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Card(color: Colors.green.shade50, child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [Text('Всего: ${total.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))])))),
-      Expanded(child: list.isEmpty ? const Center(child: Text('Нет расходов')) : isWide ? _table(list, df) : _list(list, df)),
+      if (list.isNotEmpty) ...[
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Card(color: Colors.green.shade50, child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Всего: ${total.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 6),
+            ..._byCategory(list).entries.map((e) => 
+              Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Row(children: [
+                Text(expenseCategoryLabel(expenseCategoryFromString(e.key)), style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                const Spacer(),
+                Text('${e.value.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              ])),
+            ),
+          ]))),
+        ),
+      ],      Expanded(child: list.isEmpty ? const Center(child: Text('Нет расходов')) : isWide ? _table(list, df) : _list(list, df)),
     ]);
   }
 
