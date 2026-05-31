@@ -80,7 +80,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
             title: Text(e.value.plateNumber, style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text('${e.value.brand} ${e.value.model}'),
             trailing: Row(mainAxisSize: MainAxisSize.min, children: [
               Text(e.value.isActive ? 'В рейсе' : 'Свободен', style: TextStyle(color: e.value.isActive ? Colors.green : Colors.grey, fontSize: 12)),
-              IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red), onPressed: () { store.vehicles.removeAt(e.key); setState(() {}); }),
+              IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red), onPressed: () { store.removeVehicle(e.key); setState(() {}); }),
             ]),
           ))),
         ],
@@ -89,7 +89,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
           ...store.drivers.asMap().entries.map((e) => Card(margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), child: ListTile(
             leading: const CircleAvatar(child: Icon(Icons.person)),
             title: Text(e.value['displayName'] ?? ''), subtitle: Text(e.value['phone'] ?? ''),
-            trailing: IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red), onPressed: () { store.drivers.removeAt(e.key); setState(() {}); }),
+            trailing: IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red), onPressed: () { store.removeDriver(e.key); setState(() {}); }),
           ))),
         ],
         if (vp.vehicles.isEmpty && store.drivers.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(32), child: Text('Нет автомобилей и водителей'))),

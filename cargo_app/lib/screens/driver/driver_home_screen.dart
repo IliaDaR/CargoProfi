@@ -89,7 +89,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Кабинет водителя'), actions: [
-        IconButton(icon: const Icon(Icons.logout), onPressed: () { Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => RoleScreen(storage: store)), (_) => false); }),
+        IconButton(icon: const Icon(Icons.logout), onPressed: () {
+          store.setCurrentUser(null);
+          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => RoleScreen(storage: store)), (_) => false);
+        }),
       ]),
       body: SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Card(child: Padding(padding: const EdgeInsets.all(20), child: Column(children: [

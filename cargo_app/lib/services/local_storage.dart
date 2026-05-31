@@ -101,7 +101,11 @@ class LocalStorage {
 
   void setCurrentUser(Map<String, dynamic>? user) {
     currentUser = user;
-    if (user != null) _prefs!.setString(_kCurrentUser, jsonEncode(user));
+    if (user != null) {
+      _prefs!.setString(_kCurrentUser, jsonEncode(user));
+    } else {
+      _prefs!.remove(_kCurrentUser);
+    }
   }
 
   Map<String, dynamic>? loadCurrentUser() {
@@ -121,6 +125,8 @@ class LocalStorage {
 
   void addVehicle(Vehicle v) { vehicles.add(v); _saveVehicles(vehicles); }
   void addTrip(Trip t) { trips.add(t); _saveTrips(trips); }
+  void removeVehicle(int index) { vehicles.removeAt(index); _saveVehicles(vehicles); }
+  void removeDriver(int index) { drivers.removeAt(index); _saveDrivers(drivers); }
   void addExpense(Expense e) { expenses.add(e); _saveExpenses(expenses); }
   void addDriver(Map<String,dynamic> d) { drivers.add(d); _saveDrivers(drivers); }
   void addSalaryRule(SalaryRule r) { salaryRules.add(r); _saveSalaryRules(salaryRules); }

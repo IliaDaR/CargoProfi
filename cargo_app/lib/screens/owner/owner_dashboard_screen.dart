@@ -32,7 +32,10 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
         Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Row(children: [
           const Icon(Icons.account_circle, size: 20), const SizedBox(width: 6),
           Text(storage.currentUser?['displayName'] ?? 'Владелец'), const SizedBox(width: 12),
-          TextButton.icon(onPressed: () { Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => RoleScreen(storage: storage)), (_) => false); }, icon: const Icon(Icons.logout, size: 18), label: const Text('Выйти')),
+          TextButton.icon(onPressed: () {
+            storage.setCurrentUser(null);
+            Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => RoleScreen(storage: storage)), (_) => false);
+          }, icon: const Icon(Icons.logout, size: 18), label: const Text('Выйти')),
         ])),
       ]),
       body: LayoutBuilder(builder: (ctx, c) => c.maxWidth >= 800
