@@ -72,5 +72,11 @@ class _TripsScreenState extends State<TripsScreen> {
     );
   }
 
+  String _driverName(String id) {
+    final store = context.read<LocalStorage>();
+    final d = store.drivers.where((d) => d['uid'] == id).firstOrNull;
+    return d?['displayName'] ?? id.substring(0, 8);
+  }
+
   Widget _chip(TripStatus s) => Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: (s == TripStatus.active ? Colors.green : Colors.blue).withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(tripStatusLabel(s), style: TextStyle(color: s == TripStatus.active ? Colors.green : Colors.blue, fontSize: 11, fontWeight: FontWeight.w600)));
 }

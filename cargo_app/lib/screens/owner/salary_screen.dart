@@ -41,9 +41,10 @@ class _SalaryScreenState extends State<SalaryScreen> {
     final value = double.tryParse(_valueCtrl.text) ?? 15;
     final salary = (_usePercent ? income * value / 100 : trips.length * value).roundToDouble();
 
-    // Сохраняем правило
-    final existing = store.salaryRules.where((r) => r.driverId == _driver).toList();
-    for (var r in existing) { r.isActive = false; }
+    // Сохраняем правило (старые больше не активны)
+    for (var r in store.salaryRules.where((r) => r.driverId == _driver).toList()) {
+      store.salaryRules.remove(r);
+    }
     store.addSalaryRule(SalaryRule(
       id: DateTime.now().millisecondsSinceEpoch.toString(), ownerId: 'local', driverId: _driver!,
       type: _usePercent ? SalaryRuleType.percent : SalaryRuleType.fixed,
@@ -104,7 +105,10 @@ class _SalaryScreenState extends State<SalaryScreen> {
           subtitle: Text('${df.format(p.periodStart)} – ${df.format(p.periodEnd)} • ${p.tripIds.length} рейсов'),
           trailing: p.status == SalaryPaymentStatus.calculated ? PopupMenuButton<String>(
             itemBuilder: (_) => [const PopupMenuItem(value: 'paid', child: Text('Оплачено')), const PopupMenuItem(value: 'cancelled', child: Text('Отменить'))],
-            onSelected: (v) { setState(() { p.status = v == 'paid' ? SalaryPaymentStatus.paid : SalaryPaymentStatus.cancelled; }); },
+            onSelected: (v) { setState(() {
+              final idx = store.salaryPayments.indexOf(p);
+              if (idx >= 0) { store.salaryPayments[idx] = SalaryPayment(id: p.id, ownerId: p.ownerId, driverId: p.driverId, periodStart: p.periodStart, periodEnd: p.periodEnd, tripIds: p.tripIds, totalIncome: p.totalIncome, calculatedSalary: p.calculatedSalary, ruleType: p.ruleType, ruleValue: p.ruleValue, status: v == 'paid' ? SalaryPaymentStatus.paid : SalaryPaymentStatus.cancelled, createdAt: p.createdAt); }
+            }); },
           ) : Text(p.status == SalaryPaymentStatus.paid ? 'Оплачено' : 'Отменено', style: TextStyle(color: p.status == SalaryPaymentStatus.paid ? Colors.green : Colors.red, fontSize: 11)),
         )),
       ]))),
