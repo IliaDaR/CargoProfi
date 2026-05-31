@@ -88,7 +88,7 @@ class _AuthGateState extends State<AuthGate> {
     final user = widget.storage.currentUser;
     if (user != null) {
       final role = user['role'] ?? 'owner';
-      if (role == 'admin') return SuperadminScreen(storage: widget.storage);
+      if (role == 'admin' || role == 'superadmin') return SuperadminScreen(storage: widget.storage);
       return const OwnerDashboardScreen();
     }
 
