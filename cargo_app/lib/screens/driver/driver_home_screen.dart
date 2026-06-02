@@ -235,7 +235,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
         Row(children: [
           OutlinedButton.icon(
             onPressed: () async {
-              final img = await picker.pickImage(source: ImageSource.camera, maxWidth: 1024);
+              final img = await picker.pickImage(source: ImageSource.camera, maxWidth: 800, imageQuality: 70);
               if (img != null) { photoBytes = await img.readAsBytes(); setD(() {}); }
             },
             icon: const Icon(Icons.camera_alt, size: 18),
@@ -244,7 +244,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
           const SizedBox(width: 8),
           OutlinedButton.icon(
             onPressed: () async {
-              final img = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1024);
+              final img = await picker.pickImage(source: ImageSource.gallery, maxWidth: 800, imageQuality: 70);
               if (img != null) { photoBytes = await img.readAsBytes(); setD(() {}); }
             },
             icon: const Icon(Icons.photo_library, size: 18),
