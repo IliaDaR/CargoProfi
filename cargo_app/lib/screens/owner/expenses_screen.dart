@@ -21,6 +21,7 @@ class ExpensesScreen extends StatefulWidget {
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
   String? _driver;
+  int _pageSize = 20;
   DateTime _start = DateTime.now().subtract(const Duration(days: 30));
   DateTime _end = DateTime.now();
 
@@ -34,6 +35,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     final store = context.watch<LocalStorage>();
     var list = _driver != null ? store.expenses.where((e) => e.driverId == _driver).toList() : store.expenses;
     list = list.where((e) => e.createdAt.isAfter(_start.subtract(const Duration(days: 1))) && e.createdAt.isBefore(_end.add(const Duration(days: 1)))).toList();
+    final totalCount = list.length;
+    list = list.take(_pageSize).toList();
     final total = list.fold(0.0, (s, e) => s + e.amount);
     final isWide = MediaQuery.of(context).size.width >= 800;
     final df = DateFormat('dd.MM.yyyy');
@@ -75,7 +78,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             ),
           ]))),
         ),
-      ],      Expanded(child: list.isEmpty ? const Center(child: Text('Нет расходов')) : isWide ? _table(list, df) : _list(list, df)),
+      ],      Expanded(child: Column(children: [
+        Expanded(child: list.isEmpty ? const Center(child: Text('Нет расходов')) : isWide ? _table(list, df) : _list(list, df)),
+        if (totalCount > _pageSize)
+          Padding(padding: const EdgeInsets.all(8), child: TextButton(onPressed: () => setState(() => _pageSize += 20), child: Text('Показать ещё ($_pageSize из $totalCount)'))),
+      ])),
     ]);
   }
 
