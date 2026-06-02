@@ -33,11 +33,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   @override
   Widget build(BuildContext context) {
     final store = context.watch<LocalStorage>();
-    var list = _driver != null ? store.expenses.where((e) => e.driverId == _driver).toList() : store.expenses;
-    list = list.where((e) => e.createdAt.isAfter(_start.subtract(const Duration(days: 1))) && e.createdAt.isBefore(_end.add(const Duration(days: 1)))).toList();
-    final totalCount = list.length;
-    list = list.take(_pageSize).toList();
-    final total = list.fold(0.0, (s, e) => s + e.amount);
+    var fullList = _driver != null ? store.expenses.where((e) => e.driverId == _driver).toList() : store.expenses;
+    fullList = fullList.where((e) => e.createdAt.isAfter(_start.subtract(const Duration(days: 1))) && e.createdAt.isBefore(_end.add(const Duration(days: 1)))).toList();
+    final totalCount = fullList.length;
+    final total = fullList.fold(0.0, (s, e) => s + e.amount);
+    final list = fullList.take(_pageSize).toList();
     final df = DateFormat('dd.MM.yyyy');
 
     return Column(children: [
