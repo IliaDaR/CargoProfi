@@ -162,13 +162,21 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
         setState(() => _elapsed = DateTime.now().difference(trip.startTime));
       }
     });
-    // GPS-трекинг каждые 30 секунд
+    // GPS-трекинг каждые 30 секунд с офлайн-буфером
     _gpsTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
       try {
         final pos = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         ).timeout(const Duration(seconds: 10));
         _track.add({'latitude': pos.latitude, 'longitude': pos.longitude});
+        // Сохраняем в офлайн-буфер для синхронизации
+        final store = context.read<LocalStorage>();
+        store.addToSyncQueue('track_point', {
+          'tripId': widget.tripId,
+          'latitude': pos.latitude,
+          'longitude': pos.longitude,
+          'timestamp': DateTime.now().toIso8601String(),
+        });
       } catch (_) {}
     });
   }

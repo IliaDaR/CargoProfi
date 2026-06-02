@@ -239,4 +239,29 @@ class LocalStorage {
     final list = tickets;
     _prefs!.setString('tickets', jsonEncode(list));
   }
+
+  // ===== СИНХРОНИЗАЦИЯ (офлайн-буфер) =====
+
+  static const _kSyncQueue = 'sync_queue';
+
+  List<Map<String, dynamic>> get syncQueue {
+    final s = _prefs?.getString(_kSyncQueue);
+    return s != null ? List<Map<String, dynamic>>.from(jsonDecode(s) as List) : [];
+  }
+
+  void addToSyncQueue(String type, Map<String, dynamic> data) {
+    final q = syncQueue;
+    q.add({'type': type, 'data': data, 'createdAt': DateTime.now().toIso8601String()});
+    _prefs?.setString(_kSyncQueue, jsonEncode(q));
+  }
+
+  void markSynced(int index) {
+    final q = syncQueue;
+    if (index < q.length) {
+      q.removeAt(index);
+      _prefs?.setString(_kSyncQueue, jsonEncode(q));
+    }
+  }
+
+  int get pendingSyncCount => syncQueue.length;
 }
