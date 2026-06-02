@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' show sin, cos, sqrt, atan2, pi;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -15,6 +14,7 @@ import '../../services/local_storage.dart';
 import '../../models/trip.dart';
 import '../../models/expense.dart';
 import '../../utils/constants.dart';
+import '../../utils/distance.dart';
 import '../../services/notification_service.dart';
 import '../auth/role_screen.dart';
 
@@ -253,7 +253,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
     try { final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).timeout(const Duration(seconds: 10)); lat = pos.latitude; lon = pos.longitude; } catch (_) {}
 
     // Расчёт пробега по GPS-треку
-    final double autoMileage = _calculateTrackMileage();
+    final double autoMileage = calculateTotalDistance(_track);
     bool useAuto = autoMileage > 0;
 
     showDialog(context: context, builder: (ctx) => AlertDialog(
@@ -340,23 +340,6 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
       Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey)),
       Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
     ])));
-  }
-
-  double _calculateTrackMileage() {
-    if (_track.length < 2) return 0;
-    double total = 0;
-    for (int i = 1; i < _track.length; i++) {
-      total += _haversine(_track[i-1]['latitude']!, _track[i-1]['longitude']!, _track[i]['latitude']!, _track[i]['longitude']!);
-    }
-    return (total * 10).roundToDouble() / 10;
-  }
-
-  double _haversine(double lat1, double lon1, double lat2, double lon2) {
-    const R = 6371.0;
-    final dLat = (lat2 - lat1) * 3.14159 / 180;
-    final dLon = (lon2 - lon1) * 3.14159 / 180;
-    final a = sin(dLat/2) * sin(dLat/2) + cos(lat1 * 3.14159/180) * cos(lat2 * 3.14159/180) * sin(dLon/2) * sin(dLon/2);
-    return R * 2 * atan2(sqrt(a), sqrt(1-a));
   }
 
   @override
