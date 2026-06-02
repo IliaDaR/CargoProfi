@@ -12,5 +12,23 @@
   },
   "storage": {
     "rules": "storage.rules"
+  },
+  "hosting": {
+    "public": "website",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "headers": [
+      {
+        "source": "**/*.wasm",
+        "headers": [{"key": "Content-Type", "value": "application/wasm"}]
+      },
+      {
+        "source": "**/*.js",
+        "headers": [{"key": "Content-Type", "value": "application/javascript; charset=utf-8"}]
+      },
+      {
+        "source": "**/*.dart",
+        "headers": [{"key": "Content-Type", "value": "application/dart"}]
+      }
+    ]
   }
 }
