@@ -285,27 +285,25 @@
   createCarousel('featuresTrack', 'carouselPrev', 'carouselNext', 'carouselDots');
   createCarousel('howTrack', 'howPrev', 'howNext', 'howDots');
 
-  // ===== SCROLL ANIMATIONS =====
+  // ===== SCROLL ANIMATIONS (IntersectionObserver) =====
   (function() {
+    if (!window.IntersectionObserver) return;
     var items = document.querySelectorAll('.feat-card, .step-card, .plan, .hero__text, .hero__img');
     items.forEach(function(el) {
       el.style.opacity = '0';
       el.style.transform = 'translateY(30px)';
       el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
     });
-    function check() {
-      var h = window.innerHeight;
-      items.forEach(function(el) {
-        var rect = el.getBoundingClientRect();
-        if (rect.top < h - 80) {
-          el.style.opacity = '1';
-          el.style.transform = 'translateY(0)';
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+          observer.unobserve(entry.target);
         }
       });
-    }
-    window.addEventListener('scroll', check, {passive: true});
-    window.addEventListener('resize', check);
-    check();
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    items.forEach(function(el) { observer.observe(el); });
   })();
 
   // ===== SMOOTH SCROLL =====
