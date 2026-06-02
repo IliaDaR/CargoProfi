@@ -9,10 +9,8 @@ import 'services/data_service.dart';
 import 'services/firebase_auth_service.dart';
 import 'services/cloud_functions_service.dart';
 import 'services/notification_service.dart';
+import 'firebase_options.dart';
 import 'providers/vehicle_provider.dart';
-
-// Генерируется командой: flutterfire configure
-// import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +18,7 @@ void main() async {
   // Инициализация Firebase
   try {
     await Firebase.initializeApp(
-      // options: DefaultFirebaseOptions.currentPlatform,
+      options: DefaultFirebaseOptions.currentPlatform,
     ).timeout(const Duration(seconds: 8));
   } catch (_) {
     // Firebase недоступен — работаем офлайн через LocalStorage
