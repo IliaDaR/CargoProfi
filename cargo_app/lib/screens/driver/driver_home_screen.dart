@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show sin, cos, sqrt, atan2;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -139,7 +140,9 @@ class ActiveTripScreen extends StatefulWidget {
 
 class _ActiveTripScreenState extends State<ActiveTripScreen> {
   Timer? _timer;
+  Timer? _gpsTimer;
   Duration _elapsed = Duration.zero;
+  final List<Map<String, double>> _track = [];
 
   @override
   void initState() {
@@ -150,6 +153,15 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
       if (trip != null && trip.status == TripStatus.active) {
         setState(() => _elapsed = DateTime.now().difference(trip.startTime));
       }
+    });
+    // GPS-трекинг каждые 30 секунд
+    _gpsTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
+      try {
+        final pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        ).timeout(const Duration(seconds: 10));
+        _track.add({'latitude': pos.latitude, 'longitude': pos.longitude});
+      } catch (_) {}
     });
   }
 
@@ -224,10 +236,19 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
     double lat = 55.75, lon = 37.61;
     try { final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).timeout(const Duration(seconds: 10)); lat = pos.latitude; lon = pos.longitude; } catch (_) {}
 
+    // Расчёт пробега по GPS-треку
+    final double autoMileage = _calculateTrackMileage();
+    bool useAuto = autoMileage > 0;
+
     showDialog(context: context, builder: (ctx) => AlertDialog(
       title: const Text('Завершить рейс'),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: mileageCtrl, decoration: const InputDecoration(labelText: 'Пробег (км)', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+        if (useAuto)
+          Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('Пробег по GPS: ${autoMileage.toStringAsFixed(1)} км', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold))),
+        TextField(controller: mileageCtrl, decoration: InputDecoration(
+          labelText: useAuto ? 'Пробег вручную (необязательно)' : 'Пробег (км)',
+          border: const OutlineInputBorder(),
+        ), keyboardType: TextInputType.number),
         const SizedBox(height: 10),
         TextField(controller: incomeCtrl, decoration: const InputDecoration(labelText: 'Доход (₽)', border: OutlineInputBorder()), keyboardType: TextInputType.number),
       ])),
@@ -238,14 +259,16 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
           final idx = store.trips.indexWhere((t) => t.id == widget.tripId);
           if (idx == -1) return;
           final old = store.trips[idx];
-          final mileage = double.tryParse(mileageCtrl.text) ?? 0;
+          final manual = double.tryParse(mileageCtrl.text) ?? 0;
+          final mileage = manual > 0 ? manual : (useAuto ? autoMileage : 100.0);
           store.trips[idx] = Trip(
             id: old.id, driverId: old.driverId, vehicleId: old.vehicleId, status: TripStatus.completed,
             startTime: old.startTime, startLatitude: old.startLatitude, startLongitude: old.startLongitude,
             endTime: DateTime.now(), endLatitude: lat, endLongitude: lon,
-            mileage: mileage > 0 ? mileage : 100.0, mileageSource: mileage > 0 ? MileageSource.manual : MileageSource.auto,
+            mileage: mileage, mileageSource: manual > 0 || !useAuto ? MileageSource.manual : MileageSource.auto,
             income: double.tryParse(incomeCtrl.text), routeDescription: old.routeDescription, cargoDescription: old.cargoDescription,
-            createdAt: old.createdAt,
+            createdAt: old.createdAt, track: _track.map((p) => TrackPoint(latitude: p['latitude']!, longitude: p['longitude']!, timestamp: DateTime.now())).toList(),
+          );
           );
           store.saveTrips();
           Navigator.pop(ctx);
@@ -301,6 +324,23 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
     ])));
   }
 
+  double _calculateTrackMileage() {
+    if (_track.length < 2) return 0;
+    double total = 0;
+    for (int i = 1; i < _track.length; i++) {
+      total += _haversine(_track[i-1]['latitude']!, _track[i-1]['longitude']!, _track[i]['latitude']!, _track[i]['longitude']!);
+    }
+    return (total * 10).roundToDouble() / 10;
+  }
+
+  double _haversine(double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371.0;
+    final dLat = (lat2 - lat1) * 3.14159 / 180;
+    final dLon = (lon2 - lon1) * 3.14159 / 180;
+    final a = sin(dLat/2) * sin(dLat/2) + cos(lat1 * 3.14159/180) * cos(lat2 * 3.14159/180) * sin(dLon/2) * sin(dLon/2);
+    return R * 2 * atan2(sqrt(a), sqrt(1-a));
+  }
+
   @override
-  void dispose() { _timer?.cancel(); super.dispose(); }
+  void dispose() { _timer?.cancel(); _gpsTimer?.cancel(); super.dispose(); }
 }
