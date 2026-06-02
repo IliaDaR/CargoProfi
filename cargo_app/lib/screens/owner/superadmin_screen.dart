@@ -175,7 +175,7 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
         leading: CircleAvatar(backgroundColor: t['status'] == 'new' ? Colors.red.shade100 : Colors.green.shade100, child: Icon(t['status'] == 'new' ? Icons.mail : Icons.done, color: t['status'] == 'new' ? Colors.red : Colors.green)),
         title: Text(t['name'] ?? 'Без имени'),
         subtitle: Text('${t['email']} • ${t['message'] ?? ''}', maxLines: 2),
-        trailing: t['status'] == 'new' ? TextButton(onPressed: () { t['status'] = 'resolved'; _addLog('Закрыл тикет', t['email'] ?? ''); setState(() {}); }, child: const Text('Закрыть')) : const Text('✓', style: TextStyle(color: Colors.green)),
+        trailing: t['status'] == 'new' ? TextButton(onPressed: () { t['status'] = 'resolved'; s.saveTickets(tickets); _addLog('Закрыл тикет', t['email'] ?? ''); setState(() {}); }, child: const Text('Закрыть')) : const Text('✓', style: TextStyle(color: Colors.green)),
       ))),
     ]);
   }

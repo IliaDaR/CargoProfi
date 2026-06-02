@@ -235,8 +235,7 @@ class LocalStorage {
     _prefs!.setString('tickets', jsonEncode(list));
   }
 
-  void saveTickets() {
-    final list = tickets;
+  void saveTickets(List<Map<String, dynamic>> list) {
     _prefs!.setString('tickets', jsonEncode(list));
   }
 
