@@ -16,7 +16,7 @@ class LocalStorage {
   static const _kDrivers = 'drivers';
   static const _kSalaryRules = 'salary_rules';
   static const _kSalaryPayments = 'salary_payments';
-  static const _kUsers = 'users';
+  static const _kUsers = 'numino_users';
   static const _kCurrentUser = 'current_user';
 
   SharedPreferences? _prefs;

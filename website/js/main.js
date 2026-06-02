@@ -109,11 +109,11 @@
   });
 
   // ===== LOGIN / REGISTER =====
-  // localStorage: numino_users (ключ синхронизирован с Flutter Web SharedPreferences)
+  // SharedPreferences на Flutter Web добавляет префикс "flutter." ко всем ключам
   function getUsers() {
-    try { return JSON.parse(localStorage.getItem('numino_users')) || {}; } catch(_) { return {}; }
+    try { return JSON.parse(localStorage.getItem('flutter.numino_users')) || {}; } catch(_) { return {}; }
   }
-  function saveUsers(u) { localStorage.setItem('numino_users', JSON.stringify(u)); }
+  function saveUsers(u) { localStorage.setItem('flutter.numino_users', JSON.stringify(u)); }
 
   // Предустановленные аккаунты
   (function() {
