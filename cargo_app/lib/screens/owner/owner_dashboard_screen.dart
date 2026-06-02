@@ -3,14 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/vehicle_provider.dart';
 import '../../services/local_storage.dart';
+import '../../services/firebase_auth_service.dart';
 import '../../models/vehicle.dart';
 import '../../utils/constants.dart';
 import '../../widgets/common_widgets.dart';
+import '../../services/notification_service.dart';
 import '../auth/role_screen.dart';
 import 'vehicles_screen.dart';
 import 'trips_screen.dart';
 import 'expenses_screen.dart';
 import 'salary_screen.dart';
+import 'notifications_screen.dart';
 
 class OwnerDashboardScreen extends StatefulWidget {
   const OwnerDashboardScreen({super.key});
@@ -30,12 +33,25 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(_titles[_idx]), actions: [
+        // Колокольчик уведомлений
+        Stack(children: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+          ),
+          if (NotificationService.unreadCount > 0)
+            Positioned(right: 6, top: 6, child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+              child: Text('${NotificationService.unreadCount}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+            )),
+        ]),
         Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Row(children: [
           const Icon(Icons.account_circle, size: 20), const SizedBox(width: 6),
           Text(storage.currentUser?['displayName'] ?? 'Владелец'), const SizedBox(width: 12),
           TextButton.icon(onPressed: () {
             storage.setCurrentUser(null);
-            html.window.location.href = '/';
+            Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => RoleScreen(storage: storage, fireAuth: context.read<FirebaseAuthService>())), (_) => false);
           }, icon: const Icon(Icons.logout, size: 18), label: const Text('Выйти')),
         ])),
       ]),

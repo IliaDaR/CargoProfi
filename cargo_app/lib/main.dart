@@ -7,6 +7,7 @@ import 'screens/owner/superadmin_screen.dart';
 import 'services/local_storage.dart';
 import 'services/data_service.dart';
 import 'services/firebase_auth_service.dart';
+import 'services/notification_service.dart';
 import 'providers/vehicle_provider.dart';
 
 // Генерируется командой: flutterfire configure
@@ -26,6 +27,7 @@ void main() async {
 
   final local = LocalStorage();
   await local.init();
+  await NotificationService.init();
   final data = DataService(local);
   final fireAuth = FirebaseAuthService();
 

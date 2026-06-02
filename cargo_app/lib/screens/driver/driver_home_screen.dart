@@ -15,6 +15,7 @@ import '../../services/local_storage.dart';
 import '../../models/trip.dart';
 import '../../models/expense.dart';
 import '../../utils/constants.dart';
+import '../../services/notification_service.dart';
 import '../auth/role_screen.dart';
 
 Position? _lastPosition;
@@ -80,6 +81,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     _cargoCtrl.clear(); _routeCtrl.clear();
     _checkActive();
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Рейс начат!'), backgroundColor: Colors.green));
+    NotificationService.tripStarted(Trip(
+      id: tripId, driverId: widget.driverId, vehicleId: vehicles.first.id, status: TripStatus.active,
+      startTime: now, startLatitude: lat, startLongitude: lon,
+      routeDescription: _cargoCtrl.text.trim().isEmpty ? null : _cargoCtrl.text.trim(),
+      createdAt: now, mileage: 0, mileageSource: MileageSource.auto,
+    ), 'Водитель');
   }
 
   @override
@@ -274,6 +281,8 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
           Navigator.pop(ctx);
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DriverHomeScreen(driverId: widget.driverId)));
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Рейс завершён!'), backgroundColor: Colors.green));
+          final completed = store.trips[idx];
+          NotificationService.tripCompleted(completed, 'Водитель');
         }, child: const Text('Завершить')),
       ],
     ));
