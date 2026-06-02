@@ -193,14 +193,15 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
         final pos = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
         ).timeout(const Duration(seconds: 10));
-        _track.add({'latitude': pos.latitude, 'longitude': pos.longitude});
-        // Сохраняем в офлайн-буфер для синхронизации
+        final now = DateTime.now();
+        _track.add({'latitude': pos.latitude, 'longitude': pos.longitude, 'timestamp': now.millisecondsSinceEpoch.toDouble()});
+        // Сохраняем в офлайн-буфер для синхронизации и в LocalStorage
         final store = context.read<LocalStorage>();
         store.addToSyncQueue('track_point', {
           'tripId': widget.tripId,
           'latitude': pos.latitude,
           'longitude': pos.longitude,
-          'timestamp': DateTime.now().toIso8601String(),
+          'timestamp': now.toIso8601String(),
         });
       } catch (_) {}
     });
@@ -308,7 +309,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
             endTime: DateTime.now(), endLatitude: lat, endLongitude: lon,
             mileage: mileage, mileageSource: manual > 0 || !useAuto ? MileageSource.manual : MileageSource.auto,
             income: double.tryParse(incomeCtrl.text), routeDescription: old.routeDescription, cargoDescription: old.cargoDescription,
-            createdAt: old.createdAt, track: _track.map((p) => TrackPoint(latitude: p['latitude']!, longitude: p['longitude']!, timestamp: DateTime.now())).toList(),
+            createdAt: old.createdAt, track: _track.map((p) => TrackPoint(latitude: p['latitude']!, longitude: p['longitude']!, timestamp: DateTime.fromMillisecondsSinceEpoch(p['timestamp']!.toInt()))).toList(),
           );
           // Освобождаем машину
           final vIdx2 = store.vehicles.indexWhere((v) => v.id == old.vehicleId);
