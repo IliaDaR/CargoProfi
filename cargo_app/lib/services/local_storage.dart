@@ -50,11 +50,11 @@ class LocalStorage {
       _saveSalaryRules(DemoData.salaryRules);
       _saveSalaryPayments(DemoData.salaryPayments);
       // Суперадмин
-      users.add({'uid': 'admin', 'email': 'admin@numino.ru', 'password': 'admin123', 'displayName': 'Администратор', 'role': 'superadmin', 'phone': '+79183951315'});
+      users.add({'uid': 'admin', 'email': 'admin@numino.ru', 'displayName': 'Администратор', 'role': 'superadmin', 'phone': '+79183951315'});
       // Владелец парка
-      users.add({'uid': 'owner1', 'email': 'owner@numino.ru', 'password': 'owner123', 'displayName': 'Владелец парка', 'role': 'owner', 'phone': '+79161234567'});
+      users.add({'uid': 'owner1', 'email': 'owner@numino.ru', 'displayName': 'Владелец парка', 'role': 'owner', 'phone': '+79161234567'});
       // Водитель
-      users.add({'uid': 'driver1', 'email': 'driver@numino.ru', 'password': 'driver123', 'displayName': 'Иван Петров', 'role': 'driver', 'phone': '+79169876543'});
+      users.add({'uid': 'driver1', 'email': 'driver@numino.ru', 'displayName': 'Иван Петров', 'role': 'driver', 'phone': '+79169876543'});
       _prefs!.setString(_kUsers, jsonEncode(users));
     } else {
       _loadAll();
@@ -79,21 +79,16 @@ class LocalStorage {
   }
 
   // ===== Auth =====
-  Map<String, dynamic>? findUser(String email, String password) {
-    try {
-      return users.where((u) => u['email'] == email && u['password'] == password).firstOrNull;
-    } catch (_) { return null; }
-  }
-
   Map<String, dynamic>? findUserByEmail(String email) {
     try {
       return users.where((u) => u['email'] == email).firstOrNull;
     } catch (_) { return null; }
   }
 
-  Map<String, dynamic>? registerUser(String email, String password, String name, String role) {
+  /// Офлайн-регистрация (без пароля — аутентификация через Firebase Auth).
+  Map<String, dynamic>? registerUser(String email, String name, String role) {
     if (users.any((u) => u['email'] == email)) return null;
-    final user = {'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'password': password, 'displayName': name, 'role': role};
+    final user = {'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'displayName': name, 'role': role};
     users.add(user);
     _prefs!.setString(_kUsers, jsonEncode(users));
     return user;
@@ -185,8 +180,8 @@ class LocalStorage {
 
   // ===== СУПЕРАДМИН: управление пользователями =====
 
-  void addUser(String email, String password, String name, String role) {
-    users.add({'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'password': password, 'displayName': name, 'role': role, 'active': true});
+  void addUser(String email, String name, String role) {
+    users.add({'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'displayName': name, 'role': role, 'active': true});
     _prefs!.setString(_kUsers, jsonEncode(users));
   }
 

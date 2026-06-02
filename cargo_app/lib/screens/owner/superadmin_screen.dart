@@ -87,7 +87,7 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
         TextField(controller: n, decoration: const InputDecoration(labelText: 'Имя', border: OutlineInputBorder())),
         const SizedBox(height: 10), TextField(controller: e, decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder())),
       ]),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')), ElevatedButton(onPressed: () { if (e.text.isNotEmpty) { s.addUser(e.text, 'owner123', n.text, 'owner'); _addLog('Добавил владельца', e.text); Navigator.pop(ctx); setState(() {}); } }, child: const Text('Добавить'))],
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')), ElevatedButton(onPressed: () { if (e.text.isNotEmpty) { s.addUser(e.text, n.text, 'owner'); _addLog('Добавил владельца', e.text); Navigator.pop(ctx); setState(() {}); } }, child: const Text('Добавить'))],
     ));
   }
 

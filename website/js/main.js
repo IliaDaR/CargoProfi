@@ -114,12 +114,12 @@
   }
   function saveUsers(u) { localStorage.setItem('numino_users', JSON.stringify(u)); }
 
-  // Создаём админа при первом запуске
+  // Создаём админа при первом запуске (без пароля — аутентификация через Firebase)
   (function() {
     var u = getUsers();
     if (!u['admin@numino.ru']) {
-      u['admin@numino.ru'] = { pass: 'admin123', name: 'Администратор', role: 'admin' };
-      u['owner@numino.ru'] = { pass: 'owner123', name: 'Владелец парка', role: 'owner' };
+      u['admin@numino.ru'] = { name: 'Администратор', role: 'admin' };
+      u['owner@numino.ru'] = { name: 'Владелец парка', role: 'owner' };
       saveUsers(u);
     }
   })();
@@ -135,23 +135,53 @@
     }
     if (!email || !pass) { msgEl.textContent = 'Заполните все поля'; msgEl.className = 'modal__msg error'; return; }
     if (!isValidEmail(email)) { msgEl.textContent = 'Неверный формат email'; msgEl.className = 'modal__msg error'; return; }
+    if (pass.length < 6) { msgEl.textContent = 'Пароль минимум 6 символов'; msgEl.className = 'modal__msg error'; return; }
 
-    // Блокируем кнопку на время входа
     var btn = e.target.querySelector('button[type="submit"]');
     if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
 
-    try {
-      // Пробуем Firebase Auth (если настроен)
-      if (window._firebaseReady && window._firebaseAuth) {
+    // Firebase Auth (основной метод — пароли не хранятся локально)
+    if (window._firebaseReady && window._firebaseAuth) {
+      try {
         if (isReg) {
           if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
-          if (pass.length < 6) { msgEl.textContent = 'Пароль минимум 6 символов'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
           await createUserWithEmailAndPassword(window._firebaseAuth, email, pass);
         } else {
           await signInWithEmailAndPassword(window._firebaseAuth, email, pass);
         }
-        // Firebase вход успешен — редирект без передачи пароля
-    // Успешный вход — редирект
+        msgEl.textContent = 'Вход выполнен! Переход в кабинет...';
+        msgEl.className = 'modal__msg success';
+        setTimeout(function () { window.location.href = 'admin/index.html'; }, 600);
+        return;
+      } catch (err) {
+        msgEl.textContent = isReg ? 'Ошибка регистрации' : 'Неверный email или пароль';
+        msgEl.className = 'modal__msg error';
+        if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; }
+        return;
+      }
+    }
+
+    // Офлайн-режим: проверяем что пользователь существует (без сравнения паролей)
+    var users = getUsers();
+    if (isReg) {
+      if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
+      if (users[email]) { msgEl.textContent = 'Пользователь уже существует'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
+      users[email] = { name: name, role: 'owner' };
+      saveUsers(users);
+      msgEl.textContent = 'Регистрация успешна! Выполните вход.';
+      msgEl.className = 'modal__msg success';
+      isReg = true; document.getElementById('showRegister').click();
+      if (btn) { btn.disabled = false; btn.textContent = 'Войти'; }
+      return;
+    }
+
+    var user = users[email];
+    if (!user) {
+      msgEl.textContent = 'Пользователь не найден. Зарегистрируйтесь.';
+      msgEl.className = 'modal__msg error';
+      if (btn) { btn.disabled = false; btn.textContent = 'Войти'; }
+      return;
+    }
     msgEl.textContent = 'Вход выполнен! Переход в кабинет...';
     msgEl.className = 'modal__msg success';
     setTimeout(function () { window.location.href = 'admin/index.html'; }, 600);

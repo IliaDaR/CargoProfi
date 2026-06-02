@@ -93,11 +93,11 @@ class _LoginDialogState extends State<_LoginDialog> {
           profile = await widget.fireAuth.register(email: email, password: pass, displayName: name, role: widget.role);
         } catch (_) {
           // Firebase недоступен — регистрируем локально
-          if (widget.storage.findUser(email, pass) != null) {
+          if (widget.storage.findUserByEmail(email) != null) {
             setState(() { _error = 'Пользователь уже существует'; _loading = false; });
             return;
           }
-          widget.storage.registerUser(email, pass, name, widget.role);
+          widget.storage.registerUser(email, name, widget.role);
           profile = {'uid': email, 'role': widget.role, 'displayName': name, 'email': email};
         }
       } else {
@@ -106,7 +106,7 @@ class _LoginDialogState extends State<_LoginDialog> {
           profile = await widget.fireAuth.login(email: email, password: pass);
         } catch (_) {
           // Firebase недоступен — проверяем локально
-          final user = widget.storage.findUser(email, pass);
+          final user = widget.storage.findUserByEmail(email);
           if (user == null) {
             setState(() { _error = 'Неверный email или пароль'; _loading = false; });
             return;
