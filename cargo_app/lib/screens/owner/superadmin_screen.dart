@@ -1,3 +1,4 @@
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/local_storage.dart';
@@ -22,7 +23,7 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
       appBar: AppBar(
         title: const Text('Админ-панель Numino'),
         actions: [
-          TextButton.icon(onPressed: () { s.setCurrentUser(null); }, icon: const Icon(Icons.logout, size: 16), label: const Text('Выйти')),
+          TextButton.icon(onPressed: () { s.setCurrentUser(null); html.window.location.href = '/'; }, icon: const Icon(Icons.logout, size: 16), label: const Text('Выйти')),
         ],
       ),
       body: Column(children: [
@@ -116,7 +117,7 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
         leading: CircleAvatar(backgroundColor: t['status'] == 'new' ? Colors.red.shade100 : Colors.green.shade100, child: Icon(t['status'] == 'new' ? Icons.mail : Icons.done, color: t['status'] == 'new' ? Colors.red : Colors.green)),
         title: Text(t['name'] ?? 'Без имени'),
         subtitle: Text('${t['email']} • ${t['message'] ?? ''}', maxLines: 2),
-        trailing: t['status'] == 'new' ? TextButton(onPressed: () { t['status'] = 'resolved'; setState(() {}); }, child: const Text('Закрыть')) : null,
+        trailing: t['status'] == 'new' ? TextButton(onPressed: () { t['status'] = 'resolved'; s.saveTickets(); setState(() {}); }, child: const Text('Закрыть')) : null,
       ))),
     ]);
   }

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/local_storage.dart';
-import '../../providers/vehicle_provider.dart';
+import '../../services/firebase_auth_service.dart';
 import '../owner/owner_dashboard_screen.dart';
 import '../owner/superadmin_screen.dart';
 import '../driver/driver_home_screen.dart';
 
-/// Экран: две кнопки (Владелец / Водитель).
-/// При нажатии — форма логина/пароля для выбранной роли.
 class RoleScreen extends StatelessWidget {
   final LocalStorage storage;
-  const RoleScreen({super.key, required this.storage});
+  final FirebaseAuthService fireAuth;
+  const RoleScreen({super.key, required this.storage, required this.fireAuth});
 
   @override
   Widget build(BuildContext context) {
@@ -49,17 +48,17 @@ class RoleScreen extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => _LoginDialog(storage: storage, role: role, roleLabel: roleLabel),
+      builder: (ctx) => _LoginDialog(storage: storage, fireAuth: fireAuth, role: role, roleLabel: roleLabel),
     );
   }
 }
 
-/// Диалог входа/регистрации для выбранной роли.
 class _LoginDialog extends StatefulWidget {
   final LocalStorage storage;
+  final FirebaseAuthService fireAuth;
   final String role;
   final String roleLabel;
-  const _LoginDialog({required this.storage, required this.role, required this.roleLabel});
+  const _LoginDialog({required this.storage, required this.fireAuth, required this.role, required this.roleLabel});
 
   @override
   State<_LoginDialog> createState() => _LoginDialogState();
@@ -80,23 +79,45 @@ class _LoginDialogState extends State<_LoginDialog> {
     final email = _emailCtrl.text.trim();
     final pass = _passCtrl.text;
     if (email.isEmpty || pass.isEmpty) { setState(() => _error = 'Заполните все поля'); return; }
+    if (pass.length < 6) { setState(() => _error = 'Пароль минимум 6 символов'); return; }
     setState(() { _loading = true; _error = null; });
-    await Future.delayed(const Duration(milliseconds: 400));
 
-    if (_isReg) {
-      final name = _nameCtrl.text.trim();
-      if (name.isEmpty) { setState(() { _error = 'Введите имя'; _loading = false; }); return; }
-      if (widget.storage.findUser(email, pass) != null) {
-        setState(() { _error = 'Пользователь уже существует'; _loading = false; });
-        return;
+    try {
+      Map<String, String>? profile;
+
+      if (_isReg) {
+        final name = _nameCtrl.text.trim();
+        if (name.isEmpty) { setState(() { _error = 'Введите имя'; _loading = false; }); return; }
+        // Пробуем Firebase Auth
+        try {
+          profile = await widget.fireAuth.register(email: email, password: pass, displayName: name, role: widget.role);
+        } catch (_) {
+          // Firebase недоступен — регистрируем локально
+          if (widget.storage.findUser(email, pass) != null) {
+            setState(() { _error = 'Пользователь уже существует'; _loading = false; });
+            return;
+          }
+          widget.storage.registerUser(email, pass, name, widget.role);
+          profile = {'uid': email, 'role': widget.role, 'displayName': name, 'email': email};
+        }
+      } else {
+        // Пробуем Firebase Auth
+        try {
+          profile = await widget.fireAuth.login(email: email, password: pass);
+        } catch (_) {
+          // Firebase недоступен — проверяем локально
+          final user = widget.storage.findUser(email, pass);
+          if (user == null) {
+            setState(() { _error = 'Неверный email или пароль'; _loading = false; });
+            return;
+          }
+          profile = {'uid': user['uid'] ?? email, 'role': user['role'] ?? widget.role, 'displayName': user['displayName'] ?? '', 'email': email};
+        }
       }
-      widget.storage.registerUser(email, pass, name, widget.role);
-    }
 
-    final user = widget.storage.findUser(email, pass);
-    if (user != null) {
-      widget.storage.setCurrentUser(user);
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      if (profile != null) {
+        widget.storage.setCurrentUser(profile);
+        Navigator.of(context).popUntil((route) => route.isFirst);
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) {
         final actualRole = user['role'] ?? widget.role;
         if (actualRole == 'driver') return DriverHomeScreen(driverId: user['uid'] ?? 'driver');

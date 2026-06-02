@@ -1,10 +1,8 @@
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../services/local_storage.dart';
 import '../../models/trip.dart';
@@ -91,7 +89,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       appBar: AppBar(title: const Text('Кабинет водителя'), actions: [
         IconButton(icon: const Icon(Icons.logout), onPressed: () {
           store.setCurrentUser(null);
-          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => RoleScreen(storage: store)), (_) => false);
+          html.window.location.href = '/';
         }),
       ]),
       body: SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -215,6 +213,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
             income: double.tryParse(incomeCtrl.text), routeDescription: old.routeDescription, cargoDescription: old.cargoDescription,
             createdAt: old.createdAt,
           );
+          store.saveTrips();
           Navigator.pop(ctx);
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DriverHomeScreen(driverId: widget.driverId)));
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Рейс завершён!'), backgroundColor: Colors.green));

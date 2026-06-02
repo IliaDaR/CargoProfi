@@ -1,3 +1,4 @@
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/vehicle_provider.dart';
@@ -34,7 +35,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
           Text(storage.currentUser?['displayName'] ?? 'Владелец'), const SizedBox(width: 12),
           TextButton.icon(onPressed: () {
             storage.setCurrentUser(null);
-            Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => RoleScreen(storage: storage)), (_) => false);
+            html.window.location.href = '/';
           }, icon: const Icon(Icons.logout, size: 18), label: const Text('Выйти')),
         ])),
       ]),

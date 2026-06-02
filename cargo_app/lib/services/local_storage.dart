@@ -193,6 +193,18 @@ class LocalStorage {
     _prefs!.setString(_kUsers, jsonEncode(users));
   }
 
+  void saveTrips() {
+    _saveTrips(trips);
+  }
+
+  void saveSalaryRules() {
+    _saveSalaryRules(salaryRules);
+  }
+
+  void saveSalaryPayments() {
+    _saveSalaryPayments(salaryPayments);
+  }
+
   // ===== ТАРИФЫ =====
 
   String? getOwnerTariff(String uid) {
@@ -217,6 +229,7 @@ class LocalStorage {
   }
 
   void saveTickets() {
-    // решается через addTicket / прямой доступ
+    final list = tickets;
+    _prefs!.setString('tickets', jsonEncode(list));
   }
 }
