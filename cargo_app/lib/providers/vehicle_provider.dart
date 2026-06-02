@@ -14,4 +14,6 @@ class VehicleProvider extends ChangeNotifier {
     _storage.addVehicle(v);
     notifyListeners();
   }
+
+  void refresh() => notifyListeners();
 }
