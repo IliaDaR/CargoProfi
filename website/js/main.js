@@ -124,7 +124,7 @@
     }
   })();
 
-  document.getElementById('loginForm').addEventListener('submit', function (e) {
+  document.getElementById('loginForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     var email = '', pass = '', name = '';
     var inputs = e.target.querySelectorAll('input');
@@ -136,39 +136,25 @@
     if (!email || !pass) { msgEl.textContent = 'Заполните все поля'; msgEl.className = 'modal__msg error'; return; }
     if (!isValidEmail(email)) { msgEl.textContent = 'Неверный формат email'; msgEl.className = 'modal__msg error'; return; }
 
-    var users = getUsers();
-
-    if (isReg) {
-      // Регистрация
-      if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; return; }
-      if (users[email]) { msgEl.textContent = 'Пользователь уже существует'; msgEl.className = 'modal__msg error'; return; }
-      if (pass.length < 6) { msgEl.textContent = 'Пароль минимум 6 символов'; msgEl.className = 'modal__msg error'; return; }
-      users[email] = { pass: pass, name: name, role: 'owner' };
-      saveUsers(users);
-      msgEl.textContent = 'Регистрация успешна! Выполните вход.';
-      msgEl.className = 'modal__msg success';
-      isReg = true; document.getElementById('showRegister').click(); // переключаем на режим входа
-      return;
-    }
-
-    // Вход
-    var user = users[email];
-    if (!user || user.pass !== pass) {
-      msgEl.textContent = 'Неверный email или пароль';
-      msgEl.className = 'modal__msg error';
-      return;
-    }
-
-    msgEl.textContent = '⏳ Выполняется вход...';
-    msgEl.className = 'modal__msg success';
-    // Блокируем кнопку
+    // Блокируем кнопку на время входа
     var btn = e.target.querySelector('button[type="submit"]');
     if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
-    // Передаём только роль и имя, без пароля
-    var role = user.role || 'owner';
-    setTimeout(function () {
-      window.location.href = 'admin/index.html?role=' + role + '&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(user.name);
-    }, 600);
+
+    try {
+      // Пробуем Firebase Auth (если настроен)
+      if (window._firebaseReady && window._firebaseAuth) {
+        if (isReg) {
+          if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
+          if (pass.length < 6) { msgEl.textContent = 'Пароль минимум 6 символов'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
+          await createUserWithEmailAndPassword(window._firebaseAuth, email, pass);
+        } else {
+          await signInWithEmailAndPassword(window._firebaseAuth, email, pass);
+        }
+        // Firebase вход успешен — редирект без передачи пароля
+    // Успешный вход — редирект
+    msgEl.textContent = 'Вход выполнен! Переход в кабинет...';
+    msgEl.className = 'modal__msg success';
+    setTimeout(function () { window.location.href = 'admin/index.html'; }, 600);
   });
 
   // ===== CONTACT FORM — отправляется через FormSubmit + сохраняет тикет локально =====

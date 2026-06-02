@@ -79,6 +79,31 @@ class FirebaseAuthService {
     };
   }
 
+  /// Загружает профиль пользователя из Firestore по uid.
+  Future<Map<String, String>> fetchProfile(String uid) async {
+    // Пробуем найти профиль в owners
+    var doc = await _firestore.collection('owners').doc(uid).get();
+    if (doc.exists) {
+      final d = doc.data()!;
+      return {
+        'uid': uid, 'role': d['role'] ?? 'owner',
+        'displayName': d['displayName'] ?? '',
+        'email': d['email'] ?? '',
+      };
+    }
+    // Пробуем найти в drivers
+    doc = await _firestore.collection('drivers').doc(uid).get();
+    if (doc.exists) {
+      final d = doc.data()!;
+      return {
+        'uid': uid, 'role': d['role'] ?? 'driver',
+        'displayName': d['displayName'] ?? '',
+        'email': d['email'] ?? '',
+      };
+    }
+    return {'uid': uid, 'role': 'owner', 'displayName': '', 'email': ''};
+  }
+
   /// Выход из Firebase Auth.
   Future<void> signOut() async {
     await _auth.signOut();

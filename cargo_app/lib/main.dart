@@ -86,38 +86,41 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _init() async {
-    // Сначала пробуем восстановить сохранённую сессию
-    final saved = widget.local.loadCurrentUser();
-    if (saved != null) {
-      widget.local.setCurrentUser(saved);
-    }
-
-    // Затем пробуем спарсить URL-параметры (переданы с лендинга)
-    if (saved == null) {
-      final params = _parseQueryParams();
-      if (params['role'] != null && params['email'] != null) {
-        final email = params['email']!;
-        final existing = widget.local.findUserByEmail(email);
-        final role = existing?['role'] ?? params['role'] ?? 'owner';
-        final name = existing?['displayName'] ?? params['name'] ?? email.split('@').first;
-        widget.local.setCurrentUser({
-          'uid': email, 'email': email, 'displayName': name, 'role': role,
-        });
+    // Слушаем Firebase Auth — если пользователь уже залогинен, получаем его профиль
+    widget.fireAuth.authStateChanges.listen((user) async {
+      if (user != null) {
+        // Пользователь залогинен в Firebase — получаем его роль из Firestore
+        try {
+          final profile = await widget.fireAuth.fetchProfile(user.uid);
+          widget.local.setCurrentUser(profile);
+        } catch (_) {
+          // Firestore недоступен — используем базовый профиль
+          widget.local.setCurrentUser({
+            'uid': user.uid,
+            'email': user.email ?? '',
+            'displayName': user.displayName ?? user.email?.split('@').first ?? '',
+            'role': 'owner',
+          });
+        }
+        if (mounted) setState(() => _ready = true);
+      } else {
+        // Не залогинен — пробуем восстановить локальную сессию (офлайн-режим)
+        final saved = widget.local.loadCurrentUser();
+        if (saved != null) {
+          widget.local.setCurrentUser(saved);
+        }
+        if (mounted) setState(() => _ready = true);
       }
-    }
-    if (mounted) setState(() => _ready = true);
-  }
+    });
 
-  Map<String, String> _parseQueryParams() {
-    try {
-      final search = Uri.base.query;
-      if (search.isNotEmpty) return Uri.splitQueryString(search);
-    } catch (_) {}
-    try {
-      final p = Uri.base.queryParameters;
-      if (p.isNotEmpty) return Map<String, String>.from(p);
-    } catch (_) {}
-    return {};
+    // Таймаут: если Firebase не ответил за 3 секунды — используем локальную сессию
+    Future.delayed(const Duration(seconds: 3), () {
+      if (!_ready && mounted) {
+        final saved = widget.local.loadCurrentUser();
+        if (saved != null) widget.local.setCurrentUser(saved);
+        setState(() => _ready = true);
+      }
+    });
   }
 
   @override
