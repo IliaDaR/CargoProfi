@@ -108,22 +108,8 @@
     }
   });
 
-  // ===== LOGIN / REGISTER — localStorage-based auth =====
-  function getUsers() {
-    try { return JSON.parse(localStorage.getItem('numino_users')) || {}; } catch(_) { return {}; }
-  }
-  function saveUsers(u) { localStorage.setItem('numino_users', JSON.stringify(u)); }
-
-  // Создаём админа при первом запуске (без пароля — аутентификация через Firebase)
-  (function() {
-    var u = getUsers();
-    if (!u['admin@numino.ru']) {
-      u['admin@numino.ru'] = { name: 'Администратор', role: 'admin' };
-      u['owner@numino.ru'] = { name: 'Владелец парка', role: 'owner' };
-      saveUsers(u);
-    }
-  })();
-
+  // ===== LOGIN / REGISTER =====
+  // Firebase Auth (основной метод). Без Firebase — редирект в кабинет.
   document.getElementById('loginForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     var email = '', pass = '', name = '';
