@@ -99,6 +99,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       cargoDescription: cargo, routeDescription: route,
       mileage: 0, mileageSource: MileageSource.auto, createdAt: now,
     ));
+    // Помечаем машину как «в рейсе»
+    final vIdx = store.vehicles.indexWhere((v) => v.id == chosenId);
+    if (vIdx != -1) {
+      store.vehicles[vIdx] = store.vehicles[vIdx].copyWith(isActive: true, activeDriverId: widget.driverId);
+    }
     _cargoCtrl.clear(); _routeCtrl.clear();
     _checkActive();
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Рейс начат!'), backgroundColor: Colors.green));
@@ -305,7 +310,11 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
             income: double.tryParse(incomeCtrl.text), routeDescription: old.routeDescription, cargoDescription: old.cargoDescription,
             createdAt: old.createdAt, track: _track.map((p) => TrackPoint(latitude: p['latitude']!, longitude: p['longitude']!, timestamp: DateTime.now())).toList(),
           );
-          store.saveTrips();
+          // Освобождаем машину
+          final vIdx2 = store.vehicles.indexWhere((v) => v.id == old.vehicleId);
+          if (vIdx2 != -1) {
+            store.vehicles[vIdx2] = store.vehicles[vIdx2].copyWith(isActive: false, activeDriverId: null);
+          }
           Navigator.pop(ctx);
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DriverHomeScreen(driverId: widget.driverId)));
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Рейс завершён!'), backgroundColor: Colors.green));
