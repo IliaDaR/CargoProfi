@@ -202,6 +202,10 @@
   // ===== DOWNLOAD APK — handled via direct href to GitHub releases =====
 
   // ===== CAROUSEL FACTORY =====
+  var _carouselIntervals = [];
+  window.addEventListener('pagehide', function() { _carouselIntervals.forEach(function(id) { clearInterval(id); }); _carouselIntervals = []; });
+  window.addEventListener('beforeunload', function() { _carouselIntervals.forEach(function(id) { clearInterval(id); }); });
+
   function createCarousel(trackId, prevId, nextId, dotsId) {
     var track = document.getElementById(trackId);
     var prevBtn = document.getElementById(prevId);
@@ -238,7 +242,7 @@
     nextBtn.addEventListener('click', function () { goTo(current + 1); });
     prevBtn.addEventListener('click', function () { goTo(current - 1); });
 
-    function startAuto() { autoTimer = setInterval(function () { goTo(current + 1); }, INTERVAL); }
+    function startAuto() { autoTimer = setInterval(function () { goTo(current + 1); }, INTERVAL); _carouselIntervals.push(autoTimer); }
     function resetAuto() { clearInterval(autoTimer); startAuto(); }
 
     // Touch swipe
