@@ -208,7 +208,7 @@
         var tickets = JSON.parse(localStorage.getItem('numino_tickets') || '[]');
         tickets.push({name: name, email: email, message: msg, status: 'new', createdAt: new Date().toISOString()});
         // SharedPreferences на Flutter Web использует префикс "flutter."
-        localStorage.setItem('flutter.numino_tickets', JSON.stringify(tickets));
+        localStorage.setItem('flutter.tickets', JSON.stringify(tickets));
       }
     });
   }
