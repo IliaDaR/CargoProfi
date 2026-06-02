@@ -38,16 +38,13 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     final totalCount = list.length;
     list = list.take(_pageSize).toList();
     final total = list.fold(0.0, (s, e) => s + e.amount);
-    final isWide = MediaQuery.of(context).size.width >= 800;
     final df = DateFormat('dd.MM.yyyy');
 
     return Column(children: [
       Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-        DropdownButtonFormField<String>(
-          value: _driver, decoration: const InputDecoration(labelText: 'Водитель', border: OutlineInputBorder(), isDense: true),
+        DropdownButtonFormField<String>(value: _driver, decoration: const InputDecoration(labelText: 'Водитель', border: OutlineInputBorder(), isDense: true),
           items: store.drivers.map<DropdownMenuItem<String>>((d) => DropdownMenuItem<String>(value: d['uid'], child: Text(d['displayName'] ?? d['uid'] ?? ''))).toList(),
-          onChanged: (v) => setState(() => _driver = v),
-        ),
+          onChanged: (v) => setState(() => _driver = v)),
         const SizedBox(height: 8),
         Row(children: [
           Expanded(child: InkWell(onTap: () => _pickDate(true), child: InputDecorator(decoration: const InputDecoration(labelText: 'С', border: OutlineInputBorder(), isDense: true), child: Text(DateFormat('dd.MM').format(_start))))),
@@ -55,51 +52,29 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           Expanded(child: InkWell(onTap: () => _pickDate(false), child: InputDecorator(decoration: const InputDecoration(labelText: 'По', border: OutlineInputBorder(), isDense: true), child: Text(DateFormat('dd.MM').format(_end))))),
         ]),
       ])),
-      if (list.isNotEmpty) ...[
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Card(color: Colors.green.shade50, child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Text('Всего: ${total.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.download, size: 20),
-                tooltip: 'Экспорт CSV',
-                onPressed: () => ExportService.downloadCsv('расходы.csv', ExportService.expensesToCsv(list)),
-              ),
-            ]),
-            const SizedBox(height: 6),
-            ..._byCategory(list).entries.map((e) => 
-              Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Row(children: [
-                Text(expenseCategoryLabel(expenseCategoryFromString(e.key)), style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                const Spacer(),
-                Text('${e.value.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-              ])),
-            ),
+      if (list.isNotEmpty)
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Card(color: Colors.green.shade50, child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Text('Всего: ${total.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Spacer(),
+            IconButton(icon: const Icon(Icons.download, size: 20), tooltip: 'Экспорт CSV', onPressed: () => ExportService.downloadCsv('расходы.csv', ExportService.expensesToCsv(list))),
+          ]),
+          const SizedBox(height: 6),
+          ..._byCategory(list).entries.map((e) => Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Row(children: [
+            Text(expenseCategoryLabel(expenseCategoryFromString(e.key)), style: const TextStyle(color: Colors.grey, fontSize: 13)),
+            const Spacer(), Text('${e.value.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
           ]))),
-        ),
-      ],      Expanded(child: Column(children: [
-        Expanded(child: list.isEmpty ? const Center(child: Text('Нет расходов')) : isWide ? _table(list, df) : _list(list, df)),
+        ]))),
+      Expanded(child: Column(children: [
+        Expanded(child: list.isEmpty ? const Center(child: Text('Нет расходов')) : SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(columns: const [
+          DataColumn(label: Text('Дата')), DataColumn(label: Text('Категория')), DataColumn(label: Text('Сумма')), DataColumn(label: Text('Описание')),
+        ], rows: list.map((e) => DataRow(cells: [
+          DataCell(Text(df.format(e.createdAt))), DataCell(Text(expenseCategoryLabel(e.category))),
+          DataCell(Text('${e.amount.toStringAsFixed(0)} ₽')), DataCell(Text(e.description ?? '—')),
+        ])).toList()))),
         if (totalCount > _pageSize)
           Padding(padding: const EdgeInsets.all(8), child: TextButton(onPressed: () => setState(() => _pageSize += 20), child: Text('Показать ещё ($_pageSize из $totalCount)'))),
       ])),
     ]);
   }
-
-  Widget _table(List<Expense> list, DateFormat df) => SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(columns: const [
-    DataColumn(label: Text('Дата')), DataColumn(label: Text('Категория')), DataColumn(label: Text('Сумма')), DataColumn(label: Text('Описание')), DataColumn(label: Text('Чек')),
-  ], rows: list.map((e) => DataRow(cells: [
-    DataCell(Text(df.format(e.createdAt))), DataCell(Text(expenseCategoryLabel(e.category))),
-    DataCell(Text('${e.amount.toStringAsFixed(0)} ₽')), DataCell(Text(e.description ?? '—')),
-    DataCell(_receiptThumb(e)),
-  ])).toList()));
-
-  Widget _list(List<Expense> list, DateFormat df) => ListView.builder(itemCount: list.length, itemBuilder: (ctx, i) {
-    final e = list[i];
-    return Card(margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), child: ListTile(
-      leading: CircleAvatar(backgroundColor: Colors.orange.shade100, child: const Icon(Icons.receipt, color: Colors.orange)),
-      title: Text(expenseCategoryLabel(e.category)), subtitle: Text('${df.format(e.createdAt)} — ${e.description ?? ''}'),
-      trailing: Text('${e.amount.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.bold)),
-    ));
-  });
 }

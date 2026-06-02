@@ -118,12 +118,12 @@ class _LoginDialogState extends State<_LoginDialog> {
       if (profile != null) {
         widget.storage.setCurrentUser(profile);
         Navigator.of(context).popUntil((route) => route.isFirst);
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) {
-        final actualRole = user['role'] ?? widget.role;
-        if (actualRole == 'driver') return DriverHomeScreen(driverId: user['uid'] ?? 'driver');
-        if (actualRole == 'admin' || actualRole == 'superadmin') return SuperadminScreen(storage: widget.storage);
-        return const OwnerDashboardScreen();
-      }));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) {
+          final actualRole = profile!['role'] ?? widget.role;
+          if (actualRole == 'driver') return DriverHomeScreen(driverId: profile!['uid'] ?? 'driver');
+          if (actualRole == 'admin' || actualRole == 'superadmin') return SuperadminScreen(storage: widget.storage);
+          return const OwnerDashboardScreen();
+        }));
     } else {
       setState(() { _error = 'Неверный email или пароль'; _loading = false; });
     }

@@ -305,7 +305,6 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
             income: double.tryParse(incomeCtrl.text), routeDescription: old.routeDescription, cargoDescription: old.cargoDescription,
             createdAt: old.createdAt, track: _track.map((p) => TrackPoint(latitude: p['latitude']!, longitude: p['longitude']!, timestamp: DateTime.now())).toList(),
           );
-          );
           store.saveTrips();
           Navigator.pop(ctx);
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DriverHomeScreen(driverId: widget.driverId)));
