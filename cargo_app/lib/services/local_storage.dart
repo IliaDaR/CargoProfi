@@ -218,8 +218,14 @@ class LocalStorage {
   // ===== ТИКЕТЫ =====
 
   List<Map<String,dynamic>> get tickets {
-    final s = _prefs!.getString('tickets');
-    return s != null ? List<Map<String,dynamic>>.from(jsonDecode(s)) : [];
+    // На Flutter Web читаем из браузерного localStorage (общий с лендингом)
+    try {
+      final raw = _prefs!.getString('numino_tickets');
+      if (raw != null && raw.isNotEmpty) {
+        return List<Map<String,dynamic>>.from(jsonDecode(raw) as List);
+      }
+    } catch (_) {}
+    return [];
   }
 
   void addTicket(String name, String email, String message) {

@@ -169,7 +169,7 @@
     }, 600);
   });
 
-  // ===== CONTACT FORM — отправляется через FormSubmit =====
+  // ===== CONTACT FORM — отправляется через FormSubmit + сохраняет тикет локально =====
   var contactForm = document.getElementById('contactForm');
   if (contactForm) {
     // Bot honey-pot
@@ -180,6 +180,19 @@
     hp.tabIndex = -1;
     hp.autocomplete = 'off';
     contactForm.appendChild(hp);
+
+    // Сохраняем тикет в localStorage для админки
+    contactForm.addEventListener('submit', function() {
+      var name = contactForm.querySelector('[name="name"]')?.value || '';
+      var email = contactForm.querySelector('[name="email"]')?.value || '';
+      var msg = contactForm.querySelector('[name="message"]')?.value || '';
+      if (name && email && msg) {
+        var tickets = JSON.parse(localStorage.getItem('numino_tickets') || '[]');
+        tickets.push({name: name, email: email, message: msg, status: 'new', createdAt: new Date().toISOString()});
+        // SharedPreferences на Flutter Web использует префикс "flutter."
+        localStorage.setItem('flutter.numino_tickets', JSON.stringify(tickets));
+      }
+    });
   }
 
   // ===== DOWNLOAD APK — handled via direct href to GitHub releases =====

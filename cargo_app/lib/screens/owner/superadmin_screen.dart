@@ -94,12 +94,16 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
   }
 
   Widget _statsTab(List owners, List drivers) {
+    final totalIncome = s.trips.where((t) => t.status.toString() == 'TripStatus.completed').fold(0.0, (sum, t) => sum + (t.income ?? 0));
+    final activeSubs = owners.where((o) => o['active'] != false).length;
     return SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(children: [
       Wrap(spacing: 12, runSpacing: 12, children: [
         _card('Владельцев', '${owners.length}', Icons.business, Colors.blue),
         _card('Водителей', '${drivers.length}', Icons.person, Colors.green),
         _card('Машин', '${s.vehicles.length}', Icons.directions_car, Colors.orange),
         _card('Рейсов', '${s.trips.length}', Icons.route, Colors.purple),
+        _card('Выручка', '${totalIncome.toStringAsFixed(0)} ₽', Icons.attach_money, Colors.green.shade700),
+        _card('Подписки', '$activeSubs активны', Icons.card_membership, Colors.amber.shade700),
       ]),
     ]));
   }
