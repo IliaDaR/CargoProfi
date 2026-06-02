@@ -6,6 +6,7 @@ import '../../models/trip.dart';
 import '../../services/local_storage.dart';
 import '../../services/waybill_pdf.dart';
 import '../../utils/constants.dart';
+import 'trip_detail_screen.dart';
 
 class TripsScreen extends StatefulWidget {
   const TripsScreen({super.key});
@@ -41,11 +42,12 @@ class _TripsScreenState extends State<TripsScreen> {
       ])),
       Expanded(child: list.isEmpty ? const Center(child: Text('Нет рейсов'))
         : isWide ? SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(columns: const [
-            DataColumn(label: Text('Дата')), DataColumn(label: Text('Водитель')), DataColumn(label: Text('Маршрут')), DataColumn(label: Text('Пробег')), DataColumn(label: Text('Доход')), DataColumn(label: Text('Статус')), DataColumn(label: Text('')),
+            DataColumn(label: Text('Дата')), DataColumn(label: Text('Водитель')), DataColumn(label: Text('Маршрут')), DataColumn(label: Text('Пробег')), DataColumn(label: Text('Доход')), DataColumn(label: Text('Статус')), DataColumn(label: Text('')), DataColumn(label: Text('')),
           ], rows: list.map((t) => DataRow(cells: [
             DataCell(Text(df.format(t.startTime))), DataCell(Text(_driverName(t.driverId))), DataCell(Text(t.routeDescription ?? '—')), DataCell(Text('${t.mileage.toStringAsFixed(1)} км')),
             DataCell(Text(t.income != null ? '${t.income!.toStringAsFixed(0)} ₽' : '—')), DataCell(_chip(t.status)),
             DataCell(_buildWaybillBtn(t)),
+            DataCell(IconButton(icon: const Icon(Icons.map, size: 18, color: Colors.blue), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TripDetailScreen(tripId: t.id))))),
           ])).toList()))
         : ListView.builder(padding: const EdgeInsets.symmetric(horizontal: 8), itemCount: list.length, itemBuilder: (ctx, i) {
             final t = list[i];
