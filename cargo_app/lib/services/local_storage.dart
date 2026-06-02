@@ -158,7 +158,8 @@ class LocalStorage {
     'endTime': t.endTime?.toIso8601String(), 'endLocation': t.endLatitude != null ? {'latitude': t.endLatitude, 'longitude': t.endLongitude} : null,
     'mileage': t.mileage, 'mileageSource': t.mileageSource.name, 'manualMileage': t.manualMileage,
     'cargoDescription': t.cargoDescription, 'routeDescription': t.routeDescription, 'income': t.income,
-    'createdAt': t.createdAt.toIso8601String(), 'track': [],
+    'createdAt': t.createdAt.toIso8601String(),
+    'track': t.track.map((p) => {'latitude': p.latitude, 'longitude': p.longitude, 'timestamp': p.timestamp.toIso8601String()}).toList(),
   };
 
   Map<String,dynamic> _expenseToMap(Expense e) => {
