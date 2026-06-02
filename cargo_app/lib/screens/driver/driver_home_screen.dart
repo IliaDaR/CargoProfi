@@ -54,11 +54,31 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
   void _startTrip() async {
     final store = context.read<LocalStorage>();
-    final vehicles = store.vehicles.where((v) => !v.isActive).toList();
-    if (vehicles.isEmpty) {
+    final freeVehicles = store.vehicles.where((v) => !v.isActive).toList();
+    if (freeVehicles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Нет свободных машин'), backgroundColor: Colors.red));
       return;
     }
+
+    // Выбор машины из списка свободных
+    String? chosenId = freeVehicles.length == 1 ? freeVehicles.first.id : null;
+    if (chosenId == null) {
+      chosenId = await showDialog<String>(
+        context: context,
+        builder: (ctx) => SimpleDialog(
+          title: const Text('Выберите машину'),
+          children: freeVehicles.map((v) => SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, v.id),
+            child: ListTile(
+              leading: const Icon(Icons.directions_car),
+              title: Text('${v.brand} ${v.model}'),
+              subtitle: Text(v.plateNumber),
+            ),
+          )).toList(),
+        ),
+      );
+    }
+    if (chosenId == null) return; // отмена
 
     // Получаем реальные GPS-координаты (веб: browser, Android: GPS)
     double lat = 55.75, lon = 37.61;
@@ -74,7 +94,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     final cargo = _cargoCtrl.text.trim().isEmpty ? null : _cargoCtrl.text.trim();
     final route = _routeCtrl.text.trim().isEmpty ? null : _routeCtrl.text.trim();
     store.addTrip(Trip(
-      id: tripId, driverId: widget.driverId, vehicleId: vehicles.first.id, status: TripStatus.active,
+      id: tripId, driverId: widget.driverId, vehicleId: chosenId, status: TripStatus.active,
       startTime: now, startLatitude: lat, startLongitude: lon,
       cargoDescription: cargo, routeDescription: route,
       mileage: 0, mileageSource: MileageSource.auto, createdAt: now,
@@ -83,7 +103,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     _checkActive();
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Рейс начат!'), backgroundColor: Colors.green));
     NotificationService.tripStarted(Trip(
-      id: tripId, driverId: widget.driverId, vehicleId: vehicles.first.id, status: TripStatus.active,
+      id: tripId, driverId: widget.driverId, vehicleId: chosenId, status: TripStatus.active,
       startTime: now, startLatitude: lat, startLongitude: lon,
       routeDescription: route, cargoDescription: cargo,
       createdAt: now, mileage: 0, mileageSource: MileageSource.auto,
