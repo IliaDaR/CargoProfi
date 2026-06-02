@@ -87,6 +87,9 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
   Widget _dash(VehicleProvider vp, LocalStorage store) {
     final completed = store.trips.where((t) => t.status == TripStatus.completed);
     final income = completed.fold(0.0, (s, t) => s + (t.income ?? 0));
+    // Активные рейсы: машина → водитель
+    final activeTrips = store.trips.where((t) => t.status == TripStatus.active).toList();
+
     return SingleChildScrollView(padding: const EdgeInsets.all(20), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text('Обзор парка', style: Theme.of(context).textTheme.headlineSmall),
       const SizedBox(height: 12),
@@ -97,6 +100,23 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
         _statCard('Рейсов', '${completed.length}', Icons.route, Colors.purple),
         _statCard('Доход', '${income.toStringAsFixed(0)} ₽', Icons.attach_money, Colors.green.shade700),
       ]),
+      if (activeTrips.isNotEmpty) ...[
+        const SizedBox(height: 20),
+        Text('В рейсе сейчас', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        ...activeTrips.map((t) {
+          final v = store.vehicles.where((v) => v.id == t.vehicleId).firstOrNull;
+          final d = store.drivers.where((d) => d['uid'] == t.driverId).firstOrNull;
+          final vehicleName = v != null ? '${v.brand} ${v.model} (${v.plateNumber})' : t.vehicleId;
+          final driverName = d?['displayName'] ?? t.driverId.substring(0, 8);
+          return Card(margin: const EdgeInsets.only(bottom: 6), child: ListTile(
+            leading: const CircleAvatar(backgroundColor: Colors.green, child: Icon(Icons.drive_eta, color: Colors.white, size: 20)),
+            title: Text('$vehicleName → $driverName', style: const TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: Text(t.routeDescription ?? 'В пути'),
+            trailing: const Chip(label: Text('В рейсе', style: TextStyle(fontSize: 11)), backgroundColor: Colors.green),
+          ));
+        }),
+      ],
     ]));
   }
 
