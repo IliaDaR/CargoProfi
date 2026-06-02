@@ -7,7 +7,6 @@ import '../../models/trip.dart';
 import '../../utils/constants.dart';
 import '../../services/local_storage.dart';
 import '../../services/export_service.dart';
-import 'package:printing/printing.dart';
 
 class SalaryScreen extends StatefulWidget {
   const SalaryScreen({super.key});
@@ -104,9 +103,8 @@ class _SalaryScreenState extends State<SalaryScreen> {
       if (payments.isNotEmpty) Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('История', style: Theme.of(context).textTheme.titleMedium),
         if (payments.isNotEmpty)
-          TextButton.icon(onPressed: () async {
-            final csv = ExportService.salaryToCsv(payments);
-            await Printing.sharePdf(bytes: csv, filename: 'зарплата.csv');
+          TextButton.icon(onPressed: () {
+            ExportService.downloadCsv('зарплата.csv', ExportService.salaryToCsv(payments));
           }, icon: const Icon(Icons.download, size: 16), label: const Text('CSV')),
         const SizedBox(height: 8),
         ...payments.reversed.map((p) => ListTile(

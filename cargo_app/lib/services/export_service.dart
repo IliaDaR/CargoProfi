@@ -1,11 +1,22 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:html' as html;
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../models/salary_payment.dart';
 
 class ExportService {
   static final df = DateFormat('dd.MM.yyyy');
+
+  /// Сохраняет CSV через браузерный download.
+  static void downloadCsv(String filename, Uint8List bytes) {
+    final blob = html.Blob([bytes], 'text/csv;charset=utf-8');
+    final url = html.Url.createObjectUrl(blob);
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute('download', filename)
+      ..click();
+    html.Url.revokeObjectUrl(url);
+  }
 
   /// CSV расходов
   static Uint8List expensesToCsv(List<Expense> list) {
