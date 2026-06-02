@@ -320,7 +320,16 @@
 
   // ===== SANITIZE INPUTS (XSS prevention) =====
   function sanitize(s) {
-    return String(s).replace(/[<>]/g, '').replace(/on\w+\s*=/gi, '').replace(/javascript\s*:/gi, '');
+    return String(s)
+      .replace(/[<>]/g, '')
+      .replace(/on\w+\s*=/gi, '')
+      .replace(/javascript\s*:/gi, '')
+      .replace(/eval\s*\(/gi, '')
+      .replace(/data\s*:\s*text\/html/gi, '')
+      .replace(/vbscript\s*:/gi, '')
+      .replace(/&#[xX]?[0-9a-fA-F]+;?/g, '')
+      .replace(/expression\s*\(/gi, '')
+      .replace(/url\s*\(/gi, '');
   }
   document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(function (el) {
     el.addEventListener('input', function () {
