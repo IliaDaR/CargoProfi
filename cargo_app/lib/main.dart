@@ -50,6 +50,7 @@ class CargoApp extends StatelessWidget {
         Provider<LocalStorage>.value(value: local),
         Provider<DataService>.value(value: data),
         Provider<FirebaseAuthService>.value(value: fireAuth),
+        Provider<CloudFunctionsService>.value(value: cloudFn),
         ChangeNotifierProvider(create: (_) => VehicleProvider(local)),
       ],
       child: MaterialApp(

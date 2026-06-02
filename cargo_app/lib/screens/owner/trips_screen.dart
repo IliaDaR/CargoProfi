@@ -5,6 +5,7 @@ import 'package:printing/printing.dart';
 import '../../models/trip.dart';
 import '../../services/local_storage.dart';
 import '../../services/waybill_pdf.dart';
+import '../../services/cloud_functions_service.dart';
 import '../../utils/constants.dart';
 import 'trip_detail_screen.dart';
 
@@ -69,6 +70,16 @@ class _TripsScreenState extends State<TripsScreen> {
       label: const Text('Путевой лист', style: TextStyle(fontSize: 11)),
       onPressed: () async {
         final store = context.read<LocalStorage>();
+        try {
+          // Пробуем Cloud Functions (Firebase)
+          final cloudFn = context.read<CloudFunctionsService>();
+          final url = await cloudFn.generateWaybill(t.id);
+          if (url != null && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF сохранён в облаке!'), backgroundColor: Colors.green));
+            return;
+          }
+        } catch (_) {}
+        // Fallback: генерируем локальный PDF
         final bytes = await WaybillPdf.generate(t, store);
         await Printing.layoutPdf(onLayout: (_) => bytes);
       },
