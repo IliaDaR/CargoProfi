@@ -85,10 +85,16 @@ class LocalStorage {
     } catch (_) { return null; }
   }
 
-  /// Офлайн-регистрация (без пароля — аутентификация через Firebase Auth).
-  Map<String, dynamic>? registerUser(String email, String name, String role) {
+  Map<String, dynamic>? findUser(String email, String password) {
+    try {
+      return users.where((u) => u['email'] == email && u['password'] == password).firstOrNull;
+    } catch (_) { return null; }
+  }
+
+  /// Офлайн-регистрация (пароль сохраняется для локальной аутентификации).
+  Map<String, dynamic>? registerUser(String email, String password, String name, String role) {
     if (users.any((u) => u['email'] == email)) return null;
-    final user = {'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'displayName': name, 'role': role};
+    final user = {'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'password': password, 'displayName': name, 'role': role};
     users.add(user);
     _prefs!.setString(_kUsers, jsonEncode(users));
     return user;

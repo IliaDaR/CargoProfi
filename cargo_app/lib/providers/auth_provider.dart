@@ -42,7 +42,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> register(String email, String password, String name, String role) async {
     _isLoading = true; _error = null; notifyListeners();
     await Future.delayed(const Duration(milliseconds: 300));
-    final u = _storage.registerUser(email, name, role);
+    final u = _storage.registerUser(email, password, name, role);
     if (u != null) {
       _user = u;
       _storage.setCurrentUser(u);
