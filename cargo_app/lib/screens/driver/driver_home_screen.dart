@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' show sin, cos, sqrt, atan2;
+import 'dart:math' show sin, cos, sqrt, atan2, pi;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -71,11 +71,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
     final tripId = DateTime.now().millisecondsSinceEpoch.toString();
     final now = DateTime.now();
+    final cargo = _cargoCtrl.text.trim().isEmpty ? null : _cargoCtrl.text.trim();
+    final route = _routeCtrl.text.trim().isEmpty ? null : _routeCtrl.text.trim();
     store.addTrip(Trip(
       id: tripId, driverId: widget.driverId, vehicleId: vehicles.first.id, status: TripStatus.active,
       startTime: now, startLatitude: lat, startLongitude: lon,
-      cargoDescription: _cargoCtrl.text.trim().isEmpty ? null : _cargoCtrl.text.trim(),
-      routeDescription: _routeCtrl.text.trim().isEmpty ? null : _routeCtrl.text.trim(),
+      cargoDescription: cargo, routeDescription: route,
       mileage: 0, mileageSource: MileageSource.auto, createdAt: now,
     ));
     _cargoCtrl.clear(); _routeCtrl.clear();
@@ -84,7 +85,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     NotificationService.tripStarted(Trip(
       id: tripId, driverId: widget.driverId, vehicleId: vehicles.first.id, status: TripStatus.active,
       startTime: now, startLatitude: lat, startLongitude: lon,
-      routeDescription: _cargoCtrl.text.trim().isEmpty ? null : _cargoCtrl.text.trim(),
+      routeDescription: route, cargoDescription: cargo,
       createdAt: now, mileage: 0, mileageSource: MileageSource.auto,
     ), 'Водитель');
   }

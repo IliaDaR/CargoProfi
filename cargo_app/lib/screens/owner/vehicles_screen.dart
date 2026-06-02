@@ -80,7 +80,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
             title: Text(e.value.plateNumber, style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text('${e.value.brand} ${e.value.model}'),
             trailing: Row(mainAxisSize: MainAxisSize.min, children: [
               Text(e.value.isActive ? 'В рейсе' : 'Свободен', style: TextStyle(color: e.value.isActive ? Colors.green : Colors.grey, fontSize: 12)),
-              IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red), onPressed: () { store.removeVehicle(e.key); setState(() {}); }),
+              IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red), onPressed: () { store.vehicles.removeWhere((v) => v.id == e.value.id); setState(() {}); }),
             ]),
           ))),
         ],
