@@ -1,21 +1,26 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:html' as html;
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../models/salary_payment.dart';
 
+/// Работает на Flutter Web и не падает на других платформах.
 class ExportService {
   static final df = DateFormat('dd.MM.yyyy');
 
-  /// Сохраняет CSV через браузерный download.
   static void downloadCsv(String filename, Uint8List bytes) {
-    final blob = html.Blob([bytes], 'text/csv;charset=utf-8');
-    final url = html.Url.createObjectUrl(blob);
-    final anchor = html.AnchorElement(href: url)
-      ..setAttribute('download', filename)
-      ..click();
-    html.Url.revokeObjectUrl(url);
+    try {
+      // ignore: avoid_web_libraries_in_flutter
+      import 'dart:html' as html;
+      final blob = html.Blob([bytes], 'text/csv;charset=utf-8');
+      final url = html.Url.createObjectUrl(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', filename)
+        ..click();
+      html.Url.revokeObjectUrl(url);
+    } catch (_) {
+      // Non-web platforms: no-op
+    }
   }
 
   /// CSV расходов
