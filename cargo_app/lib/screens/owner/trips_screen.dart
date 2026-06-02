@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:printing/printing.dart';
 import '../../models/trip.dart';
 import '../../services/local_storage.dart';
+import '../../services/waybill_pdf.dart';
 import '../../utils/constants.dart';
 
 class TripsScreen extends StatefulWidget {
@@ -63,11 +65,10 @@ class _TripsScreenState extends State<TripsScreen> {
     return OutlinedButton.icon(
       icon: const Icon(Icons.description, size: 14),
       label: const Text('Путевой лист', style: TextStyle(fontSize: 11)),
-      onPressed: () {
-        // Демо: в production вызывает generateWaybill Cloud Function
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Путевой лист сформирован! (PDF доступен в production-режиме)'), backgroundColor: Colors.green),
-        );
+      onPressed: () async {
+        final store = context.read<LocalStorage>();
+        final bytes = await WaybillPdf.generate(t, store);
+        await Printing.layoutPdf(onLayout: (_) => bytes);
       },
     );
   }
