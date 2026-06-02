@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:html' as html;
 import '../../services/local_storage.dart';
 
 class SuperadminScreen extends StatefulWidget {
@@ -32,7 +33,7 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Админ-панель Numino'), actions: [
-        TextButton.icon(onPressed: () { s.setCurrentUser(null); }, icon: const Icon(Icons.logout, size: 16), label: const Text('Выйти')),
+          TextButton.icon(onPressed: () { s.setCurrentUser(null); html.window.location.href = '/'; }, icon: const Icon(Icons.logout, size: 16), label: const Text('Выйти')),
       ]),
       body: Column(children: [
         SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [
