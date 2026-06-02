@@ -109,7 +109,22 @@
   });
 
   // ===== LOGIN / REGISTER =====
-  // Firebase Auth (основной метод). Без Firebase — редирект в кабинет.
+  // localStorage: numino_users (ключ синхронизирован с Flutter Web SharedPreferences)
+  function getUsers() {
+    try { return JSON.parse(localStorage.getItem('numino_users')) || {}; } catch(_) { return {}; }
+  }
+  function saveUsers(u) { localStorage.setItem('numino_users', JSON.stringify(u)); }
+
+  // Предустановленные аккаунты
+  (function() {
+    var u = getUsers();
+    if (!u['admin@numino.ru']) {
+      u['admin@numino.ru'] = { pass: 'admin123', name: 'Администратор', role: 'admin' };
+      u['owner@numino.ru'] = { pass: 'owner123', name: 'Владелец парка', role: 'owner' };
+      saveUsers(u);
+    }
+  })();
+
   document.getElementById('loginForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     var email = '', pass = '', name = '';
@@ -126,7 +141,7 @@
     var btn = e.target.querySelector('button[type="submit"]');
     if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
 
-    // Firebase Auth (основной метод — пароли не хранятся локально)
+    // Firebase Auth (основной метод)
     if (window._firebaseReady && window._firebaseAuth) {
       try {
         if (isReg) {
@@ -135,38 +150,33 @@
         } else {
           await signInWithEmailAndPassword(window._firebaseAuth, email, pass);
         }
-        msgEl.textContent = 'Вход выполнен! Переход в кабинет...';
-        msgEl.className = 'modal__msg success';
-        setTimeout(function () { window.location.href = 'admin/index.html'; }, 600);
-        return;
       } catch (err) {
         msgEl.textContent = isReg ? 'Ошибка регистрации' : 'Неверный email или пароль';
         msgEl.className = 'modal__msg error';
         if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; }
         return;
       }
-    }
-
-    // Офлайн-режим: проверяем что пользователь существует (без сравнения паролей)
-    var users = getUsers();
-    if (isReg) {
-      if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
-      if (users[email]) { msgEl.textContent = 'Пользователь уже существует'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
-      users[email] = { name: name, role: 'owner' };
-      saveUsers(users);
-      msgEl.textContent = 'Регистрация успешна! Выполните вход.';
-      msgEl.className = 'modal__msg success';
-      isReg = true; document.getElementById('showRegister').click();
-      if (btn) { btn.disabled = false; btn.textContent = 'Войти'; }
-      return;
-    }
-
-    var user = users[email];
-    if (!user) {
-      msgEl.textContent = 'Пользователь не найден. Зарегистрируйтесь.';
-      msgEl.className = 'modal__msg error';
-      if (btn) { btn.disabled = false; btn.textContent = 'Войти'; }
-      return;
+    } else {
+      // Резервный вход через localStorage
+      var users = getUsers();
+      if (isReg) {
+        if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
+        if (users[email]) { msgEl.textContent = 'Пользователь уже существует'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
+        users[email] = { pass: pass, name: name, role: 'owner' };
+        saveUsers(users);
+        msgEl.textContent = 'Регистрация успешна! Выполните вход.';
+        msgEl.className = 'modal__msg success';
+        isReg = true; document.getElementById('showRegister').click();
+        if (btn) { btn.disabled = false; btn.textContent = 'Войти'; }
+        return;
+      }
+      var user = users[email];
+      if (!user || user.pass !== pass) {
+        msgEl.textContent = 'Неверный email или пароль';
+        msgEl.className = 'modal__msg error';
+        if (btn) { btn.disabled = false; btn.textContent = 'Войти'; }
+        return;
+      }
     }
     msgEl.textContent = 'Вход выполнен! Переход в кабинет...';
     msgEl.className = 'modal__msg success';
