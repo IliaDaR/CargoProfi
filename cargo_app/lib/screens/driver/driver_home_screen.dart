@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../services/local_storage.dart';
 import '../../models/trip.dart';
 import '../../models/expense.dart';
@@ -151,6 +157,8 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
     final amountCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     ExpenseCategory cat = ExpenseCategory.fuel;
+    Uint8List? photoBytes;
+    final picker = ImagePicker();
 
     // Получаем GPS
     double lat = 55.75, lon = 37.61;
@@ -168,6 +176,31 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
         TextField(controller: amountCtrl, decoration: const InputDecoration(labelText: 'Сумма', border: OutlineInputBorder(), suffixText: '₽'), keyboardType: TextInputType.number),
         const SizedBox(height: 10),
         TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Описание', border: OutlineInputBorder())),
+        const SizedBox(height: 10),
+        // Фото чека
+        Row(children: [
+          OutlinedButton.icon(
+            onPressed: () async {
+              final img = await picker.pickImage(source: ImageSource.camera, maxWidth: 1024);
+              if (img != null) { photoBytes = await img.readAsBytes(); setD(() {}); }
+            },
+            icon: const Icon(Icons.camera_alt, size: 18),
+            label: const Text('Камера', style: TextStyle(fontSize: 12)),
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final img = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1024);
+              if (img != null) { photoBytes = await img.readAsBytes(); setD(() {}); }
+            },
+            icon: const Icon(Icons.photo_library, size: 18),
+            label: const Text('Галерея', style: TextStyle(fontSize: 12)),
+          ),
+        ]),
+        if (photoBytes != null) ...[
+          const SizedBox(height: 8),
+          ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.memory(photoBytes!, height: 120, fit: BoxFit.cover)),
+        ],
       ])),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
@@ -175,7 +208,8 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
           final a = double.tryParse(amountCtrl.text);
           if (a == null || a <= 0) return;
           final now = DateTime.now();
-          context.read<LocalStorage>().addExpense(Expense(id: now.millisecondsSinceEpoch.toString(), tripId: widget.tripId, driverId: widget.driverId, amount: a, category: cat, description: descCtrl.text, latitude: lat, longitude: lon, photoTimestamp: now, createdAt: now));
+          final receiptUrl = photoBytes != null ? 'data:image/jpeg;base64,${base64Encode(photoBytes!)}' : null;
+          context.read<LocalStorage>().addExpense(Expense(id: now.millisecondsSinceEpoch.toString(), tripId: widget.tripId, driverId: widget.driverId, amount: a, category: cat, description: descCtrl.text, latitude: lat, longitude: lon, photoTimestamp: now, createdAt: now, receiptUrl: receiptUrl));
           Navigator.pop(ctx);
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Расход добавлен'), backgroundColor: Colors.green));
         }, child: const Text('Сохранить')),

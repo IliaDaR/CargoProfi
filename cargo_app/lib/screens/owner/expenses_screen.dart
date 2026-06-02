@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,18 @@ class ExpensesScreen extends StatefulWidget {
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
   String? _driver;
+
+  Widget _receiptThumb(Expense e) {
+    if (e.receiptUrl == null || e.receiptUrl!.isEmpty) return const Text('—');
+    return GestureDetector(
+      onTap: () => showDialog(context: context, builder: (_) => Dialog(child: InteractiveViewer(child: Image.network(e.receiptUrl!, errorBuilder: (_, __, ___) => _localImage(e.receiptUrl!))))),
+      child: ClipRRect(borderRadius: BorderRadius.circular(4), child: e.receiptUrl!.startsWith('data:') ? Image.memory(const Base64Decoder().convert(e.receiptUrl!.split(',').last), width: 40, height: 40, fit: BoxFit.cover) : Image.network(e.receiptUrl!, width: 40, height: 40, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 20))),
+    );
+  }
+
+  Widget _localImage(String dataUrl) {
+    try { return Image.memory(const Base64Decoder().convert(dataUrl.split(',').last), fit: BoxFit.contain); } catch (_) { return const Icon(Icons.broken_image, size: 48); }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,10 +67,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   }
 
   Widget _table(List<Expense> list, DateFormat df) => SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(columns: const [
-    DataColumn(label: Text('Дата')), DataColumn(label: Text('Категория')), DataColumn(label: Text('Сумма')), DataColumn(label: Text('Описание')),
+    DataColumn(label: Text('Дата')), DataColumn(label: Text('Категория')), DataColumn(label: Text('Сумма')), DataColumn(label: Text('Описание')), DataColumn(label: Text('Чек')),
   ], rows: list.map((e) => DataRow(cells: [
     DataCell(Text(df.format(e.createdAt))), DataCell(Text(expenseCategoryLabel(e.category))),
     DataCell(Text('${e.amount.toStringAsFixed(0)} ₽')), DataCell(Text(e.description ?? '—')),
+    DataCell(_receiptThumb(e)),
   ])).toList()));
 
   Widget _list(List<Expense> list, DateFormat df) => ListView.builder(itemCount: list.length, itemBuilder: (ctx, i) {
