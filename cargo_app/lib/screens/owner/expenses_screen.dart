@@ -22,33 +22,37 @@ class ExpensesScreen extends StatefulWidget {
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
   String? _driver;
+  DateTime _start = DateTime.now().subtract(const Duration(days: 30));
+  DateTime _end = DateTime.now();
 
-  Widget _receiptThumb(Expense e) {
-    if (e.receiptUrl == null || e.receiptUrl!.isEmpty) return const Text('—');
-    return GestureDetector(
-      onTap: () => showDialog(context: context, builder: (_) => Dialog(child: InteractiveViewer(child: Image.network(e.receiptUrl!, errorBuilder: (_, __, ___) => _localImage(e.receiptUrl!))))),
-      child: ClipRRect(borderRadius: BorderRadius.circular(4), child: e.receiptUrl!.startsWith('data:') ? Image.memory(const Base64Decoder().convert(e.receiptUrl!.split(',').last), width: 40, height: 40, fit: BoxFit.cover) : Image.network(e.receiptUrl!, width: 40, height: 40, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 20))),
-    );
-  }
-
-  Widget _localImage(String dataUrl) {
-    try { return Image.memory(const Base64Decoder().convert(dataUrl.split(',').last), fit: BoxFit.contain); } catch (_) { return const Icon(Icons.broken_image, size: 48); }
+  Future<void> _pickDate(bool isStart) async {
+    final d = await showDatePicker(context: context, initialDate: isStart ? _start : _end, firstDate: DateTime(2023), lastDate: DateTime.now().add(const Duration(days: 1)));
+    if (d != null) setState(() { if (isStart) _start = d; else _end = d; });
   }
 
   @override
   Widget build(BuildContext context) {
     final store = context.watch<LocalStorage>();
-    final list = _driver != null ? store.expenses.where((e) => e.driverId == _driver).toList() : store.expenses;
+    var list = _driver != null ? store.expenses.where((e) => e.driverId == _driver).toList() : store.expenses;
+    list = list.where((e) => e.createdAt.isAfter(_start.subtract(const Duration(days: 1))) && e.createdAt.isBefore(_end.add(const Duration(days: 1)))).toList();
     final total = list.fold(0.0, (s, e) => s + e.amount);
     final isWide = MediaQuery.of(context).size.width >= 800;
     final df = DateFormat('dd.MM.yyyy');
 
     return Column(children: [
-      Padding(padding: const EdgeInsets.all(12), child: DropdownButtonFormField<String>(
-        value: _driver, decoration: const InputDecoration(labelText: 'Водитель', border: OutlineInputBorder(), isDense: true),
-        items: store.drivers.map<DropdownMenuItem<String>>((d) => DropdownMenuItem<String>(value: d['uid'], child: Text(d['displayName'] ?? d['uid'] ?? ''))).toList(),
-        onChanged: (v) => setState(() => _driver = v),
-      )),
+      Padding(padding: const EdgeInsets.all(12), child: Column(children: [
+        DropdownButtonFormField<String>(
+          value: _driver, decoration: const InputDecoration(labelText: 'Водитель', border: OutlineInputBorder(), isDense: true),
+          items: store.drivers.map<DropdownMenuItem<String>>((d) => DropdownMenuItem<String>(value: d['uid'], child: Text(d['displayName'] ?? d['uid'] ?? ''))).toList(),
+          onChanged: (v) => setState(() => _driver = v),
+        ),
+        const SizedBox(height: 8),
+        Row(children: [
+          Expanded(child: InkWell(onTap: () => _pickDate(true), child: InputDecorator(decoration: const InputDecoration(labelText: 'С', border: OutlineInputBorder(), isDense: true), child: Text(DateFormat('dd.MM').format(_start))))),
+          const SizedBox(width: 8),
+          Expanded(child: InkWell(onTap: () => _pickDate(false), child: InputDecorator(decoration: const InputDecoration(labelText: 'По', border: OutlineInputBorder(), isDense: true), child: Text(DateFormat('dd.MM').format(_end))))),
+        ]),
+      ])),
       if (list.isNotEmpty) ...[
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),

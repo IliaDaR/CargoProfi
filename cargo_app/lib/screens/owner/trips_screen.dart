@@ -18,12 +18,13 @@ class TripsScreen extends StatefulWidget {
 class _TripsScreenState extends State<TripsScreen> {
   String _statusFilter = '';
   String _search = '';
+  int _pageSize = 20;
 
   List<Trip> _filtered(LocalStorage s) {
-    var r = s.trips;
+    var r = s.trips.reversed.toList();
     if (_statusFilter.isNotEmpty) r = r.where((t) => t.status.name == _statusFilter).toList();
     if (_search.isNotEmpty) { final q = _search.toLowerCase(); r = r.where((t) => (t.routeDescription?.toLowerCase().contains(q) ?? false) || (t.cargoDescription?.toLowerCase().contains(q) ?? false)).toList(); }
-    return r;
+    return r.take(_pageSize).toList();
   }
 
   @override
@@ -59,7 +60,9 @@ class _TripsScreenState extends State<TripsScreen> {
               Text('${t.mileage.toStringAsFixed(1)} км${t.income != null ? ' • ${t.income!.toStringAsFixed(0)} ₽' : ''}'),
               if (t.status == TripStatus.completed) _buildWaybillBtn(t),
             ])));
-          })),
+          }          )),
+      if (store.trips.length > _pageSize)
+        Padding(padding: const EdgeInsets.all(8), child: TextButton(onPressed: () => setState(() => _pageSize += 20), child: Text('Показать ещё (${_pageSize} из ${store.trips.length})'))),
     ]);
   }
 
