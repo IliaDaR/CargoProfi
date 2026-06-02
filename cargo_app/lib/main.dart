@@ -7,6 +7,7 @@ import 'screens/owner/superadmin_screen.dart';
 import 'services/local_storage.dart';
 import 'services/data_service.dart';
 import 'services/firebase_auth_service.dart';
+import 'services/cloud_functions_service.dart';
 import 'services/notification_service.dart';
 import 'providers/vehicle_provider.dart';
 
@@ -27,18 +28,20 @@ void main() async {
 
   final local = LocalStorage();
   await local.init();
-  await NotificationService.init();
   final data = DataService(local);
   final fireAuth = FirebaseAuthService();
+  final cloudFn = CloudFunctionsService(local);
+  await NotificationService.init();
 
-  runApp(CargoApp(local: local, data: data, fireAuth: fireAuth));
+  runApp(CargoApp(local: local, data: data, fireAuth: fireAuth, cloudFn: cloudFn));
 }
 
 class CargoApp extends StatelessWidget {
   final LocalStorage local;
   final DataService data;
   final FirebaseAuthService fireAuth;
-  const CargoApp({super.key, required this.local, required this.data, required this.fireAuth});
+  final CloudFunctionsService cloudFn;
+  const CargoApp({super.key, required this.local, required this.data, required this.fireAuth, required this.cloudFn});
 
   @override
   Widget build(BuildContext context) {
