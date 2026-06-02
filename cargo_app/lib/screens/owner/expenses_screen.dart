@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../models/expense.dart';
 import '../../utils/constants.dart';
 import '../../services/local_storage.dart';
+import '../../services/export_service.dart';
+import 'package:printing/printing.dart';
 
 Map<String, double> _byCategory(List<Expense> list) {
   final m = <String, double>{};
@@ -52,6 +54,14 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Card(color: Colors.green.shade50, child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Всего: ${total.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.download, size: 20),
+              tooltip: 'Экспорт CSV',
+              onPressed: () async {
+                final csv = ExportService.expensesToCsv(list);
+                await Printing.sharePdf(bytes: csv, filename: 'расходы.csv');
+              }),
             const SizedBox(height: 6),
             ..._byCategory(list).entries.map((e) => 
               Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Row(children: [

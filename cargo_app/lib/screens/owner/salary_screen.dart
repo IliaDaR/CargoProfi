@@ -6,6 +6,8 @@ import '../../models/salary_rule.dart';
 import '../../models/trip.dart';
 import '../../utils/constants.dart';
 import '../../services/local_storage.dart';
+import '../../services/export_service.dart';
+import 'package:printing/printing.dart';
 
 class SalaryScreen extends StatefulWidget {
   const SalaryScreen({super.key});
@@ -100,7 +102,13 @@ class _SalaryScreenState extends State<SalaryScreen> {
       ]))),
       const SizedBox(height: 16),
       if (payments.isNotEmpty) Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('История', style: Theme.of(context).textTheme.titleMedium), const SizedBox(height: 8),
+        Text('История', style: Theme.of(context).textTheme.titleMedium),
+        if (payments.isNotEmpty)
+          TextButton.icon(onPressed: () async {
+            final csv = ExportService.salaryToCsv(payments);
+            await Printing.sharePdf(bytes: csv, filename: 'зарплата.csv');
+          }, icon: const Icon(Icons.download, size: 16), label: const Text('CSV')),
+        const SizedBox(height: 8),
         ...payments.reversed.map((p) => ListTile(
           leading: CircleAvatar(backgroundColor: p.status == SalaryPaymentStatus.paid ? Colors.green.shade100 : p.status == SalaryPaymentStatus.cancelled ? Colors.red.shade100 : Colors.orange.shade100, child: Icon(p.status == SalaryPaymentStatus.paid ? Icons.check_circle : p.status == SalaryPaymentStatus.cancelled ? Icons.cancel : Icons.calculate, color: p.status == SalaryPaymentStatus.paid ? Colors.green : p.status == SalaryPaymentStatus.cancelled ? Colors.red : Colors.orange, size: 20)),
           title: Text('${p.calculatedSalary.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.bold)),
