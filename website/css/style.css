@@ -159,7 +159,7 @@ a{color:var(--blue);text-decoration:none}
 .contact__form input,.contact__form textarea{width:100%;padding:10px 14px;border-radius:var(--r-sm);border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:.9rem;font-family:inherit;transition:border var(--tr)}
 .contact__form input:focus,.contact__form textarea:focus{outline:none;border-color:var(--blue)}
 .contact__form input::placeholder,.contact__form textarea::placeholder{color:rgba(255,255,255,.3)}
-.contact__form textarea{resize:vertical}
+.contact__form textarea{resize:none;max-height:150px}
 
 /* Footer */
 .footer{padding:24px 0;background:#0a0f1a}
