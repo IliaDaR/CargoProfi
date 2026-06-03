@@ -50,12 +50,21 @@ class TripDetailScreen extends StatelessWidget {
       ));
     }
 
+    // Ломаная линия по всем точкам трека
+    final trackPoints = <LatLng>[];
+    for (final p in trip.track) {
+      trackPoints.add(LatLng(p.latitude, p.longitude));
+    }
+    // Если трек пустой — рисуем прямую старт→финиш
+    if (trackPoints.isEmpty) {
+      trackPoints.add(LatLng(trip.startLatitude, trip.startLongitude));
+      if (trip.endLatitude != null && trip.endLongitude != null) {
+        trackPoints.add(LatLng(trip.endLatitude!, trip.endLongitude!));
+      }
+    }
+
     final trackPolyline = Polyline(
-      points: [
-        LatLng(trip.startLatitude, trip.startLongitude),
-        if (trip.endLatitude != null && trip.endLongitude != null)
-          LatLng(trip.endLatitude!, trip.endLongitude!),
-      ],
+      points: trackPoints,
       color: Colors.blue,
       strokeWidth: 3,
     );
