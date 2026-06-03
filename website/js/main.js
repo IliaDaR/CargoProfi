@@ -186,16 +186,7 @@
   // ===== CONTACT FORM — отправляется через FormSubmit + сохраняет тикет локально =====
   var contactForm = document.getElementById('contactForm');
   if (contactForm) {
-    // Bot honey-pot
-    var hp = document.createElement('input');
-    hp.type = 'text';
-    hp.name = '_honey';
-    hp.style.cssText = 'position:absolute;left:-9999px;opacity:0;height:0;width:0';
-    hp.tabIndex = -1;
-    hp.autocomplete = 'off';
-    contactForm.appendChild(hp);
-
-    // Сохраняем тикет в localStorage для админки
+    // Honeypot в HTML (index.html), здесь только сохраняем тикет
     contactForm.addEventListener('submit', function() {
       var name = contactForm.querySelector('[name="name"]')?.value || '';
       var email = contactForm.querySelector('[name="email"]')?.value || '';
