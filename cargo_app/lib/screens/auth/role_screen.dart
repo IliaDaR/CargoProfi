@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/local_storage.dart';
 import '../../services/firebase_auth_service.dart';
 import '../owner/owner_dashboard_screen.dart';
@@ -104,14 +105,27 @@ class _LoginDialogState extends State<_LoginDialog> {
         // Пробуем Firebase Auth
         try {
           profile = await widget.fireAuth.login(email: email, password: pass);
-        } catch (_) {
-          // Firebase недоступен — проверяем локально с паролем
-          final user = widget.storage.findUser(email, pass);
-          if (user == null) {
-            setState(() { _error = 'Неверный email или пароль'; _loading = false; });
-            return;
+        } catch (e) {
+          if (e is FirebaseAuthException) {
+            switch (e.code) {
+              case 'wrong-password': _error = 'Неверный пароль'; break;
+              case 'user-not-found': _error = 'Пользователь не найден'; break;
+              case 'too-many-requests': _error = 'Слишком много попыток. Попробуйте позже.'; break;
+              case 'invalid-email': _error = 'Неверный формат email'; break;
+              case 'email-already-in-use': _error = 'Email уже зарегистрирован'; break;
+              case 'weak-password': _error = 'Пароль слишком простой (минимум 6 символов)'; break;
+              default: _error = 'Ошибка авторизации: ${e.code}'; break;
+            }
+          } else {
+            // Firebase недоступен — проверяем локально с паролем
+            final user = widget.storage.findUser(email, pass);
+            if (user == null) {
+              setState(() { _error = 'Неверный email или пароль'; _loading = false; });
+              return;
+            }
+            profile = {'uid': user['uid'] ?? email, 'role': user['role'] ?? widget.role, 'displayName': user['displayName'] ?? '', 'email': email};
           }
-          profile = {'uid': user['uid'] ?? email, 'role': user['role'] ?? widget.role, 'displayName': user['displayName'] ?? '', 'email': email};
+          if (_error != null) { setState(() => _loading = false); return; }
         }
       }
 
