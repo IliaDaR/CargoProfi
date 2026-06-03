@@ -67,14 +67,33 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         ]))),
       Expanded(child: Column(children: [
         Expanded(child: list.isEmpty ? const Center(child: Text('Нет расходов')) : SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(columns: const [
-          DataColumn(label: Text('Дата')), DataColumn(label: Text('Категория')), DataColumn(label: Text('Сумма')), DataColumn(label: Text('Описание')),
+          DataColumn(label: Text('Дата')), DataColumn(label: Text('Категория')), DataColumn(label: Text('Сумма')), DataColumn(label: Text('Описание')), DataColumn(label: Text('Чек')),
         ], rows: list.map((e) => DataRow(cells: [
           DataCell(Text(df.format(e.createdAt))), DataCell(Text(expenseCategoryLabel(e.category))),
           DataCell(Text('${e.amount.toStringAsFixed(0)} ₽')), DataCell(Text(e.description ?? '—')),
+          DataCell(_buildReceipt(e)),
         ])).toList()))),
         if (totalCount > _pageSize)
           Padding(padding: const EdgeInsets.all(8), child: TextButton(onPressed: () => setState(() => _pageSize += 20), child: Text('Показать ещё ($_pageSize из $totalCount)'))),
       ])),
     ]);
+  }
+
+  Widget _buildReceipt(Expense e) {
+    if (e.receiptUrl == null || e.receiptUrl!.isEmpty) return const Text('—');
+    final isBase64 = e.receiptUrl!.startsWith('data:');
+    return GestureDetector(
+      onTap: () {
+        showDialog(context: context, builder: (_) => Dialog(
+          child: isBase64
+              ? Image.memory(base64Decode(e.receiptUrl!.split(',').last), fit: BoxFit.contain)
+              : Image.network(e.receiptUrl!, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48)),
+        ));
+      },
+      child: ClipRRect(borderRadius: BorderRadius.circular(4), child: isBase64
+        ? Image.memory(base64Decode(e.receiptUrl!.split(',').last), width: 40, height: 40, fit: BoxFit.cover)
+        : Image.network(e.receiptUrl!, width: 40, height: 40, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 20)),
+      ),
+    );
   }
 }
