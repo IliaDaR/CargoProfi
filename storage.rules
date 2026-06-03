@@ -23,6 +23,10 @@ service firebase.storage {
       return getUserRole() == 'owner';
     }
 
+    function isSuperAdmin() {
+      return getUserRole() == 'superadmin';
+    }
+
     function getDriverOwnerId() {
       return firestore.get(/databases/(default)/documents/drivers/$(request.auth.uid)).data.ownerId;
     }
@@ -52,7 +56,8 @@ service firebase.storage {
     // PDF путевых листов — /waybills/{ownerId}/{tripId}.pdf
     match /waybills/{ownerId}/{tripId} {
       allow read: if isAuth()
-                   && (isOwner() && request.auth.uid == ownerId);
+                   && (isSuperAdmin()
+                       || (isOwner() && request.auth.uid == ownerId));
       allow create: if isAuth()
                      && isOwner()
                      && request.auth.uid == ownerId;
