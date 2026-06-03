@@ -99,7 +99,7 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
         TextField(controller: n, decoration: const InputDecoration(labelText: 'Имя', border: OutlineInputBorder())),
         const SizedBox(height: 10), TextField(controller: e, decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder())),
       ]),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')), ElevatedButton(onPressed: () { if (e.text.isNotEmpty) { s.addUser(e.text, n.text, 'owner'); _addLog('Добавил владельца', e.text); Navigator.pop(ctx); setState(() {}); } }, child: const Text('Добавить'))],
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')), ElevatedButton(onPressed: () { final email = e.text.trim(); if (email.isEmpty || !email.contains('@') || !email.contains('.')) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Введите корректный email'), backgroundColor: Colors.red)); return; } if (n.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Введите имя'), backgroundColor: Colors.red)); return; } s.addUser(email, n.text.trim(), 'owner'); _addLog('Добавил владельца', email); Navigator.pop(ctx); setState(() {}); }, child: const Text('Добавить'))],
     ));
   }
 
