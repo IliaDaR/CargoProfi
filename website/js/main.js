@@ -333,24 +333,14 @@
     });
   });
 
-  // ===== SANITIZE INPUTS (XSS prevention) =====
-  function sanitize(s) {
-    return String(s)
-      .replace(/[<>]/g, '')
-      .replace(/on\w+\s*=/gi, '')
-      .replace(/javascript\s*:/gi, '')
-      .replace(/eval\s*\(/gi, '')
-      .replace(/data\s*:\s*text\/html/gi, '')
-      .replace(/vbscript\s*:/gi, '')
-      .replace(/&#[xX]?[0-9a-fA-F]+;?/g, '')
-      .replace(/expression\s*\(/gi, '')
-      .replace(/url\s*\(/gi, '');
+  // ===== XSS PROTECTION =====
+  // Экранирует HTML-сущности при вставке в DOM.
+  // Не удаляет символы — пользователь может вводить < и >.
+  function escapeHtml(s) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
   }
-  document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(function (el) {
-    el.addEventListener('input', function () {
-      el.value = sanitize(el.value);
-    });
-  });
 
   // ===== EMAIL VALIDATION =====
   function isValidEmail(email) {
