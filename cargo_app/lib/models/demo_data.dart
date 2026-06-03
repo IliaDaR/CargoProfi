@@ -14,7 +14,7 @@ class DemoData {
       id: 'v1', ownerId: 'demo-uid', plateNumber: 'А123ВС 177',
       brand: 'MAN', model: 'TGX', year: 2020, fuelType: 'diesel',
       createdAt: now.subtract(const Duration(days: 365)),
-      isActive: true, activeDriverId: 'd1',
+      isActive: false,
     ),
     Vehicle(
       id: 'v2', ownerId: 'demo-uid', plateNumber: 'В456КМ 77',
@@ -26,13 +26,13 @@ class DemoData {
       id: 'v3', ownerId: 'demo-uid', plateNumber: 'Е789ОР 178',
       brand: 'Scania', model: 'R500', year: 2019, fuelType: 'diesel',
       createdAt: now.subtract(const Duration(days: 500)),
-      isActive: true, activeDriverId: 'd2',
+      isActive: false,
     ),
     Vehicle(
       id: 'v4', ownerId: 'demo-uid', plateNumber: 'М234НТ 77',
       brand: 'Mercedes', model: 'Actros', year: 2022, fuelType: 'diesel',
       createdAt: now.subtract(const Duration(days: 90)),
-      isActive: false,
+      isActive: true, activeDriverId: 'd3',
     ),
     Vehicle(
       id: 'v5', ownerId: 'demo-uid', plateNumber: 'С567УХ 116',

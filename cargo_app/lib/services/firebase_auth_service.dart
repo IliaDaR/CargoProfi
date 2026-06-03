@@ -18,6 +18,7 @@ class FirebaseAuthService {
     required String password,
     required String displayName,
     required String role,
+    String? ownerId,
   }) async {
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email,
@@ -36,6 +37,7 @@ class FirebaseAuthService {
     if (role == 'owner' || role == 'admin' || role == 'superadmin') {
       await _firestore.collection('owners').doc(uid).set(profile);
     } else {
+      if (ownerId != null) profile['ownerId'] = ownerId;
       await _firestore.collection('drivers').doc(uid).set(profile);
     }
 

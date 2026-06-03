@@ -31,8 +31,8 @@ export const addExpense = functions.https.onCall(
       !input.tripId ||
       !input.amount ||
       !input.category ||
-      !input.latitude ||
-      !input.longitude
+      input.latitude == null ||
+      input.longitude == null
     ) {
       throw new functions.https.HttpsError(
         "invalid-argument",

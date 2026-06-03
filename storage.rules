@@ -27,7 +27,7 @@ service firebase.storage {
     }
 
     function getOwnerDriverIds(ownerId) {
-      return firestore.get(/databases/(default)/documents/owners/$(ownerId)).data.driverIds;
+      return firestore.get(/databases/(default)/documents/owners/$(ownerId)).data.get('driverIds', []);
     }
 
     // Чеки (расходы) — /receipts/{driverId}/{expenseId}.{ext}

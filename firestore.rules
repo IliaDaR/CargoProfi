@@ -17,6 +17,7 @@ service cloud.firestore {
       let ownerDoc = get(/databases/$(database)/documents/owners/$(request.auth.uid));
       return (
         (driverDoc != null && driverDoc.data.role == 'driver') ? 'driver' :
+        (ownerDoc != null && (ownerDoc.data.role == 'superadmin' || ownerDoc.data.role == 'admin')) ? 'superadmin' :
         (ownerDoc != null && ownerDoc.data.role == 'owner') ? 'owner' :
         null
       );
