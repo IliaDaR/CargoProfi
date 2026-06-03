@@ -38,8 +38,14 @@ class Expense {
       receiptUrl: data['receiptUrl'],
       latitude: (data['location']?['latitude'] ?? 0.0).toDouble(),
       longitude: (data['location']?['longitude'] ?? 0.0).toDouble(),
-      photoTimestamp: (data['photoTimestamp'] as dynamic).toDate(),
-      createdAt: (data['createdAt'] as dynamic).toDate(),
+      photoTimestamp: _parseDate(data['photoTimestamp']),
+      createdAt: _parseDate(data['createdAt']),
     );
+  }
+
+  static DateTime _parseDate(dynamic value) {
+    if (value is String) return DateTime.parse(value);
+    if (value != null) return (value as dynamic).toDate() as DateTime;
+    return DateTime.now();
   }
 }

@@ -125,7 +125,7 @@ class _TripsScreenState extends State<TripsScreen> {
               endTime: trip.endTime, endLatitude: trip.endLatitude, endLongitude: trip.endLongitude,
               mileage: double.tryParse(mileageCtrl.text) ?? trip.mileage,
               mileageSource: trip.mileageSource, cargoDescription: cargoCtrl.text, routeDescription: routeCtrl.text,
-              income: double.tryParse(incomeCtrl.text), createdAt: trip.createdAt,
+              income: double.tryParse(incomeCtrl.text), createdAt: trip.createdAt, track: trip.track,
             );
           }
           Navigator.pop(ctx);

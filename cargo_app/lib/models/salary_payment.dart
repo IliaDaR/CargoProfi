@@ -36,8 +36,8 @@ class SalaryPayment {
       id: id,
       ownerId: data['ownerId'] ?? '',
       driverId: data['driverId'] ?? '',
-      periodStart: (data['periodStart'] as dynamic).toDate(),
-      periodEnd: (data['periodEnd'] as dynamic).toDate(),
+      periodStart: _parseDate(data['periodStart']),
+      periodEnd: _parseDate(data['periodEnd']),
       tripIds: List<String>.from(data['tripIds'] ?? []),
       totalIncome: (data['totalIncome'] ?? 0.0).toDouble(),
       calculatedSalary: (data['calculatedSalary'] ?? 0.0).toDouble(),
@@ -45,8 +45,8 @@ class SalaryPayment {
           data['ruleType'] == 'fixed' ? SalaryRuleType.fixed : SalaryRuleType.percent,
       ruleValue: (data['ruleValue'] ?? 0.0).toDouble(),
       status: _parseStatus(data['status'] ?? 'calculated'),
-      createdAt: (data['createdAt'] as dynamic).toDate(),
-      paidAt: data['paidAt'] != null ? (data['paidAt'] as dynamic).toDate() : null,
+      createdAt: _parseDate(data['createdAt']),
+      paidAt: data['paidAt'] != null ? _parseDate(data['paidAt']) : null,
     );
   }
 
@@ -59,5 +59,11 @@ class SalaryPayment {
       default:
         return SalaryPaymentStatus.calculated;
     }
+  }
+
+  static DateTime _parseDate(dynamic value) {
+    if (value is String) return DateTime.parse(value);
+    if (value != null) return (value as dynamic).toDate() as DateTime;
+    return DateTime.now();
   }
 }

@@ -57,7 +57,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           Row(children: [
             Text('Всего: ${total.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const Spacer(),
-            IconButton(icon: const Icon(Icons.download, size: 20), tooltip: 'Экспорт CSV', onPressed: () => ExportService.downloadCsv('расходы.csv', ExportService.expensesToCsv(list))),
+            IconButton(icon: const Icon(Icons.download, size: 20), tooltip: 'Экспорт CSV', onPressed: () => ExportService.downloadCsv('расходы.csv', ExportService.expensesToCsv(fullList))),
           ]),
           const SizedBox(height: 6),
           ..._byCategory(list).entries.map((e) => Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Row(children: [
@@ -87,6 +87,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
         ElevatedButton(onPressed: () {
           context.read<LocalStorage>().expenses.removeWhere((e) => e.id == id);
+          context.read<LocalStorage>().saveExpenses();
           Navigator.pop(ctx);
           setState(() {});
         }, style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white), child: const Text('Удалить')),

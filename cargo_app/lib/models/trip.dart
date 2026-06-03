@@ -52,11 +52,11 @@ class Trip {
       driverId: data['driverId'] ?? '',
       vehicleId: data['vehicleId'] ?? '',
       status: _parseStatus(data['status'] ?? 'active'),
-      startTime: (data['startTime'] as dynamic).toDate(),
+      startTime: _parseDate(data['startTime']),
       startLatitude: (data['startLocation']?['latitude'] ?? 0.0).toDouble(),
       startLongitude: (data['startLocation']?['longitude'] ?? 0.0).toDouble(),
       track: track,
-      endTime: data['endTime'] != null ? (data['endTime'] as dynamic).toDate() : null,
+      endTime: data['endTime'] != null ? _parseDate(data['endTime']) : null,
       endLatitude: data['endLocation']?['latitude']?.toDouble(),
       endLongitude: data['endLocation']?['longitude']?.toDouble(),
       mileage: (data['mileage'] ?? 0.0).toDouble(),
@@ -68,7 +68,7 @@ class Trip {
       routeDescription: data['routeDescription'],
       income: data['income']?.toDouble(),
       waybillUrl: data['waybillUrl'],
-      createdAt: (data['createdAt'] as dynamic).toDate(),
+      createdAt: _parseDate(data['createdAt']),
     );
   }
 
@@ -81,6 +81,12 @@ class Trip {
       default:
         return TripStatus.active;
     }
+  }
+
+  static DateTime _parseDate(dynamic value) {
+    if (value is String) return DateTime.parse(value);
+    if (value != null) return (value as dynamic).toDate() as DateTime;
+    return DateTime.now();
   }
 }
 

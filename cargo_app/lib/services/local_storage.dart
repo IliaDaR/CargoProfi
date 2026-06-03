@@ -129,6 +129,9 @@ class LocalStorage {
   void removeVehicle(int index) { vehicles.removeAt(index); _saveVehicles(vehicles); }
   void removeDriver(int index) { drivers.removeAt(index); _saveDrivers(drivers); }
   void addExpense(Expense e) { expenses.add(e); _saveExpenses(expenses); }
+
+  void saveVehicles() => _saveVehicles(vehicles);
+  void saveExpenses() => _saveExpenses(expenses);
   void addDriver(Map<String,dynamic> d) { drivers.add(d); _saveDrivers(drivers); }
   void addSalaryRule(SalaryRule r) { salaryRules.add(r); _saveSalaryRules(salaryRules); }
   void addSalaryPayment(SalaryPayment p) { salaryPayments.add(p); _saveSalaryPayments(salaryPayments); }

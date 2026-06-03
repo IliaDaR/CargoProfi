@@ -100,6 +100,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     final vIdx = store.vehicles.indexWhere((v) => v.id == chosenId);
     if (vIdx != -1) {
       store.vehicles[vIdx] = store.vehicles[vIdx].copyWith(isActive: true, activeDriverId: widget.driverId);
+      store.saveVehicles();
     }
     _cargoCtrl.clear(); _routeCtrl.clear();
     _checkActive();
@@ -338,6 +339,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
           final vIdx2 = store.vehicles.indexWhere((v) => v.id == old.vehicleId);
           if (vIdx2 != -1) {
             store.vehicles[vIdx2] = store.vehicles[vIdx2].copyWith(isActive: false, activeDriverId: null);
+            store.saveVehicles();
           }
           Navigator.pop(ctx);
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DriverHomeScreen(driverId: widget.driverId)));
