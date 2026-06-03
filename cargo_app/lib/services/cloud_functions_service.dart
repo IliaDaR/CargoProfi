@@ -13,16 +13,23 @@ class CloudFunctionsService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final LocalStorage _local;
   bool _useLocal = true;
+  DateTime _lastRetry = DateTime.now();
 
   CloudFunctionsService(this._local);
 
-  Future<void> _ensureConnected() async {
-    if (!_useLocal) return;
+  /// Пробует облачное соединение. При неудаче — fallback.
+  /// Перепроверяет доступность не чаще раза в 2 минуты.
+  Future<bool> _tryCloud() async {
+    if (!_useLocal) return true;
+    if (DateTime.now().difference(_lastRetry).inSeconds < 120) return false;
+    _lastRetry = DateTime.now();
     try {
       await _functions.httpsCallable('startTrip').call({'ping': true}).timeout(const Duration(seconds: 5));
       _useLocal = false;
+      return true;
     } catch (_) {
       _useLocal = true;
+      return false;
     }
   }
 
@@ -35,7 +42,7 @@ class CloudFunctionsService {
     String? cargoDescription,
     String? routeDescription,
   }) async {
-    await _ensureConnected();
+    await _tryCloud();
     if (!_useLocal) {
       final result = await _functions.httpsCallable('startTrip').call({
         'vehicleId': vehicleId, 'latitude': latitude, 'longitude': longitude,
@@ -61,7 +68,7 @@ class CloudFunctionsService {
     required double latitude,
     required double longitude,
   }) async {
-    await _ensureConnected();
+    await _tryCloud();
     if (!_useLocal) {
       await _functions.httpsCallable('addTrackPoint').call({
         'tripId': tripId, 'latitude': latitude, 'longitude': longitude,
@@ -73,7 +80,7 @@ class CloudFunctionsService {
     required String tripId,
     required List<Map<String, dynamic>> points,
   }) async {
-    await _ensureConnected();
+    await _tryCloud();
     if (!_useLocal) {
       await _functions.httpsCallable('addTrackPointsBatch').call({
         'tripId': tripId, 'points': points,
@@ -88,7 +95,7 @@ class CloudFunctionsService {
     double? manualMileage,
     double? income,
   }) async {
-    await _ensureConnected();
+    await _tryCloud();
     if (!_useLocal) {
       final result = await _functions.httpsCallable('endTrip').call({
         'tripId': tripId, 'latitude': latitude, 'longitude': longitude,
@@ -111,7 +118,7 @@ class CloudFunctionsService {
     String? description,
     File? receiptFile,
   }) async {
-    await _ensureConnected();
+    await _tryCloud();
 
     String? receiptUrl;
     if (receiptFile != null && !_useLocal) {
@@ -145,7 +152,7 @@ class CloudFunctionsService {
   // ===== ПУТЕВОЙ ЛИСТ =====
 
   Future<String?> generateWaybill(String tripId) async {
-    await _ensureConnected();
+    await _tryCloud();
     if (!_useLocal) {
       final result = await _functions.httpsCallable('generateWaybill').call({'tripId': tripId});
       return (result.data as Map)['waybillUrl'];
@@ -161,7 +168,7 @@ class CloudFunctionsService {
     double? percentValue,
     double? fixedValue,
   }) async {
-    await _ensureConnected();
+    await _tryCloud();
     if (!_useLocal) {
       await _functions.httpsCallable('setSalaryRule').call({
         'driverId': driverId, 'type': type,
@@ -176,7 +183,7 @@ class CloudFunctionsService {
     required String periodStart,
     required String periodEnd,
   }) async {
-    await _ensureConnected();
+    await _tryCloud();
     if (!_useLocal) {
       final result = await _functions.httpsCallable('calculateSalary').call({
         'driverId': driverId, 'periodStart': periodStart, 'periodEnd': periodEnd,
