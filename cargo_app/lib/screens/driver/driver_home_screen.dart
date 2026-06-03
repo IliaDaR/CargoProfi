@@ -171,7 +171,7 @@ class ActiveTripScreen extends StatefulWidget {
   State<ActiveTripScreen> createState() => _ActiveTripScreenState();
 }
 
-class _ActiveTripScreenState extends State<ActiveTripScreen> {
+class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBindingObserver {
   Timer? _timer;
   Timer? _gpsTimer;
   Duration _elapsed = Duration.zero;
@@ -180,6 +180,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Восстанавливаем трек из sync queue при перезагрузке страницы
     final store = context.read<LocalStorage>();
     for (final item in store.syncQueue) {
@@ -196,6 +197,11 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
       }
     });
     // GPS-трекинг каждые 30 секунд с офлайн-буфером
+    _startGps();
+  }
+
+  void _startGps() {
+    _gpsTimer?.cancel();
     _gpsTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
       try {
         final pos = await Geolocator.getCurrentPosition(
@@ -213,6 +219,15 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
         });
       } catch (_) {}
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _gpsTimer?.cancel();
+    } else if (state == AppLifecycleState.resumed) {
+      _startGps();
+    }
   }
 
   void _addExpense() async {
@@ -383,5 +398,5 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
   }
 
   @override
-  void dispose() { _timer?.cancel(); _gpsTimer?.cancel(); super.dispose(); }
+  void dispose() { WidgetsBinding.instance.removeObserver(this); _timer?.cancel(); _gpsTimer?.cancel(); super.dispose(); }
 }
