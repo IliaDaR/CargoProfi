@@ -180,6 +180,14 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
   @override
   void initState() {
     super.initState();
+    // Восстанавливаем трек из sync queue при перезагрузке страницы
+    final store = context.read<LocalStorage>();
+    for (final item in store.syncQueue) {
+      if (item['type'] == 'track_point' && item['data']['tripId'] == widget.tripId) {
+        final d = item['data'];
+        _track.add({'latitude': d['latitude'] as double, 'longitude': d['longitude'] as double, 'timestamp': (DateTime.tryParse(d['timestamp'] ?? '')?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch).toDouble()});
+      }
+    }
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       final store = context.read<LocalStorage>();
       final trip = store.trips.where((t) => t.id == widget.tripId).firstOrNull;
