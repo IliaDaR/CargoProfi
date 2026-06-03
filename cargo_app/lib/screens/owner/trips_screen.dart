@@ -81,7 +81,9 @@ class _TripsScreenState extends State<TripsScreen> {
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF сохранён в облаке!'), backgroundColor: Colors.green));
             return;
           }
-        } catch (_) {}
+        } catch (_) {
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Сервис временно недоступен. PDF сгенерирован локально.'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
+        }
         // Fallback: генерируем локальный PDF
         final bytes = await WaybillPdf.generate(t, store);
         await Printing.layoutPdf(onLayout: (_) => bytes);
