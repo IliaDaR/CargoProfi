@@ -17,6 +17,7 @@ class SalaryScreen extends StatefulWidget {
 class _SalaryScreenState extends State<SalaryScreen> {
   String? _driver;
   bool _usePercent = true;
+  bool _calculating = false;
   final _valueCtrl = TextEditingController(text: '15');
   DateTime _start = DateTime.now().subtract(const Duration(days: 30));
   DateTime _end = DateTime.now();
@@ -36,8 +37,9 @@ class _SalaryScreenState extends State<SalaryScreen> {
     }
   }
 
-  void _calc(LocalStorage store) {
-    if (_driver == null) return;
+  void _calc(LocalStorage store) async {
+    if (_driver == null || _calculating) return;
+    setState(() => _calculating = true);
     final trips = store.trips.where((t) => t.driverId == _driver && t.status == TripStatus.completed && t.startTime.isAfter(_start) && t.startTime.isBefore(_end)).toList();
     if (trips.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Нет завершённых рейсов за период'))); return; }
     final income = trips.fold(0.0, (s, t) => s + (t.income ?? 0));
@@ -60,7 +62,7 @@ class _SalaryScreenState extends State<SalaryScreen> {
       ruleType: _usePercent ? SalaryRuleType.percent : SalaryRuleType.fixed,
       ruleValue: value, status: SalaryPaymentStatus.calculated, createdAt: DateTime.now(),
     ));
-    setState(() {});
+    setState(() { _calculating = false; });
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Рассчитано: $salary ₽'), backgroundColor: Colors.green));
   }
 
@@ -95,7 +97,7 @@ class _SalaryScreenState extends State<SalaryScreen> {
           SegmentedButton<bool>(segments: const [ButtonSegment(value: true, label: Text('%')), ButtonSegment(value: false, label: Text('₽'))], selected: {_usePercent}, onSelectionChanged: (v) => setState(() => _usePercent = v.first), style: const ButtonStyle(tapTargetSize: MaterialTapTargetSize.shrinkWrap)),
         ]),
         const SizedBox(height: 10),
-        SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => _calc(store), child: const Text('Рассчитать зарплату'))),
+        SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _calculating ? null : () => _calc(store), child: _calculating ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Рассчитать зарплату'))),
       ]))),
       const SizedBox(height: 16),
       if (payments.isNotEmpty) Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
