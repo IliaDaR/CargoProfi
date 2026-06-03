@@ -32,7 +32,7 @@ export const startTrip = functions.https.onCall(
 
     const input = request.data as StartTripInput;
 
-    if (!input.vehicleId || !input.latitude || !input.longitude) {
+    if (!input.vehicleId || input.latitude == null || input.longitude == null) {
       throw new functions.https.HttpsError(
         "invalid-argument",
         "Не указаны обязательные поля: vehicleId, latitude, longitude"
@@ -133,7 +133,7 @@ export const addTrackPoint = functions.https.onCall(
 
     const input = request.data as AddTrackPointInput;
 
-    if (!input.tripId || !input.latitude || !input.longitude) {
+    if (!input.tripId || input.latitude == null || input.longitude == null) {
       throw new functions.https.HttpsError(
         "invalid-argument",
         "Не указаны обязательные поля: tripId, latitude, longitude"
@@ -229,22 +229,20 @@ export const addTrackPointsBatch = functions.https.onCall(
       );
     }
 
-    const batch = db.batch();
-    const now = Timestamp.now();
-
+    // Собираем новые точки в массив и делаем один update
+    const newPoints: GeoPoint[] = [];
     for (const pt of points) {
-      const newPoint: GeoPoint = {
+      newPoints.push({
         latitude: pt.latitude,
         longitude: pt.longitude,
         timestamp: pt.timestamp ? Timestamp.fromDate(new Date(pt.timestamp)) : now,
-      };
-      batch.update(tripRef, {
-        track: FieldValue.arrayUnion(newPoint),
-        updatedAt: now,
       });
     }
 
-    await batch.commit();
+    await tripRef.update({
+      track: FieldValue.arrayUnion(...newPoints),
+      updatedAt: now,
+    });
 
     return {success: true, added: points.length};
   }
@@ -271,7 +269,7 @@ export const endTrip = functions.https.onCall(
 
     const input = request.data as EndTripInput;
 
-    if (!input.tripId || !input.latitude || !input.longitude) {
+    if (!input.tripId || input.latitude == null || input.longitude == null) {
       throw new functions.https.HttpsError(
         "invalid-argument",
         "Не указаны обязательные поля: tripId, latitude, longitude"

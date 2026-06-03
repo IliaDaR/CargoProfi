@@ -39,7 +39,20 @@ service cloud.firestore {
 
     // Возвращает список driverId, принадлежащих данному owner
     function getOwnerDriverIds(ownerId) {
-      return get(/databases/$(database)/documents/owners/$(ownerId)).data.driverIds;
+      let ownerDoc = get(/databases/$(database)/documents/owners/$(ownerId));
+      return ownerDoc.data.get('driverIds', []);
+    }
+
+    // Проверка: пользователь — superadmin
+    function isSuperAdmin() {
+      let doc = get(/databases/$(database)/documents/owners/$(request.auth.uid));
+      return doc != null && (doc.data.role == 'superadmin' || doc.data.role == 'admin');
+    }
+
+    // Проверка: owner (включая superadmin) может читать данные своих driver
+    function hasAccessToDriver(driverId) {
+      let driverDoc = get(/databases/$(database)/documents/drivers/$(driverId));
+      return driverDoc != null && driverDoc.data.ownerId == request.auth.uid;
     }
 
     // ===== OWNERS =====
@@ -61,13 +74,14 @@ service cloud.firestore {
       // Водитель видит только свой профиль
       allow read: if isAuth()
                    && (request.auth.uid == driverId
-                       || (isOwner() && driverId in getOwnerDriverIds(request.auth.uid)));
-
+                       || isSuperAdmin()
+                       || (isOwner() && hasAccessToDriver(driverId)));
       // Владелец создаёт/редактирует профили своих водителей
       allow write: if isAuth()
                     && isOwner()
                     && (request.auth.uid == driverId
-                        || driverId in getOwnerDriverIds(request.auth.uid));
+                         || isSuperAdmin()
+                         || (isOwner() && driverId in getOwnerDriverIds(request.auth.uid)));
 
       allow create: if isAuth()
                      && isOwner()
@@ -118,8 +132,8 @@ service cloud.firestore {
       // Владелец видит расходы водителей своего парка
       allow read: if isAuth()
                    && (resource.data.driverId == request.auth.uid
-                       || (isOwner()
-                           && resource.data.driverId in getOwnerDriverIds(request.auth.uid)));
+                       || isSuperAdmin()
+                       || (isOwner() && hasAccessToDriver(resource.data.driverId)));
 
       // Водитель создаёт расходы только для своих рейсов
       allow create: if isAuth()

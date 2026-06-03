@@ -12,16 +12,16 @@ class CloudFunctionsService {
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final LocalStorage _local;
-  bool _useLocal = true;
-  DateTime _lastRetry = DateTime.now();
+  bool _useLocal = false; // Начинаем с попытки облачного вызова
+  DateTime _lastRetry = DateTime.now().subtract(const Duration(minutes: 5));
 
   CloudFunctionsService(this._local);
 
   /// Пробует облачное соединение. При неудаче — fallback.
-  /// Перепроверяет доступность не чаще раза в 2 минуты.
+  /// Перепроверяет доступность раз в 30 секунд.
   Future<bool> _tryCloud() async {
     if (!_useLocal) return true;
-    if (DateTime.now().difference(_lastRetry).inSeconds < 120) return false;
+    if (DateTime.now().difference(_lastRetry).inSeconds < 30) return false;
     _lastRetry = DateTime.now();
     try {
       await _functions.httpsCallable('startTrip').call({'ping': true}).timeout(const Duration(seconds: 5));
