@@ -67,16 +67,31 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         ]))),
       Expanded(child: Column(children: [
         Expanded(child: list.isEmpty ? const Center(child: Text('Нет расходов')) : SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(columns: const [
-          DataColumn(label: Text('Дата')), DataColumn(label: Text('Категория')), DataColumn(label: Text('Сумма')), DataColumn(label: Text('Описание')), DataColumn(label: Text('Чек')),
+          DataColumn(label: Text('Дата')), DataColumn(label: Text('Категория')), DataColumn(label: Text('Сумма')), DataColumn(label: Text('Описание')), DataColumn(label: Text('Чек')), DataColumn(label: Text('')),
         ], rows: list.map((e) => DataRow(cells: [
           DataCell(Text(df.format(e.createdAt))), DataCell(Text(expenseCategoryLabel(e.category))),
           DataCell(Text('${e.amount.toStringAsFixed(0)} ₽')), DataCell(Text(e.description ?? '—')),
           DataCell(_buildReceipt(e)),
+          DataCell(IconButton(icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red), onPressed: () => _deleteExpense(e.id))),
         ])).toList()))),
         if (totalCount > _pageSize)
           Padding(padding: const EdgeInsets.all(8), child: TextButton(onPressed: () => setState(() => _pageSize += 20), child: Text('Показать ещё ($_pageSize из $totalCount)'))),
       ])),
     ]);
+  }
+
+  void _deleteExpense(String id) {
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('Удалить расход?'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
+        ElevatedButton(onPressed: () {
+          context.read<LocalStorage>().expenses.removeWhere((e) => e.id == id);
+          Navigator.pop(ctx);
+          setState(() {});
+        }, style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white), child: const Text('Удалить')),
+      ],
+    ));
   }
 
   Widget _buildReceipt(Expense e) {
