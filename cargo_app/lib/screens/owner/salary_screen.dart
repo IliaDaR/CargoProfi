@@ -38,10 +38,16 @@ class _SalaryScreenState extends State<SalaryScreen> {
   }
 
   void _calc(LocalStorage store) async {
-    if (_driver == null || _calculating) return;
+    if (_driver == null) return;
+    if (_calculating) return;
     setState(() => _calculating = true);
+
     final trips = store.trips.where((t) => t.driverId == _driver && t.status == TripStatus.completed && t.startTime.isAfter(_start) && t.startTime.isBefore(_end)).toList();
-    if (trips.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Нет завершённых рейсов за период'))); return; }
+    if (trips.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Нет завершённых рейсов за период')));
+      setState(() => _calculating = false);
+      return;
+    }
     final income = trips.fold(0.0, (s, t) => s + (t.income ?? 0));
     final value = double.tryParse(_valueCtrl.text) ?? 15;
     final salary = (_usePercent ? income * value / 100 : trips.length * value).roundToDouble();
