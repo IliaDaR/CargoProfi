@@ -44,14 +44,17 @@ class CloudFunctionsService {
     String? cargoDescription,
     String? routeDescription,
   }) async {
-    await _tryCloud();
-    if (!_useLocal) {
-      final result = await _functions.httpsCallable('startTrip').call({
-        'vehicleId': vehicleId, 'latitude': latitude, 'longitude': longitude,
-        if (cargoDescription != null) 'cargoDescription': cargoDescription,
-        if (routeDescription != null) 'routeDescription': routeDescription,
-      });
-      return (result.data as Map)['tripId'] ?? '';
+    if (await _tryCloud()) {
+      try {
+        final result = await _functions.httpsCallable('startTrip').call({
+          'vehicleId': vehicleId, 'latitude': latitude, 'longitude': longitude,
+          if (cargoDescription != null) 'cargoDescription': cargoDescription,
+          if (routeDescription != null) 'routeDescription': routeDescription,
+        });
+        return (result.data as Map)['tripId'] ?? '';
+      } catch (_) {
+        _useLocal = true;
+      }
     }
     // Fallback: создаём локально
     final id = DateTime.now().millisecondsSinceEpoch.toString();
@@ -70,11 +73,12 @@ class CloudFunctionsService {
     required double latitude,
     required double longitude,
   }) async {
-    await _tryCloud();
-    if (!_useLocal) {
-      await _functions.httpsCallable('addTrackPoint').call({
-        'tripId': tripId, 'latitude': latitude, 'longitude': longitude,
-      });
+    if (await _tryCloud()) {
+      try {
+        await _functions.httpsCallable('addTrackPoint').call({
+          'tripId': tripId, 'latitude': latitude, 'longitude': longitude,
+        });
+      } catch (_) { _useLocal = true; }
     }
   }
 
@@ -82,11 +86,12 @@ class CloudFunctionsService {
     required String tripId,
     required List<Map<String, dynamic>> points,
   }) async {
-    await _tryCloud();
-    if (!_useLocal) {
-      await _functions.httpsCallable('addTrackPointsBatch').call({
-        'tripId': tripId, 'points': points,
-      });
+    if (await _tryCloud()) {
+      try {
+        await _functions.httpsCallable('addTrackPointsBatch').call({
+          'tripId': tripId, 'points': points,
+        });
+      } catch (_) { _useLocal = true; }
     }
   }
 
@@ -97,14 +102,15 @@ class CloudFunctionsService {
     double? manualMileage,
     double? income,
   }) async {
-    await _tryCloud();
-    if (!_useLocal) {
-      final result = await _functions.httpsCallable('endTrip').call({
-        'tripId': tripId, 'latitude': latitude, 'longitude': longitude,
-        if (manualMileage != null) 'manualMileage': manualMileage,
-        if (income != null) 'income': income,
-      });
-      return result.data as Map<String, dynamic>;
+    if (await _tryCloud()) {
+      try {
+        final result = await _functions.httpsCallable('endTrip').call({
+          'tripId': tripId, 'latitude': latitude, 'longitude': longitude,
+          if (manualMileage != null) 'manualMileage': manualMileage,
+          if (income != null) 'income': income,
+        });
+        return result.data as Map<String, dynamic>;
+      } catch (_) { _useLocal = true; }
     }
     return {'mileage': manualMileage ?? 0, 'mileageSource': 'manual'};
   }
@@ -120,13 +126,13 @@ class CloudFunctionsService {
     String? description,
     File? receiptFile,
   }) async {
-    await _tryCloud();
-
-    String? receiptUrl;
-    if (receiptFile != null && !_useLocal) {
-      final ref = _storage.ref().child('receipts/${_local.currentUser?['uid'] ?? 'user'}/${DateTime.now().millisecondsSinceEpoch}.jpg');
-      await ref.putFile(receiptFile);
-      receiptUrl = await ref.getDownloadURL();
+    if (await _tryCloud()) {
+      try {
+        final result = await _functions.httpsCallable('calculateSalary').call({
+          'driverId': driverId, 'periodStart': periodStart, 'periodEnd': periodEnd,
+        });
+        return result.data as Map<String, dynamic>;
+      } catch (_) { _useLocal = true; }
     }
 
     if (!_useLocal) {
@@ -154,10 +160,16 @@ class CloudFunctionsService {
   // ===== ПУТЕВОЙ ЛИСТ =====
 
   Future<String?> generateWaybill(String tripId) async {
-    await _tryCloud();
-    if (!_useLocal) {
-      final result = await _functions.httpsCallable('generateWaybill').call({'tripId': tripId});
-      return (result.data as Map)['waybillUrl'];
+    if (await _tryCloud()) {
+      try {
+        final result = await _functions.httpsCallable('addExpense').call({
+          'tripId': tripId, 'amount': amount, 'category': category,
+          'latitude': latitude, 'longitude': longitude,
+          if (description != null) 'description': description,
+          if (receiptUrl != null) 'receiptUrl': receiptUrl,
+        });
+        return (result.data as Map)['expenseId'] ?? '';
+      } catch (_) { _useLocal = true; }
     }
     return null;
   }
@@ -170,13 +182,14 @@ class CloudFunctionsService {
     double? percentValue,
     double? fixedValue,
   }) async {
-    await _tryCloud();
-    if (!_useLocal) {
-      await _functions.httpsCallable('setSalaryRule').call({
-        'driverId': driverId, 'type': type,
-        if (percentValue != null) 'percentValue': percentValue,
-        if (fixedValue != null) 'fixedValue': fixedValue,
-      });
+    if (await _tryCloud()) {
+      try {
+        await _functions.httpsCallable('setSalaryRule').call({
+          'driverId': driverId, 'type': type,
+          if (percentValue != null) 'percentValue': percentValue,
+          if (fixedValue != null) 'fixedValue': fixedValue,
+        });
+      } catch (_) { _useLocal = true; }
     }
   }
 
@@ -185,12 +198,11 @@ class CloudFunctionsService {
     required String periodStart,
     required String periodEnd,
   }) async {
-    await _tryCloud();
-    if (!_useLocal) {
-      final result = await _functions.httpsCallable('calculateSalary').call({
-        'driverId': driverId, 'periodStart': periodStart, 'periodEnd': periodEnd,
-      });
-      return result.data as Map<String, dynamic>;
+    if (await _tryCloud()) {
+      try {
+        final result = await _functions.httpsCallable('generateWaybill').call({'tripId': tripId});
+        return (result.data as Map)['waybillUrl'];
+      } catch (_) { _useLocal = true; }
     }
     return {};
   }

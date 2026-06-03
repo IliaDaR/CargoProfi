@@ -93,14 +93,14 @@ service cloud.firestore {
     // ===== VEHICLES =====
     match /vehicles/{vehicleId} {
       allow read: if isAuth()
-                   && (isOwner()
-                       && request.auth.uid == resource.data.ownerId);
+                   && (isSuperAdmin()
+                       || (isOwner() && request.auth.uid == resource.data.ownerId));
       allow write: if isAuth()
-                    && isOwner()
-                    && request.auth.uid == resource.data.ownerId;
+                    && (isSuperAdmin()
+                        || (isOwner() && request.auth.uid == resource.data.ownerId));
       allow create: if isAuth()
-                     && isOwner()
-                     && request.resource.data.ownerId == request.auth.uid;
+                     && (isSuperAdmin()
+                         || (isOwner() && request.resource.data.ownerId == request.auth.uid));
       allow delete: if false;
     }
 
@@ -154,24 +154,22 @@ service cloud.firestore {
 
     // ===== SALARY RULES =====
     match /salaryRules/{ruleId} {
-      // Владелец управляет правилами для своих водителей
       allow read: if isAuth()
-                   && (isOwner()
-                       && resource.data.ownerId == request.auth.uid);
+                   && (isSuperAdmin()
+                       || (isOwner() && resource.data.ownerId == request.auth.uid));
       allow write: if isAuth()
-                    && isOwner()
-                    && request.resource.data.ownerId == request.auth.uid;
+                    && (isSuperAdmin()
+                        || (isOwner() && request.resource.data.ownerId == request.auth.uid));
       allow create: if isAuth()
-                     && isOwner()
-                     && request.resource.data.ownerId == request.auth.uid;
+                     && (isSuperAdmin()
+                         || (isOwner() && request.resource.data.ownerId == request.auth.uid));
     }
 
-    // ===== SALARY PAYMENTS =====
     match /salaryPayments/{paymentId} {
       allow read: if isAuth()
-                   && (resource.data.driverId == request.auth.uid
-                       || (isOwner()
-                           && resource.data.ownerId == request.auth.uid));
+                   && (isSuperAdmin()
+                       || resource.data.driverId == request.auth.uid
+                       || (isOwner() && resource.data.ownerId == request.auth.uid));
       allow create: if isAuth()
                      && isOwner()
                      && request.resource.data.ownerId == request.auth.uid;
