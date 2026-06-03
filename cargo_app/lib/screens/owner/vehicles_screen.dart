@@ -11,6 +11,7 @@ class VehiclesScreen extends StatefulWidget {
 }
 
 class _VehiclesScreenState extends State<VehiclesScreen> {
+  String get _ownerId => context.read<LocalStorage>().currentUser?['uid'] ?? 'local';
   void _addVehicle(LocalStorage store) {
     final plateCtrl = TextEditingController(), brandCtrl = TextEditingController(), modelCtrl = TextEditingController();
     final yearCtrl = TextEditingController(), vinCtrl = TextEditingController();
@@ -28,7 +29,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
         ElevatedButton(onPressed: () {
           if (plateCtrl.text.isEmpty || brandCtrl.text.isEmpty) return;
           context.read<VehicleProvider>().addVehicle(Vehicle(
-            id: 'v${DateTime.now().millisecondsSinceEpoch}', ownerId: 'local',
+            id: 'v${DateTime.now().millisecondsSinceEpoch}', ownerId: _ownerId,
             plateNumber: plateCtrl.text, brand: brandCtrl.text, model: modelCtrl.text,
             year: int.tryParse(yearCtrl.text), vin: vinCtrl.text.isEmpty ? null : vinCtrl.text,
             createdAt: DateTime.now(),
@@ -51,7 +52,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
         ElevatedButton(onPressed: () {
           if (nameCtrl.text.isEmpty) return;
-          store.addDriver({'uid': 'd${DateTime.now().millisecondsSinceEpoch}', 'displayName': nameCtrl.text, 'email': '', 'phone': phoneCtrl.text, 'ownerId': 'local'});
+          store.addDriver({'uid': 'd${DateTime.now().millisecondsSinceEpoch}', 'displayName': nameCtrl.text, 'email': '', 'phone': phoneCtrl.text, 'ownerId': _ownerId});
           Navigator.pop(ctx);
           setState(() {});
         }, child: const Text('Добавить')),
@@ -85,9 +86,11 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Нельзя удалить машину в рейсе'), backgroundColor: Colors.red));
                   return;
                 }
-                store.removeVehicle(e.key);
-                context.read<VehicleProvider>().refresh();
-                setState(() {});
+                _confirmDelete(context, 'Удалить машину ${e.value.plateNumber}?', () {
+                  store.removeVehicle(e.key);
+                  context.read<VehicleProvider>().refresh();
+                  setState(() {});
+                });
               }),
             ]),
           ))),
@@ -97,11 +100,26 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
           ...store.drivers.asMap().entries.map((e) => Card(margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), child: ListTile(
             leading: const CircleAvatar(child: Icon(Icons.person)),
             title: Text(e.value['displayName'] ?? ''), subtitle: Text(e.value['phone'] ?? ''),
-            trailing: IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red), onPressed: () { store.removeDriver(e.key); setState(() {}); }),
+            trailing: IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red), onPressed: () {
+              _confirmDelete(context, 'Удалить водителя ${e.value['displayName']}?', () {
+                store.removeDriver(e.key); setState(() {});
+              });
+            }),
           ))),
         ],
         if (vp.vehicles.isEmpty && store.drivers.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(32), child: Text('Нет автомобилей и водителей'))),
       ])),
     ]);
+  }
+
+  void _confirmDelete(BuildContext ctx, String message, VoidCallback onConfirm) {
+    showDialog(context: ctx, builder: (dCtx) => AlertDialog(
+      title: const Text('Подтверждение'),
+      content: Text(message),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Отмена')),
+        ElevatedButton(onPressed: () { Navigator.pop(dCtx); onConfirm(); }, style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white), child: const Text('Удалить')),
+      ],
+    ));
   }
 }

@@ -21,6 +21,8 @@ class _SalaryScreenState extends State<SalaryScreen> {
   DateTime _start = DateTime.now().subtract(const Duration(days: 30));
   DateTime _end = DateTime.now();
 
+  String get _ownerId => context.read<LocalStorage>().currentUser?['uid'] ?? 'local';
+
   @override
   void dispose() { _valueCtrl.dispose(); super.dispose(); }
 
@@ -49,14 +51,14 @@ class _SalaryScreenState extends State<SalaryScreen> {
     store.saveSalaryRules();
     store.saveSalaryRules();
     store.addSalaryRule(SalaryRule(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), ownerId: 'local', driverId: _driver!,
+      id: DateTime.now().millisecondsSinceEpoch.toString(), ownerId: _ownerId, driverId: _driver!,
       type: _usePercent ? SalaryRuleType.percent : SalaryRuleType.fixed,
       percentValue: _usePercent ? value : null, fixedValue: _usePercent ? null : value,
       isActive: true, createdAt: DateTime.now(),
     ));
 
     store.addSalaryPayment(SalaryPayment(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), ownerId: 'local', driverId: _driver!,
+      id: DateTime.now().millisecondsSinceEpoch.toString(), ownerId: _ownerId, driverId: _driver!,
       periodStart: _start, periodEnd: _end, tripIds: trips.map((t) => t.id).toList(),
       totalIncome: income, calculatedSalary: salary,
       ruleType: _usePercent ? SalaryRuleType.percent : SalaryRuleType.fixed,
