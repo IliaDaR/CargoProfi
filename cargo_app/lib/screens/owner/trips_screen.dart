@@ -68,27 +68,72 @@ class _TripsScreenState extends State<TripsScreen> {
 
   Widget _buildWaybillBtn(Trip t) {
     if (t.status != TripStatus.completed) return const SizedBox.shrink();
-    return OutlinedButton.icon(
-      icon: const Icon(Icons.description, size: 14),
-      label: const Text('Путевой лист', style: TextStyle(fontSize: 11)),
-      onPressed: () async {
-        final store = context.read<LocalStorage>();
-        try {
-          // Пробуем Cloud Functions (Firebase)
-          final cloudFn = context.read<CloudFunctionsService>();
-          final url = await cloudFn.generateWaybill(t.id);
-          if (url != null && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF сохранён в облаке!'), backgroundColor: Colors.green));
-            return;
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      OutlinedButton.icon(
+        icon: const Icon(Icons.description, size: 14),
+        label: const Text('PDF', style: TextStyle(fontSize: 11)),
+        onPressed: () async {
+          final store = context.read<LocalStorage>();
+          try {
+            final cloudFn = context.read<CloudFunctionsService>();
+            final url = await cloudFn.generateWaybill(t.id);
+            if (url != null && mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF сохранён в облаке!'), backgroundColor: Colors.green));
+              return;
+            }
+          } catch (_) {
+            if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Сервис временно недоступен. PDF сгенерирован локально.'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
           }
-        } catch (_) {
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Сервис временно недоступен. PDF сгенерирован локально.'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
-        }
-        // Fallback: генерируем локальный PDF
-        final bytes = await WaybillPdf.generate(t, store);
-        await Printing.layoutPdf(onLayout: (_) => bytes);
-      },
-    );
+          final bytes = await WaybillPdf.generate(t, store);
+          await Printing.layoutPdf(onLayout: (_) => bytes);
+        },
+      ),
+      const SizedBox(width: 4),
+      IconButton(
+        icon: const Icon(Icons.edit, size: 16, color: Colors.orange),
+        tooltip: 'Редактировать',
+        onPressed: () => _showEditDialog(t),
+      ),
+    ]);
+  }
+
+  void _showEditDialog(Trip trip) {
+    final routeCtrl = TextEditingController(text: trip.routeDescription);
+    final cargoCtrl = TextEditingController(text: trip.cargoDescription);
+    final incomeCtrl = TextEditingController(text: trip.income?.toString() ?? '');
+    final mileageCtrl = TextEditingController(text: trip.mileage.toString());
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('Редактировать рейс'),
+      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: routeCtrl, decoration: const InputDecoration(labelText: 'Маршрут', border: OutlineInputBorder())),
+        const SizedBox(height: 10),
+        TextField(controller: cargoCtrl, decoration: const InputDecoration(labelText: 'Груз', border: OutlineInputBorder())),
+        const SizedBox(height: 10),
+        TextField(controller: incomeCtrl, decoration: const InputDecoration(labelText: 'Доход (₽)', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+        const SizedBox(height: 10),
+        TextField(controller: mileageCtrl, decoration: const InputDecoration(labelText: 'Пробег (км)', border: OutlineInputBorder()), keyboardType: TextInputType.number),
+      ])),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
+        ElevatedButton(onPressed: () {
+          final store = context.read<LocalStorage>();
+          final idx = store.trips.indexWhere((t) => t.id == trip.id);
+          if (idx != -1) {
+            store.trips[idx] = Trip(
+              id: trip.id, driverId: trip.driverId, vehicleId: trip.vehicleId, status: trip.status,
+              startTime: trip.startTime, startLatitude: trip.startLatitude, startLongitude: trip.startLongitude,
+              endTime: trip.endTime, endLatitude: trip.endLatitude, endLongitude: trip.endLongitude,
+              mileage: double.tryParse(mileageCtrl.text) ?? trip.mileage,
+              mileageSource: trip.mileageSource, cargoDescription: cargoCtrl.text, routeDescription: routeCtrl.text,
+              income: double.tryParse(incomeCtrl.text), createdAt: trip.createdAt,
+            );
+          }
+          Navigator.pop(ctx);
+          setState(() {});
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Изменения сохранены'), backgroundColor: Colors.green));
+        }, child: const Text('Сохранить')),
+      ],
+    ));
   }
 
   String _driverName(String id) {
