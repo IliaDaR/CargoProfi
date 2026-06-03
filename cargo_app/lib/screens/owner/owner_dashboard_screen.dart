@@ -8,7 +8,6 @@ import '../../models/vehicle.dart';
 import '../../utils/constants.dart';
 import '../../widgets/common_widgets.dart';
 import '../../services/notification_service.dart';
-import 'dart:html' as html;
 import '../auth/role_screen.dart';
 import 'vehicles_screen.dart';
 import 'trips_screen.dart';
