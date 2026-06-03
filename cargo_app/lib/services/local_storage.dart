@@ -263,4 +263,15 @@ class LocalStorage {
   }
 
   int get pendingSyncCount => syncQueue.length;
+
+  // ===== ЛОГИ АДМИНА =====
+
+  List<Map<String, dynamic>> get adminLogs {
+    final s = _prefs?.getString('admin_logs');
+    return s != null ? List<Map<String, dynamic>>.from(jsonDecode(s) as List) : [];
+  }
+
+  void saveAdminLogs(List<Map<String, dynamic>> logs) {
+    _prefs?.setString('admin_logs', jsonEncode(logs));
+  }
 }

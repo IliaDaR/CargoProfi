@@ -17,12 +17,20 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
   final List<Map<String, dynamic>> _logs = [];
   LocalStorage get s => widget.storage;
 
+  @override
+  void initState() {
+    super.initState();
+    // Восстанавливаем логи из SharedPreferences
+    _logs.addAll(s.adminLogs);
+  }
+
   void _addLog(String action, String detail) {
     _logs.insert(0, {
       'action': action, 'detail': detail,
       'time': DateFormat('dd.MM HH:mm').format(DateTime.now()),
     });
     if (_logs.length > 100) _logs.removeLast();
+    s.saveAdminLogs(_logs);
     if (mounted) setState(() {});
   }
 
