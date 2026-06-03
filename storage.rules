@@ -13,6 +13,7 @@ service firebase.storage {
       let ownerDoc = firestore.get(/databases/(default)/documents/owners/$(request.auth.uid));
       return (
         (driverDoc != null && driverDoc.data.role == 'driver') ? 'driver' :
+        (ownerDoc != null && (ownerDoc.data.role == 'superadmin' || ownerDoc.data.role == 'admin')) ? 'superadmin' :
         (ownerDoc != null && ownerDoc.data.role == 'owner') ? 'owner' :
         null
       );

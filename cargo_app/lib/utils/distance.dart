@@ -1,4 +1,5 @@
 import 'dart:math';
+import '../models/trip.dart';
 
 /// Вычисляет расстояние между двумя GPS-точками по формуле гаверсинусов.
 /// Возвращает расстояние в километрах.
@@ -22,18 +23,27 @@ double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
 /// Вычисляет суммарное расстояние по массиву координат в километрах.
 double calculateTotalDistance(List<Map<String, double>> track) {
   if (track.length < 2) return 0.0;
-
   double total = 0.0;
   for (int i = 1; i < track.length; i++) {
     total += haversineDistance(
-      track[i - 1]['latitude']!,
-      track[i - 1]['longitude']!,
-      track[i]['latitude']!,
-      track[i]['longitude']!,
+      track[i - 1]['latitude']!, track[i - 1]['longitude']!,
+      track[i]['latitude']!, track[i]['longitude']!,
     );
   }
+  return (total * 10).roundToDouble() / 10;
+}
 
-  return (total * 10).roundToDouble() / 10; // округляем до 0.1 км
+/// Версия с TrackPoint.
+double calculateTotalDistanceFromPoints(List<TrackPoint> track) {
+  if (track.length < 2) return 0.0;
+  double total = 0.0;
+  for (int i = 1; i < track.length; i++) {
+    total += haversineDistance(
+      track[i - 1].latitude, track[i - 1].longitude,
+      track[i].latitude, track[i].longitude,
+    );
+  }
+  return (total * 10).roundToDouble() / 10;
 }
 
 double _toRadians(double degrees) => degrees * pi / 180.0;

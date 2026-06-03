@@ -182,7 +182,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
   Timer? _timer;
   Timer? _gpsTimer;
   Duration _elapsed = Duration.zero;
-  final List<Map<String, double>> _track = [];
+  final List<TrackPoint> _track = [];
 
   @override
   void initState() {
@@ -193,7 +193,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
     for (final item in store.syncQueue) {
       if (item['type'] == 'track_point' && item['data']['tripId'] == widget.tripId) {
         final d = item['data'];
-        _track.add({'latitude': d['latitude'] as double, 'longitude': d['longitude'] as double, 'timestamp': (DateTime.tryParse(d['timestamp'] ?? '')?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch).toDouble()});
+        _track.add(TrackPoint(latitude: d['latitude'] as double, longitude: d['longitude'] as double, timestamp: DateTime.tryParse(d['timestamp'] ?? '') ?? DateTime.now()));
       }
     }
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -215,7 +215,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
           desiredAccuracy: LocationAccuracy.high,
         ).timeout(const Duration(seconds: 10));
         final now = DateTime.now();
-        _track.add({'latitude': pos.latitude, 'longitude': pos.longitude, 'timestamp': now.millisecondsSinceEpoch.toDouble()});
+        _track.add(TrackPoint(latitude: pos.latitude, longitude: pos.longitude, timestamp: now));
         // Сохраняем в офлайн-буфер для синхронизации и в LocalStorage
         final store = context.read<LocalStorage>();
         store.addToSyncQueue('track_point', {
@@ -332,7 +332,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
     try { final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).timeout(const Duration(seconds: 10)); lat = pos.latitude; lon = pos.longitude; } catch (_) {}
 
     // Расчёт пробега по GPS-треку
-    final double autoMileage = calculateTotalDistance(_track);
+    final double autoMileage = calculateTotalDistanceFromPoints(_track);
     bool useAuto = autoMileage > 0;
 
     showDialog(context: context, builder: (ctx) => AlertDialog(
@@ -362,7 +362,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
             endTime: DateTime.now(), endLatitude: lat, endLongitude: lon,
             mileage: mileage, mileageSource: manual > 0 || !useAuto ? MileageSource.manual : MileageSource.auto,
             income: double.tryParse(incomeCtrl.text), routeDescription: old.routeDescription, cargoDescription: old.cargoDescription,
-            createdAt: old.createdAt, track: _track.map((p) => TrackPoint(latitude: p['latitude']!, longitude: p['longitude']!, timestamp: DateTime.fromMillisecondsSinceEpoch(p['timestamp']!.toInt()))).toList(),
+            createdAt: old.createdAt, track: _track.map((p) => TrackPoint(latitude: p.latitude, longitude: p.longitude, timestamp: p.timestamp)).toList(),
           );
           store.saveTrips(); // Сохраняем в SharedPreferences
           // Синхронизация с облаком

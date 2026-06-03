@@ -80,9 +80,8 @@ service cloud.firestore {
       // Владелец создаёт/редактирует профили своих водителей
       allow write: if isAuth()
                     && isOwner()
-                    && (request.auth.uid == driverId
-                         || isSuperAdmin()
-                         || (isOwner() && driverId in getOwnerDriverIds(request.auth.uid)));
+                    && (isSuperAdmin()
+                        || (isOwner() && hasAccessToDriver(driverId)));
 
       allow create: if isAuth()
                      && isOwner()
@@ -94,6 +93,7 @@ service cloud.firestore {
     match /vehicles/{vehicleId} {
       allow read: if isAuth()
                    && (isSuperAdmin()
+                       || resource.data.activeDriverId == request.auth.uid
                        || (isOwner() && request.auth.uid == resource.data.ownerId));
       allow write: if isAuth()
                     && (isSuperAdmin()
