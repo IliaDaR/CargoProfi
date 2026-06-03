@@ -96,8 +96,8 @@ class DataService {
   Map<String, dynamic>? registerUser(String email, String pass, String name, String role) =>
       _local.registerUser(email, pass, name, role);
 
-  void addUser(String email, String name, String role) =>
-      _local.addUser(email, name, role);
+  void addUser(String email, String pass, String name, String role) =>
+      _local.addUser(email, pass, name, role);
 
   void saveUsers() => _local.saveUsers();
 

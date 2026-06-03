@@ -100,14 +100,15 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
   }
 
   void _addOwner() {
-    final n = TextEditingController(), e = TextEditingController();
+    final n = TextEditingController(), e = TextEditingController(), p = TextEditingController(text: 'owner123');
     showDialog(context: context, builder: (ctx) => AlertDialog(
       title: const Text('Добавить владельца'),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: n, decoration: const InputDecoration(labelText: 'Имя', border: OutlineInputBorder())),
         const SizedBox(height: 10), TextField(controller: e, decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder())),
+        const SizedBox(height: 10), TextField(controller: p, decoration: const InputDecoration(labelText: 'Пароль', border: OutlineInputBorder()), obscureText: true),
       ]),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')), ElevatedButton(onPressed: () { final email = e.text.trim(); if (email.isEmpty || !email.contains('@') || !email.contains('.')) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Введите корректный email'), backgroundColor: Colors.red)); return; } if (n.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Введите имя'), backgroundColor: Colors.red)); return; } s.addUser(email, n.text.trim(), 'owner'); _addLog('Добавил владельца', email); Navigator.pop(ctx); setState(() {}); }, child: const Text('Добавить'))],
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')), ElevatedButton(onPressed: () { final email = e.text.trim(); final pass = p.text.trim(); if (email.isEmpty || !email.contains('@') || !email.contains('.')) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Введите корректный email'), backgroundColor: Colors.red)); return; } if (n.text.trim().isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Введите имя'), backgroundColor: Colors.red)); return; } if (pass.length < 6) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Пароль минимум 6 символов'), backgroundColor: Colors.red)); return; } s.addUser(email, pass, n.text.trim(), 'owner'); _addLog('Добавил владельца', email); Navigator.pop(ctx); setState(() {}); }, child: const Text('Добавить'))],
     ));
   }
 

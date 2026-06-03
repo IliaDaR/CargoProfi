@@ -108,19 +108,28 @@
     }
   });
 
-  // ===== LOGIN / REGISTER =====
+  // ===== ХЭШ-ПАРОЛЬ (SHA-256, async) =====
+  async function hashPassword(pass) {
+    if (window.crypto && window.crypto.subtle) {
+      var buf = new TextEncoder().encode(pass);
+      var hash = await window.crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(hash)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    }
+    // Fallback без crypto — сохраняем как есть (демо-режим)
+    return 'plain:' + pass;
+  }
   // SharedPreferences на Flutter Web добавляет префикс "flutter." ко всем ключам
   function getUsers() {
     try { return JSON.parse(localStorage.getItem('flutter.numino_users')) || {}; } catch(_) { return {}; }
   }
   function saveUsers(u) { localStorage.setItem('flutter.numino_users', JSON.stringify(u)); }
 
-  // Предустановленные аккаунты
-  (function() {
+  // Предустановленные аккаунты (пароли хэшируются)
+  (async function() {
     var u = getUsers();
     if (!u['admin@numino.ru']) {
-      u['admin@numino.ru'] = { pass: 'admin123', name: 'Администратор', role: 'admin' };
-      u['owner@numino.ru'] = { pass: 'owner123', name: 'Владелец парка', role: 'owner' };
+      u['admin@numino.ru'] = { pass: await hashPassword('admin123'), name: 'Администратор', role: 'admin' };
+      u['owner@numino.ru'] = { pass: await hashPassword('owner123'), name: 'Владелец парка', role: 'owner' };
       saveUsers(u);
     }
   })();
@@ -172,7 +181,8 @@
       if (isReg) {
         if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
         if (users[email]) { msgEl.textContent = 'Пользователь уже существует'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
-        users[email] = { pass: pass, name: name, role: 'owner' };
+        var hashed = await hashPassword(pass);
+        users[email] = { pass: hashed, name: name, role: 'owner' };
         saveUsers(users);
         msgEl.textContent = 'Регистрация успешна! Выполните вход.';
         msgEl.className = 'modal__msg success';
@@ -181,7 +191,8 @@
         return;
       }
       var user = users[email];
-      if (!user || user.pass !== pass) {
+      var hashedInput = await hashPassword(pass);
+      if (!user || user.pass !== hashedInput) {
         msgEl.textContent = 'Неверный email или пароль';
         msgEl.className = 'modal__msg error';
         if (btn) { btn.disabled = false; btn.textContent = 'Войти'; }

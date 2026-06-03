@@ -189,8 +189,8 @@ class LocalStorage {
 
   // ===== СУПЕРАДМИН: управление пользователями =====
 
-  void addUser(String email, String name, String role) {
-    users.add({'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'displayName': name, 'role': role, 'active': true});
+  void addUser(String email, String password, String name, String role) {
+    users.add({'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'password': password, 'displayName': name, 'role': role, 'active': true});
     _prefs!.setString(_kUsers, jsonEncode(users));
   }
 
