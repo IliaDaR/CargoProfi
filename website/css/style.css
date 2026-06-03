@@ -13,7 +13,7 @@
   }
   body{background:var(--gray-100);color:var(--gray-900)}
   .header{background:rgba(15,23,42,.85)}
-  .hero{background:linear-gradient(180deg,var(--gray-100) 0%,var(--gray-50) 100%)}
+  .hero{min-height:100vh;background:linear-gradient(180deg,var(--gray-100) 0%,var(--gray-50) 100%)}
   .features,.pricing,.how,.testimonials{background:var(--gray-100)}
   .feat-card,.plan,.step-card{background:var(--gray-50);border-color:var(--gray-300)}
   .plan--pop{background:linear-gradient(180deg,#1e293b 0%,var(--gray-50) 100%)}
@@ -76,7 +76,7 @@ a{color:var(--blue);text-decoration:none}
 }
 
 /* Hero — side by side */
-.hero{padding:100px 0 40px;background:linear-gradient(180deg,#eff6ff 0%,#fff 100%)}
+.hero{min-height:100vh;padding:100px 0 40px;background:linear-gradient(180deg,#eff6ff 0%,#fff 100%)}
 .hero__inner{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center}
 .hero__text h1{font-size:2.8rem;font-weight:800;line-height:1.2;margin-bottom:.5rem}
 .hero__text p{font-size:1.1rem;color:var(--gray-500);margin-bottom:1rem;line-height:1.7;max-width:480px}
