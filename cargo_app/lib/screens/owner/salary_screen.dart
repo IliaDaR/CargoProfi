@@ -44,12 +44,8 @@ class _SalaryScreenState extends State<SalaryScreen> {
     final value = double.tryParse(_valueCtrl.text) ?? 15;
     final salary = (_usePercent ? income * value / 100 : trips.length * value).roundToDouble();
 
-    // Сохраняем правило (старые больше не активны)
-    for (var r in store.salaryRules.where((r) => r.driverId == _driver).toList()) {
-      store.salaryRules.remove(r);
-    }
-    store.saveSalaryRules();
-    store.saveSalaryRules();
+    // Удаляем старые правила для этого водителя, сохраняем новое
+    store.salaryRules.removeWhere((r) => r.driverId == _driver);
     store.addSalaryRule(SalaryRule(
       id: DateTime.now().millisecondsSinceEpoch.toString(), ownerId: _ownerId, driverId: _driver!,
       type: _usePercent ? SalaryRuleType.percent : SalaryRuleType.fixed,
