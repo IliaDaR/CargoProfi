@@ -30,7 +30,7 @@ export const calculateSalary = functions.https.onCall(
     }
 
     const ownerDoc = await db.collection("owners").doc(uid).get();
-    if (!ownerDoc.exists || ownerDoc.data()?.role !== "owner") {
+    if (!ownerDoc.exists || (ownerDoc.data()?.role !== "owner" && ownerDoc.data()?.role !== "superadmin" && ownerDoc.data()?.role !== "admin")) {
       throw new functions.https.HttpsError(
         "permission-denied",
         "Только владелец может рассчитывать зарплату"
@@ -236,5 +236,5 @@ export const getSalaryHistory = functions.https.onCall(
 
 async function checkIsOwner(uid: string): Promise<boolean> {
   const ownerDoc = await db.collection("owners").doc(uid).get();
-  return ownerDoc.exists && ownerDoc.data()?.role === "owner";
+  return ownerDoc.exists && (ownerDoc.data()?.role === "owner" || ownerDoc.data()?.role === "superadmin" || ownerDoc.data()?.role === "admin");
 }
