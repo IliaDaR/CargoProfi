@@ -1,24 +1,20 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/expense.dart';
 import '../models/salary_payment.dart';
-import 'dart:html' as html;
 
 class ExportService {
   static final df = DateFormat('dd.MM.yyyy');
 
-  /// CSV download — работает на Flutter Web.
-  static void downloadCsv(String filename, Uint8List bytes) {
-    try {
-      final blob = html.Blob([bytes], 'text/csv;charset=utf-8');
-      final url = html.Url.createObjectUrl(blob);
-      final anchor = html.AnchorElement(href: url)
-        ..setAttribute('download', filename)
-        ..click();
-      html.Url.revokeObjectUrl(url);
-    } catch (_) {}
+  /// CSV download — кроссплатформенный (data URI через url_launcher).
+  static Future<void> downloadCsv(String filename, Uint8List bytes) async {
+    final base64 = base64Encode(bytes);
+    final uri = Uri.parse('data:text/csv;charset=utf-8;base64,$base64');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
   }
 
   /// CSV расходов
@@ -28,7 +24,7 @@ class ExportService {
     for (final e in list) {
       buf.writeln('${df.format(e.createdAt)},"${categoryLabel(e.category.name)}",${e.amount},"${e.description ?? ''}"');
     }
-    return Uint8List.fromList(utf8.encode('\uFEFF${buf.toString()}')); // BOM for Excel
+    return Uint8List.fromList(utf8.encode('\uFEFF${buf.toString()}'));
   }
 
   /// CSV зарплатной ведомости
