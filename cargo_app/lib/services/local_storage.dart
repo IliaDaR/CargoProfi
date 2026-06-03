@@ -264,6 +264,10 @@ class LocalStorage {
 
   int get pendingSyncCount => syncQueue.length;
 
+  void clearSyncQueue() {
+    _prefs?.setString(_kSyncQueue, jsonEncode([]));
+  }
+
   // ===== ЛОГИ АДМИНА =====
 
   List<Map<String, dynamic>> get adminLogs {
