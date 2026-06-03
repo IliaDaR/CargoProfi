@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:html' as html;
 import '../../services/local_storage.dart';
+import '../../utils/constants.dart';
 
 class SuperadminScreen extends StatefulWidget {
   final LocalStorage storage;
@@ -112,9 +113,9 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
 
   // ===== СТАТИСТИКА =====
   Widget _statsTab(List owners, List drivers) {
-    final totalIncome = s.trips.where((t) => t.status.toString() == 'TripStatus.completed').fold(0.0, (sum, t) => sum + (t.income ?? 0));
+    final totalIncome = s.trips.where((t) => t.status == TripStatus.completed).fold(0.0, (sum, t) => sum + (t.income ?? 0));
     final activeSubs = owners.where((o) => o['active'] != false).length;
-    final avgCheck = s.trips.where((t) => t.status.toString() == 'TripStatus.completed').map((t) => t.income ?? 0).toList();
+    final avgCheck = s.trips.where((t) => t.status == TripStatus.completed).map((t) => t.income ?? 0).toList();
     final avg = avgCheck.isEmpty ? 0.0 : avgCheck.reduce((a, b) => a + b) / avgCheck.length;
 
     return SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(children: [
@@ -136,7 +137,7 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
   Widget _revenueChart() {
     // Группируем доход по месяцам
     final byMonth = <String, double>{};
-    for (final t in s.trips.where((t) => t.status.toString() == 'TripStatus.completed')) {
+    for (final t in s.trips.where((t) => t.status == TripStatus.completed)) {
       final key = DateFormat('MM.yyyy').format(t.startTime);
       byMonth[key] = (byMonth[key] ?? 0) + (t.income ?? 0);
     }
