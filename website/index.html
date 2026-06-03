@@ -14,7 +14,7 @@
   <meta name="twitter:description" content="GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты водителей.">
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#2563eb">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://formsubmit.co; frame-src 'none'; object-src 'none'; form-action 'self' https://formsubmit.co;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://formsubmit.co https://identitytoolkit.googleapis.com; frame-src 'none'; object-src 'none'; form-action 'self' https://formsubmit.co;">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="canonical" href="https://numino.ru">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -332,7 +332,7 @@
           <label class="sr-only" for="contactMsg">Сообщение</label>
           <textarea id="contactMsg" placeholder="Сообщение" rows="3" name="message" required></textarea>
           <!-- Honeypot: скрытое поле для ботов -->
-          <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+          <input type="text" name="_honeypot" style="display:none" tabindex="-1" autocomplete="off">
           <input type="hidden" name="_subject" value="Новое сообщение с Numino">
           <input type="hidden" name="_captcha" value="true">
           <input type="hidden" name="_next" value="thanks.html">

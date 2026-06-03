@@ -230,6 +230,15 @@ export const getDriverExpensesReport = functions.https.onCall(
       );
     }
 
+    // Проверка: водитель принадлежит владельцу
+    const driverDoc = await db.collection("drivers").doc(driverId).get();
+    if (!driverDoc.exists || driverDoc.data()?.ownerId !== uid) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Водитель не принадлежит вашему парку"
+      );
+    }
+
     const snapshot = await db
       .collection("expenses")
       .where("driverId", "==", driverId)

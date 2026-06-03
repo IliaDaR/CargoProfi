@@ -357,7 +357,10 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
     final store = context.watch<LocalStorage>();
     final trip = store.trips.where((t) => t.id == widget.tripId).firstOrNull;
     if (trip == null || trip.status != TripStatus.active) {
-      return DriverHomeScreen(driverId: widget.driverId);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DriverHomeScreen(driverId: widget.driverId)));
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final tripExpenses = store.expenses.where((e) => e.tripId == widget.tripId).toList();

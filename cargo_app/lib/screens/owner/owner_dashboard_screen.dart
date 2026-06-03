@@ -55,14 +55,14 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
           }, icon: const Icon(Icons.logout, size: 18), label: const Text('Выйти')),
         ])),
       ]),
-      body: LayoutBuilder(builder: (ctx, c) => c.maxWidth >= 800
+      body: LayoutBuilder(builder: (ctx, c) => c.maxWidth > 800
         ? Row(children: [
             NavigationRail(selectedIndex: _idx, onDestinationSelected: (i) => setState(() => _idx = i), labelType: NavigationRailLabelType.all, destinations: _navRail()),
             const VerticalDivider(width: 1),
             Expanded(child: screens[_idx]),
           ])
         : screens[_idx]),
-      bottomNavigationBar: MediaQuery.of(context).size.width < 800 ? NavigationBar(selectedIndex: _idx, onDestinationSelected: (i) => setState(() => _idx = i), destinations: _navBar()) : null,
+      bottomNavigationBar: MediaQuery.of(context).size.width <= 800 ? NavigationBar(selectedIndex: _idx, onDestinationSelected: (i) => setState(() => _idx = i), destinations: _navBar()) : null,
     );
   }
 

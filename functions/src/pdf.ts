@@ -148,11 +148,6 @@ async function generateWaybillPdf(
       doc.on("end", () => resolve(Buffer.concat(chunks)));
       doc.on("error", reject);
 
-      const fontPath = require.resolve("pdfkit");
-      const fontDir = fontPath.replace(/[\\/]pdfkit\.js$/, "") + "/fonts";
-      const regularFont = fontDir + "/Helvetica.ttf";
-      const boldFont = fontDir + "/Helvetica-Bold.ttf";
-
       const startDate = trip.startTime.toDate();
       const endDate = trip.endTime ? trip.endTime.toDate() : new Date();
 
