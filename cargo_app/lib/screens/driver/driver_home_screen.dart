@@ -310,6 +310,11 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
               ? 'data:image/jpeg;base64,${base64Encode(photoBytes!)}'
               : null;
           context.read<LocalStorage>().addExpense(Expense(id: now.millisecondsSinceEpoch.toString(), tripId: widget.tripId, driverId: widget.driverId, amount: a, category: cat, description: descCtrl.text, latitude: lat, longitude: lon, photoTimestamp: now, createdAt: now, receiptUrl: receiptUrl));
+          // Уведомление при крупных расходах
+          if (a >= 10000) {
+            final driverName = context.read<LocalStorage>().drivers.where((d) => d['uid'] == widget.driverId).firstOrNull?['displayName'] ?? 'Водитель';
+            NotificationService.highExpense(Expense(id: '', tripId: widget.tripId, driverId: widget.driverId, amount: a, category: cat, latitude: lat, longitude: lon, photoTimestamp: now, createdAt: now), driverName);
+          }
           // Синхронизация с облаком
           try { context.read<CloudFunctionsService>().addExpense(tripId: widget.tripId, amount: a, category: cat.name, latitude: lat, longitude: lon, description: descCtrl.text); } catch (_) {}
           Navigator.pop(ctx);
