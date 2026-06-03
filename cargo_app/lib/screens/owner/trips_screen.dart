@@ -130,6 +130,7 @@ class _TripsScreenState extends State<TripsScreen> {
               income: double.tryParse(incomeCtrl.text), createdAt: trip.createdAt, track: trip.track,
             );
             store.saveTrips();
+            try { context.read<CloudFunctionsService>().endTrip(tripId: trip.id, latitude: trip.endLatitude ?? 0, longitude: trip.endLongitude ?? 0, income: double.tryParse(incomeCtrl.text)); } catch (_) {}
           }
           Navigator.pop(ctx);
           setState(() {});

@@ -394,7 +394,7 @@ export const getMyTrips = functions.https.onCall(
       .where("driverId", "==", uid)
       .orderBy("startTime", "desc");
 
-    if (status && (status === "active" || status === "completed")) {
+    if (status && (status === "active" || status === "completed" || status === "cancelled")) {
       query = query.where("status", "==", status);
     }
 

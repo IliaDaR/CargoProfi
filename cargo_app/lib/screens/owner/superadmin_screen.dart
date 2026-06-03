@@ -133,8 +133,9 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
   // ===== СТАТИСТИКА =====
   Widget _statsTab(List owners, List drivers) {
     final totalIncome = s.trips.where((t) => t.status == TripStatus.completed).fold(0.0, (sum, t) => sum + (t.income ?? 0));
+    final cancelled = s.trips.where((t) => t.status == TripStatus.cancelled).length;
     final activeSubs = owners.where((o) => o['active'] != false).length;
-    final avgCheck = s.trips.where((t) => t.status == TripStatus.completed).map((t) => t.income ?? 0).toList();
+    final avgCheck = s.trips.where((t) => t.status == TripStatus.completed && (t.income ?? 0) > 0).map((t) => t.income ?? 0).toList();
     final avg = avgCheck.isEmpty ? 0.0 : avgCheck.reduce((a, b) => a + b) / avgCheck.length;
 
     return SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(children: [
@@ -143,6 +144,7 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
         _card('Водителей', '${drivers.length}', Icons.person, Colors.green),
         _card('Машин', '${s.vehicles.length}', Icons.directions_car, Colors.orange),
         _card('Рейсов', '${s.trips.length}', Icons.route, Colors.purple),
+        _card('Отменено', '$cancelled', Icons.cancel, Colors.red),
         _card('Выручка', '${totalIncome.toStringAsFixed(0)} ₽', Icons.attach_money, Colors.green.shade700),
         _card('Подписки', '$activeSubs активны', Icons.card_membership, Colors.amber.shade700),
         _card('Средний чек', '${avg.toStringAsFixed(0)} ₽', Icons.trending_up, Colors.teal),
