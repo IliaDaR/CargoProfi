@@ -151,7 +151,17 @@
           await signInWithEmailAndPassword(window._firebaseAuth, email, pass);
         }
       } catch (err) {
-        msgEl.textContent = isReg ? 'Ошибка регистрации' : 'Неверный email или пароль';
+        var msg = 'Ошибка входа';
+        if (err.code) {
+          if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') msg = 'Неверный email или пароль';
+          else if (err.code === 'auth/too-many-requests') msg = 'Слишком много попыток. Попробуйте позже.';
+          else if (err.code === 'auth/invalid-email') msg = 'Неверный формат email';
+          else if (err.code === 'auth/email-already-in-use') msg = 'Email уже зарегистрирован';
+          else if (err.code === 'auth/weak-password') msg = 'Пароль слишком простой (минимум 6 символов)';
+          else if (err.code === 'auth/network-request-failed') msg = 'Ошибка сети. Проверьте подключение.';
+          else msg = 'Ошибка: ' + (err.code || 'сервис недоступен');
+        }
+        msgEl.textContent = msg;
         msgEl.className = 'modal__msg error';
         if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; }
         return;
