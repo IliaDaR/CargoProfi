@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:html' as html;
 import '../../services/local_storage.dart';
 import '../../utils/constants.dart';
+import '../../utils/navigation.dart';
 
 class SuperadminScreen extends StatefulWidget {
   final LocalStorage storage;
@@ -42,7 +42,7 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Админ-панель Numino'), actions: [
-          TextButton.icon(onPressed: () { s.setCurrentUser(null); html.window.location.href = '/'; }, icon: const Icon(Icons.logout, size: 16), label: const Text('Выйти')),
+          TextButton.icon(onPressed: () { s.setCurrentUser(null); goHome(context); }, icon: const Icon(Icons.logout, size: 16), label: const Text('Выйти')),
       ]),
       body: Column(children: [
         SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [

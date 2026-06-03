@@ -1,10 +1,9 @@
-import 'dart:html' as html;
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/local_storage.dart';
@@ -12,6 +11,7 @@ import '../../models/trip.dart';
 import '../../models/expense.dart';
 import '../../utils/constants.dart';
 import '../../utils/distance.dart';
+import '../../utils/navigation.dart';
 import '../../services/notification_service.dart';
 import '../auth/role_screen.dart';
 
@@ -127,7 +127,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       appBar: AppBar(title: const Text('Кабинет водителя'), actions: [
         IconButton(icon: const Icon(Icons.logout), onPressed: () {
           store.setCurrentUser(null);
-          html.window.location.href = '/';
+          goHome(context);
         }),
       ]),
       body: SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
