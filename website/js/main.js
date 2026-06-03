@@ -275,20 +275,19 @@
     });
     track.addEventListener('mouseup', function (e) {
       if (!isDragging) return;
-      isDragging = false; track.classList.remove('dragging'); startAuto();
+      isDragging = false; track.classList.remove('dragging'); resetAuto();
       var diff = startX - e.pageX;
       if (Math.abs(diff) > 50) goTo(diff > 0 ? current + 1 : current - 1);
     });
     track.addEventListener('mouseleave', function () {
-      if (isDragging) { isDragging = false; track.classList.remove('dragging'); startAuto(); }
+      if (isDragging) { isDragging = false; track.classList.remove('dragging'); resetAuto(); }
     });
 
     // Pause on hover
     track.addEventListener('mouseenter', function () { clearInterval(autoTimer); });
-    track.addEventListener('mouseleave', function () { startAuto(); });
+    track.addEventListener('mouseleave', function () { resetAuto(); });
 
     goTo(0);
-    startAuto();
   }
 
   // Init both carousels
