@@ -338,10 +338,9 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
-  // ===== CLEANUP: prevent setInterval memory leaks =====
-  window.addEventListener('beforeunload', function() {
-    // Карусели очистятся при уходе со страницы
-    var btns = document.querySelectorAll('.carousel__btn');
-    btns.forEach(function(b) { b.replaceWith(b.cloneNode(true)); });
+  // ===== CLEANUP =====
+  window.addEventListener('pagehide', function() {
+    _carouselIntervals.forEach(function(id) { clearInterval(id); });
+    _carouselIntervals = [];
   });
 })();
