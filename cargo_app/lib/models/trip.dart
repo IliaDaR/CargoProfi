@@ -107,7 +107,7 @@ class TrackPoint {
         latitude: (data['latitude'] ?? 0.0).toDouble(),
         longitude: (data['longitude'] ?? 0.0).toDouble(),
         timestamp: data['timestamp'] != null
-            ? (data['timestamp'] as dynamic).toDate()
+            ? _parsePointDate(data['timestamp'])
             : DateTime.now(),
       );
     }
@@ -116,6 +116,12 @@ class TrackPoint {
       longitude: 0,
       timestamp: DateTime.now(),
     );
+  }
+
+  static DateTime _parsePointDate(dynamic value) {
+    if (value is String) return DateTime.parse(value);
+    if (value != null) return (value as dynamic).toDate() as DateTime;
+    return DateTime.now();
   }
 
   Map<String, double> toLocation() {

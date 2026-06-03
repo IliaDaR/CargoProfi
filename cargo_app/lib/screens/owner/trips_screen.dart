@@ -127,6 +127,7 @@ class _TripsScreenState extends State<TripsScreen> {
               mileageSource: trip.mileageSource, cargoDescription: cargoCtrl.text, routeDescription: routeCtrl.text,
               income: double.tryParse(incomeCtrl.text), createdAt: trip.createdAt, track: trip.track,
             );
+            store.saveTrips();
           }
           Navigator.pop(ctx);
           setState(() {});

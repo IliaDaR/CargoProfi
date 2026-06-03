@@ -1,5 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 import '../models/trip.dart';
 import '../models/expense.dart';
@@ -24,7 +25,8 @@ class CloudFunctionsService {
     if (DateTime.now().difference(_lastRetry).inSeconds < 30) return false;
     _lastRetry = DateTime.now();
     try {
-      await _functions.httpsCallable('startTrip').call({'ping': true}).timeout(const Duration(seconds: 5));
+      // Health-check: пробуем прочитать Firestore (не требует валидации параметров)
+      await FirebaseFirestore.instance.collection('owners').doc('_ping_').get().timeout(const Duration(seconds: 5));
       _useLocal = false;
       return true;
     } catch (_) {

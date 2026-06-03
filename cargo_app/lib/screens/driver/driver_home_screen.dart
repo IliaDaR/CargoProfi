@@ -335,6 +335,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
             income: double.tryParse(incomeCtrl.text), routeDescription: old.routeDescription, cargoDescription: old.cargoDescription,
             createdAt: old.createdAt, track: _track.map((p) => TrackPoint(latitude: p['latitude']!, longitude: p['longitude']!, timestamp: DateTime.fromMillisecondsSinceEpoch(p['timestamp']!.toInt()))).toList(),
           );
+          store.saveTrips(); // Сохраняем в SharedPreferences
           // Освобождаем машину
           final vIdx2 = store.vehicles.indexWhere((v) => v.id == old.vehicleId);
           if (vIdx2 != -1) {
