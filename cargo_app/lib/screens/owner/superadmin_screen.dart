@@ -76,7 +76,17 @@ class _SuperadminScreenState extends State<SuperadminScreen> {
         leading: CircleAvatar(child: Text((o['displayName'] ?? '?')[0].toUpperCase())),
         title: Text(o['displayName'] ?? o['email'] ?? ''),
         subtitle: Text('${o['email']} • ${o['role'] ?? 'owner'}'),
-        trailing: Switch(value: o['active'] != false, onChanged: (v) { o['active'] = v; s.saveUsers(); _addLog(v ? 'Разблокировал' : 'Заблокировал', o['email'] ?? ''); setState(() {}); }),
+        trailing: Switch(value: o['active'] != false, onChanged: (v) {
+          final action = v ? 'Разблокировать' : 'Заблокировать';
+          showDialog(context: context, builder: (ctx) => AlertDialog(
+            title: Text('$action владельца?'),
+            content: Text('${o['displayName'] ?? o['email']}'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
+              ElevatedButton(onPressed: () { Navigator.pop(ctx); o['active'] = v; s.saveUsers(); _addLog(action, o['email'] ?? ''); setState(() {}); }, style: ElevatedButton.styleFrom(backgroundColor: v ? Colors.green : Colors.red, foregroundColor: Colors.white), child: Text(action)),
+            ],
+          ));
+        }),
       ))).toList())),
     ]);
   }
