@@ -52,6 +52,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
   void _startTrip() async {
     final store = context.read<LocalStorage>();
+    // Проверка: нет ли уже активного рейса
+    final activeTrip = store.trips.where((t) => t.driverId == widget.driverId && t.status == TripStatus.active).firstOrNull;
+    if (activeTrip != null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('У вас уже есть активный рейс'), backgroundColor: Colors.orange));
+      return;
+    }
     final freeVehicles = store.vehicles.where((v) => !v.isActive).toList();
     if (freeVehicles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Нет свободных машин'), backgroundColor: Colors.red));
@@ -218,6 +224,19 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
           'longitude': pos.longitude,
           'timestamp': now.toIso8601String(),
         });
+        // Пробуем сразу синхронизировать с облаком, при успехе чистим очередь
+        try {
+          final cloudFn = context.read<CloudFunctionsService>();
+          await cloudFn.addTrackPoint(tripId: widget.tripId, latitude: pos.latitude, longitude: pos.longitude);
+          // Успешно отправили — очищаем старые точки из очереди (оставляем только последние 2 минуты)
+          final cutoff = DateTime.now().subtract(const Duration(minutes: 2));
+          final q = store.syncQueue;
+          q.removeWhere((item) {
+            if (item['type'] != 'track_point') return false;
+            final ts = DateTime.tryParse(item['data']['timestamp'] ?? '');
+            return ts != null && ts.isBefore(cutoff);
+          });
+        } catch (_) {}
       } catch (_) {}
     });
   }
