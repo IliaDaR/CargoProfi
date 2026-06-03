@@ -13,6 +13,7 @@ import '../../utils/constants.dart';
 import '../../utils/distance.dart';
 import '../../utils/navigation.dart';
 import '../../services/notification_service.dart';
+import '../../services/cloud_functions_service.dart';
 import '../auth/role_screen.dart';
 
 Position? _lastPosition;
@@ -105,6 +106,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     _cargoCtrl.clear(); _routeCtrl.clear();
     _checkActive();
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Рейс начат!'), backgroundColor: Colors.green));
+    // Синхронизация с облаком (если доступно)
+    try { context.read<CloudFunctionsService>().startTrip(vehicleId: chosenId, latitude: lat, longitude: lon, cargoDescription: cargo, routeDescription: route); } catch (_) {}
     NotificationService.tripStarted(Trip(
       id: tripId, driverId: widget.driverId, vehicleId: chosenId, status: TripStatus.active,
       startTime: now, startLatitude: lat, startLongitude: lon,
@@ -288,6 +291,8 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
               ? 'data:image/jpeg;base64,${base64Encode(photoBytes!)}'
               : null;
           context.read<LocalStorage>().addExpense(Expense(id: now.millisecondsSinceEpoch.toString(), tripId: widget.tripId, driverId: widget.driverId, amount: a, category: cat, description: descCtrl.text, latitude: lat, longitude: lon, photoTimestamp: now, createdAt: now, receiptUrl: receiptUrl));
+          // Синхронизация с облаком
+          try { context.read<CloudFunctionsService>().addExpense(tripId: widget.tripId, amount: a, category: cat.name, latitude: lat, longitude: lon, description: descCtrl.text); } catch (_) {}
           Navigator.pop(ctx);
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Расход добавлен'), backgroundColor: Colors.green));
         }, child: const Text('Сохранить')),
@@ -336,6 +341,8 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
             createdAt: old.createdAt, track: _track.map((p) => TrackPoint(latitude: p['latitude']!, longitude: p['longitude']!, timestamp: DateTime.fromMillisecondsSinceEpoch(p['timestamp']!.toInt()))).toList(),
           );
           store.saveTrips(); // Сохраняем в SharedPreferences
+          // Синхронизация с облаком
+          try { context.read<CloudFunctionsService>().endTrip(tripId: widget.tripId, latitude: lat, longitude: lon, income: double.tryParse(incomeCtrl.text)); } catch (_) {}
           // Освобождаем машину
           final vIdx2 = store.vehicles.indexWhere((v) => v.id == old.vehicleId);
           if (vIdx2 != -1) {

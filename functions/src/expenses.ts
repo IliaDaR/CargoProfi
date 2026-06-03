@@ -193,7 +193,9 @@ export const getTripExpenses = functions.https.onCall(
  */
 async function checkIsOwner(uid: string): Promise<boolean> {
   const ownerDoc = await db.collection("owners").doc(uid).get();
-  return ownerDoc.exists && ownerDoc.data()?.role === "owner";
+  if (!ownerDoc.exists) return false;
+  const role = ownerDoc.data()?.role;
+  return role === "owner" || role === "superadmin" || role === "admin";
 }
 
 /**
