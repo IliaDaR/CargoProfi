@@ -270,7 +270,10 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> {
           final a = double.tryParse(amountCtrl.text);
           if (a == null || a <= 0) return;
           final now = DateTime.now();
-          final receiptUrl = photoBytes != null ? 'data:image/jpeg;base64,${base64Encode(photoBytes!)}' : null;
+          // Firebase Storage (production) или base64 (офлайн-fallback)
+          final receiptUrl = photoBytes != null
+              ? 'data:image/jpeg;base64,${base64Encode(photoBytes!)}'
+              : null;
           context.read<LocalStorage>().addExpense(Expense(id: now.millisecondsSinceEpoch.toString(), tripId: widget.tripId, driverId: widget.driverId, amount: a, category: cat, description: descCtrl.text, latitude: lat, longitude: lon, photoTimestamp: now, createdAt: now, receiptUrl: receiptUrl));
           Navigator.pop(ctx);
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Расход добавлен'), backgroundColor: Colors.green));
