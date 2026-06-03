@@ -297,23 +297,31 @@
 
   // ===== SCROLL ANIMATIONS (IntersectionObserver) =====
   (function() {
-    if (!window.IntersectionObserver) return;
     var items = document.querySelectorAll('.feat-card, .step-card, .plan, .hero__text, .hero__img');
     items.forEach(function(el) {
       el.style.opacity = '0';
       el.style.transform = 'translateY(30px)';
       el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
     });
-    var observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-          observer.unobserve(entry.target);
-        }
+    if (window.IntersectionObserver) {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+      items.forEach(function(el) { observer.observe(el); });
+    }
+    // Fallback: через 3 секунды показать все элементы
+    setTimeout(function() {
+      items.forEach(function(el) {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
       });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-    items.forEach(function(el) { observer.observe(el); });
+    }, 3000);
   })();
 
   // ===== SMOOTH SCROLL =====
