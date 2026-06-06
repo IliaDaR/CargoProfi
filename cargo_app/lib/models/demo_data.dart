@@ -14,19 +14,19 @@ class DemoData {
       id: 'v1', ownerId: 'demo-uid', plateNumber: 'А123ВС 177',
       brand: 'MAN', model: 'TGX', year: 2020, fuelType: 'diesel',
       createdAt: now.subtract(const Duration(days: 365)),
-      isActive: false,
+      isActive: false, techExamNumber: 'ТО-001234', techExamDate: now.subtract(const Duration(days: 30)),
     ),
     Vehicle(
       id: 'v2', ownerId: 'demo-uid', plateNumber: 'В456КМ 77',
       brand: 'Volvo', model: 'FH16', year: 2021, fuelType: 'diesel',
       createdAt: now.subtract(const Duration(days: 200)),
-      isActive: false,
+      isActive: false, techExamNumber: 'ТО-002345',
     ),
     Vehicle(
       id: 'v3', ownerId: 'demo-uid', plateNumber: 'Е789ОР 178',
       brand: 'Scania', model: 'R500', year: 2019, fuelType: 'diesel',
       createdAt: now.subtract(const Duration(days: 500)),
-      isActive: false,
+      isActive: false, techExamNumber: 'ТО-003456',
     ),
     Vehicle(
       id: 'v4', ownerId: 'demo-uid', plateNumber: 'М234НТ 77',
@@ -84,9 +84,9 @@ class DemoData {
   ];
 
   static final List<Map<String, dynamic>> drivers = [
-    {'uid': 'd1', 'displayName': 'Кузнецов Павел', 'email': 'pavel@numino.ru', 'phone': '+79161234567', 'ownerId': 'demo-uid'},
-    {'uid': 'd2', 'displayName': 'Сидоров Андрей', 'email': 'andrey@numino.ru', 'phone': '+79169876543', 'ownerId': 'demo-uid'},
-    {'uid': 'd3', 'displayName': 'Фёдоров Илья', 'email': 'ilya@numino.ru', 'phone': '+79165551234', 'ownerId': 'demo-uid'},
+    {'uid': 'd1', 'displayName': 'Кузнецов Павел', 'email': 'pavel@numino.ru', 'phone': '+79161234567', 'ownerId': 'demo-uid', 'licenseNumber': '77АА123456', 'medExamNumber': 'МО-2026-001'},
+    {'uid': 'd2', 'displayName': 'Сидоров Андрей', 'email': 'andrey@numino.ru', 'phone': '+79169876543', 'ownerId': 'demo-uid', 'licenseNumber': '77ВВ654321', 'medExamNumber': 'МО-2026-002'},
+    {'uid': 'd3', 'displayName': 'Фёдоров Илья', 'email': 'ilya@numino.ru', 'phone': '+79165551234', 'ownerId': 'demo-uid', 'licenseNumber': '77СС789012', 'medExamNumber': 'МО-2026-003'},
   ];
 
   static final List<Expense> expenses = [
