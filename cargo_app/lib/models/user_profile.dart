@@ -6,10 +6,14 @@ class UserProfile {
   final String displayName;
   final String email;
   final String? phone;
-  final String? ownerId; // для driver
+  final String? ownerId;
   final String? assignedVehicleId;
-  final List<String> driverIds; // для owner
+  final List<String> driverIds;
   final String? companyName;
+  final String? licenseNumber;
+  final String? medExamNumber;
+  final DateTime? medExamDate;
+  final String? medExamPhotoUrl;
 
   UserProfile({
     required this.uid,
@@ -21,6 +25,10 @@ class UserProfile {
     this.assignedVehicleId,
     this.driverIds = const [],
     this.companyName,
+    this.licenseNumber,
+    this.medExamNumber,
+    this.medExamDate,
+    this.medExamPhotoUrl,
   });
 
   factory UserProfile.fromMap(String uid, Map<String, dynamic> data) {
@@ -34,6 +42,10 @@ class UserProfile {
       assignedVehicleId: data['assignedVehicleId'],
       driverIds: List<String>.from(data['driverIds'] ?? []),
       companyName: data['companyName'],
+      licenseNumber: data['licenseNumber'],
+      medExamNumber: data['medExamNumber'],
+      medExamDate: data['medExamDate'] != null ? DateTime.tryParse(data['medExamDate']) : null,
+      medExamPhotoUrl: data['medExamPhotoUrl'],
     );
   }
 
@@ -47,6 +59,10 @@ class UserProfile {
       if (assignedVehicleId != null) 'assignedVehicleId': assignedVehicleId,
       if (driverIds.isNotEmpty) 'driverIds': driverIds,
       if (companyName != null) 'companyName': companyName,
+      if (licenseNumber != null) 'licenseNumber': licenseNumber,
+      if (medExamNumber != null) 'medExamNumber': medExamNumber,
+      if (medExamDate != null) 'medExamDate': medExamDate!.toIso8601String(),
+      if (medExamPhotoUrl != null) 'medExamPhotoUrl': medExamPhotoUrl,
     };
   }
 }
