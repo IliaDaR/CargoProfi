@@ -19,6 +19,7 @@ class _TripsScreenState extends State<TripsScreen> {
   String _statusFilter = '';
   String _search = '';
   int _pageSize = 20;
+  String? _generatingWaybill; // ID рейса, для которого генерируется PDF
 
   List<Trip> _filtered(LocalStorage s) {
     var r = s.trips.reversed.toList();
@@ -72,22 +73,29 @@ class _TripsScreenState extends State<TripsScreen> {
     if (t.status != TripStatus.completed) return const SizedBox.shrink();
     return Row(mainAxisSize: MainAxisSize.min, children: [
       OutlinedButton.icon(
-        icon: const Icon(Icons.description, size: 14),
-        label: const Text('PDF', style: TextStyle(fontSize: 11)),
-        onPressed: () async {
+        icon: _generatingWaybill == t.id
+            ? const SizedBox(height: 14, width: 14, child: CircularProgressIndicator(strokeWidth: 2))
+            : const Icon(Icons.description, size: 14),
+        label: Text(_generatingWaybill == t.id ? '...' : 'PDF', style: const TextStyle(fontSize: 11)),
+        onPressed: _generatingWaybill != null ? null : () async {
+          setState(() => _generatingWaybill = t.id);
           final store = context.read<LocalStorage>();
+          bool generated = false;
           try {
             final cloudFn = context.read<CloudFunctionsService>();
             final url = await cloudFn.generateWaybill(t.id);
             if (url != null && mounted) {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF сохранён в облаке!'), backgroundColor: Colors.green));
-              return;
+              generated = true;
             }
           } catch (_) {
-            if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Сервис временно недоступен. PDF сгенерирован локально.'), backgroundColor: Colors.orange, duration: Duration(seconds: 3)));
+            if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Сервис временно недоступен'), backgroundColor: Colors.orange, duration: Duration(seconds: 2)));
           }
-          final bytes = await WaybillPdf.generate(t, store);
-          await Printing.layoutPdf(onLayout: (_) => bytes);
+          if (!generated) {
+            final bytes = await WaybillPdf.generate(t, store);
+            await Printing.layoutPdf(onLayout: (_) => bytes);
+          }
+          if (mounted) setState(() => _generatingWaybill = null);
         },
       ),
       const SizedBox(width: 4),

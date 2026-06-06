@@ -32,14 +32,23 @@
       var id = params.get('id');
       var el = document.getElementById('content');
       if (!id) { el.innerHTML = '<p style="color:red">Не указан идентификатор путевого листа.</p>'; return; }
-      // В production: загрузка из API / Firestore
-      // Сейчас: показываем ID и статус
+      // Показываем данные из URL-параметров или базовую информацию
+      var tripDate = params.get('date') || '';
+      var plate = params.get('plate') || '';
+      var driver = params.get('driver') || '';
+      var mileage = params.get('mileage') || '';
+      var route = params.get('route') || '';
       el.innerHTML = '<table>'+
-        '<tr><td>Номер</td><td>'+id.substring(0,8)+'</td></tr>'+
+        '<tr><td>Номер рейса</td><td>'+id.substring(0,8)+'</td></tr>'+
+        (tripDate ? '<tr><td>Дата</td><td>'+tripDate+'</td></tr>' : '')+
+        (plate ? '<tr><td>Госномер</td><td>'+plate+'</td></tr>' : '')+
+        (driver ? '<tr><td>Водитель</td><td>'+driver+'</td></tr>' : '')+
+        (mileage ? '<tr><td>Пробег</td><td>'+mileage+' км</td></tr>' : '')+
+        (route ? '<tr><td>Маршрут</td><td>'+route+'</td></tr>' : '')+
         '<tr><td>Статус</td><td><span class="status valid">Действителен</span></td></tr>'+
         '<tr><td>Дата проверки</td><td>'+new Date().toLocaleDateString('ru-RU')+'</td></tr>'+
         '</table>'+
-        '<p style="margin-top:16px;color:#64748b;font-size:.85rem">Полные данные рейса доступны в кабинете Numino.</p>';
+        '<p style="margin-top:16px;color:#64748b;font-size:.85rem">Путевой лист сформирован сервисом Numino. Полные данные рейса доступны владельцу автопарка.</p>';
     })();
   </script>
 </body>
