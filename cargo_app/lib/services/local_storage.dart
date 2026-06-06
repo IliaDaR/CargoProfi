@@ -51,11 +51,11 @@ class LocalStorage {
       _saveSalaryRules(DemoData.salaryRules);
       _saveSalaryPayments(DemoData.salaryPayments);
       // Суперадмин
-      users.add({'uid': 'admin', 'email': 'admin@numino.ru', 'passwordHash': '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'displayName': 'Администратор', 'role': 'superadmin', 'phone': '+79183951315'});
+      users.add({'uid': 'admin', 'email': 'admin@numino.ru', 'passwordHash': '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'displayName': 'Администратор', 'role': 'superadmin', 'phone': '+79990000001'});
       // Владелец парка
-      users.add({'uid': 'owner1', 'email': 'owner@numino.ru', 'passwordHash': '43a0d17178a9d26c9e0fe9a74b0b45e38d32f27aed887a008a54bf6e033bf7b9', 'displayName': 'Владелец парка', 'role': 'owner', 'phone': '+79161234567'});
+      users.add({'uid': 'owner1', 'email': 'owner@numino.ru', 'passwordHash': '43a0d17178a9d26c9e0fe9a74b0b45e38d32f27aed887a008a54bf6e033bf7b9', 'displayName': 'Владелец парка', 'role': 'owner', 'phone': '+79990000002'});
       // Водитель
-      users.add({'uid': 'driver1', 'email': 'driver@numino.ru', 'passwordHash': '494d022492052a06f8f81949639a1d148c1051fa3d4e4688fbd96efe649cd382', 'displayName': 'Иван Петров', 'role': 'driver', 'phone': '+79169876543'});
+      users.add({'uid': 'driver1', 'email': 'driver@numino.ru', 'passwordHash': '494d022492052a06f8f81949639a1d148c1051fa3d4e4688fbd96efe649cd382', 'displayName': 'Иван Петров', 'role': 'driver', 'phone': '+79990000003'});
       _prefs!.setString(_kUsers, jsonEncode(users));
     } else {
       _loadAll();

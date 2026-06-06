@@ -61,7 +61,7 @@ service cloud.firestore {
       // Владелец видит/редактирует только свой профиль
       allow read, write: if isAuth()
                           && request.auth.uid == ownerId
-                          && isOwner();
+                          && (isOwner() || isSuperAdmin());
 
       // При регистрации — создание документа
       allow create: if isAuth()
@@ -79,7 +79,6 @@ service cloud.firestore {
                        || (isOwner() && hasAccessToDriver(driverId)));
       // Владелец создаёт/редактирует профили своих водителей
       allow write: if isAuth()
-                    && isOwner()
                     && (isSuperAdmin()
                         || (isOwner() && hasAccessToDriver(driverId)));
 
@@ -109,7 +108,8 @@ service cloud.firestore {
       // Водитель видит только свои рейсы
       // Владелец видит рейсы водителей своего парка
       allow read: if isAuth()
-                   && (resource.data.driverId == request.auth.uid
+                   && (isSuperAdmin()
+                       || resource.data.driverId == request.auth.uid
                        || (isOwner()
                            && resource.data.driverId in getOwnerDriverIds(request.auth.uid)));
 

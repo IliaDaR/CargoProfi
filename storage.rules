@@ -45,7 +45,8 @@ service firebase.storage {
 
       // Водитель и его владелец могут читать чеки
       allow read: if isAuth()
-                   && (request.auth.uid == driverId
+                   && (isSuperAdmin()
+                       || request.auth.uid == driverId
                        || (isOwner()
                            && driverId in getOwnerDriverIds(request.auth.uid)));
 
