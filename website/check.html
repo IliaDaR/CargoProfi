@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Проверка путевого листа — Numino</title>
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#0f172a;padding:40px 20px;min-height:100vh;display:flex;justify-content:center}
+    .card{background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08);padding:32px;max-width:600px;width:100%}
+    h1{font-size:1.5rem;font-weight:700;margin-bottom:8px;color:#2563eb}
+    .status{display:inline-block;padding:4px 12px;border-radius:100px;font-size:.8rem;font-weight:600}
+    .valid{background:#dcfce7;color:#16a34a}
+    .invalid{background:#fee2e2;color:#dc2626}
+    table{width:100%;border-collapse:collapse;margin-top:16px}
+    td{padding:8px 0;border-bottom:1px solid #e2e8f0}
+    td:first-child{color:#64748b;width:140px;font-size:.85rem}
+    td:last-child{font-weight:500}
+    .footer{margin-top:24px;font-size:.75rem;color:#94a3b8;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Путевой лист</h1>
+    <div id="content">Загрузка...</div>
+    <div class="footer">Проверка через Numino &copy; 2026</div>
+  </div>
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var id = params.get('id');
+      var el = document.getElementById('content');
+      if (!id) { el.innerHTML = '<p style="color:red">Не указан идентификатор путевого листа.</p>'; return; }
+      // В production: загрузка из API / Firestore
+      // Сейчас: показываем ID и статус
+      el.innerHTML = '<table>'+
+        '<tr><td>Номер</td><td>'+id.substring(0,8)+'</td></tr>'+
+        '<tr><td>Статус</td><td><span class="status valid">Действителен</span></td></tr>'+
+        '<tr><td>Дата проверки</td><td>'+new Date().toLocaleDateString('ru-RU')+'</td></tr>'+
+        '</table>'+
+        '<p style="margin-top:16px;color:#64748b;font-size:.85rem">Полные данные рейса доступны в кабинете Numino.</p>';
+    })();
+  </script>
+</body>
+</html>

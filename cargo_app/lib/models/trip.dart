@@ -19,6 +19,7 @@ class Trip {
   final String? routeDescription;
   final double? income;
   final String? waybillUrl;
+  final String? waybillUuid;
   final DateTime createdAt;
 
   Trip({
@@ -40,6 +41,7 @@ class Trip {
     this.routeDescription,
     this.income,
     this.waybillUrl,
+    this.waybillUuid,
     required this.createdAt,
   });
 
@@ -68,6 +70,7 @@ class Trip {
       routeDescription: data['routeDescription'],
       income: data['income']?.toDouble(),
       waybillUrl: data['waybillUrl'],
+      waybillUuid: data['waybillUuid'],
       createdAt: _parseDate(data['createdAt']),
     );
   }
