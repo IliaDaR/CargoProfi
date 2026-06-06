@@ -91,6 +91,16 @@ class _TripsScreenState extends State<TripsScreen> {
         },
       ),
       const SizedBox(width: 4),
+      // Кнопка «Скачать PDF для Госключа»
+      IconButton(
+        icon: const Icon(Icons.lock_outline, size: 16, color: Colors.amber.shade700),
+        tooltip: 'Скачать PDF для Госключа',
+        onPressed: () async {
+          final store = context.read<LocalStorage>();
+          final bytes = await WaybillPdf.generate(t, store);
+          await Printing.layoutPdf(onLayout: (_) => bytes);
+        },
+      ),
       IconButton(
         icon: const Icon(Icons.edit, size: 16, color: Colors.orange),
         tooltip: 'Редактировать',

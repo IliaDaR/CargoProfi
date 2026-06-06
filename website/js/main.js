@@ -6,6 +6,10 @@
 (function () {
   'use strict';
 
+  // ===== РЕФЕРАЛЬНЫЙ КОД =====
+  var refCode = new URLSearchParams(window.location.search).get('ref');
+  if (refCode) { localStorage.setItem('numino_ref', refCode); }
+
   // ===== BURGER MENU =====
   var burgerBtn = document.getElementById('burgerBtn');
   var mainNav = document.getElementById('mainNav');
