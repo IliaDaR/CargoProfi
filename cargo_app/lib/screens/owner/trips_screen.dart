@@ -92,6 +92,21 @@ class _TripsScreenState extends State<TripsScreen> {
             if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Сервис временно недоступен'), backgroundColor: Colors.orange, duration: Duration(seconds: 2)));
           }
           if (!generated) {
+            // Генерируем UUID для путевого листа и сохраняем в рейс
+            final waybillUuid = '${t.id}-${DateTime.now().millisecondsSinceEpoch}';
+            final idx = store.trips.indexWhere((tr) => tr.id == t.id);
+            if (idx != -1) {
+              store.trips[idx] = Trip(
+                id: t.id, driverId: t.driverId, vehicleId: t.vehicleId, status: t.status,
+                startTime: t.startTime, startLatitude: t.startLatitude, startLongitude: t.startLongitude,
+                endTime: t.endTime, endLatitude: t.endLatitude, endLongitude: t.endLongitude,
+                mileage: t.mileage, mileageSource: t.mileageSource,
+                cargoDescription: t.cargoDescription, routeDescription: t.routeDescription,
+                income: t.income, createdAt: t.createdAt, track: t.track,
+                waybillUuid: waybillUuid,
+              );
+              store.saveTrips();
+            }
             final bytes = await WaybillPdf.generate(t, store);
             await Printing.layoutPdf(onLayout: (_) => bytes);
           }

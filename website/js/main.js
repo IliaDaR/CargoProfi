@@ -219,9 +219,12 @@
       if (name && email && msg) {
         var tickets = JSON.parse(localStorage.getItem('numino_tickets') || '[]');
         tickets.push({name: name, email: email, message: msg, status: 'new', createdAt: new Date().toISOString()});
-        // SharedPreferences на Flutter Web использует префикс "flutter."
         localStorage.setItem('flutter.tickets', JSON.stringify(tickets));
       }
+      // Визуальная обратная связь
+      var btn = contactForm.querySelector('button[type="submit"]');
+      if (btn) { btn.textContent = 'Отправляется...'; btn.disabled = true;
+        setTimeout(function() { if (btn) { btn.textContent = 'Отправить'; btn.disabled = false; } }, 3000); }
     });
   }
 

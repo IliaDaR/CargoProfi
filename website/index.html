@@ -20,8 +20,8 @@
   <link rel="canonical" href="https://numino.ru">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" onload="this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <!-- Firebase SDK (замените apiKey на реальный после создания проекта) -->
   <script type="module">
@@ -82,7 +82,7 @@
           </div>
         </div>
         <div class="hero__img">
-          <img src="assets/dashboard-preview.svg" alt="Дашборд">
+          <img src="assets/dashboard-preview.svg" alt="Дашборд" loading="lazy">
         </div>
       </div>
     </section>
@@ -280,7 +280,7 @@
     <section class="download" id="download">
       <div class="container download__inner">
         <div class="download__img">
-          <img src="assets/app-mockup.svg" alt="Приложение">
+          <img src="assets/app-mockup.svg" alt="Приложение" loading="lazy">
         </div>
         <div class="download__text">
           <h2>Приложение для водителя</h2>
