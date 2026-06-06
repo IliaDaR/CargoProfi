@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import {Timestamp} from "firebase-admin/firestore";
 import {Trip, Vehicle, DriverProfile} from "./types";
+import * as QRCode from "qrcode";
 
 const db = admin.firestore();
 
@@ -237,6 +238,19 @@ async function generateWaybillPdf(
         doc.text(`Доход за рейс: ${trip.income.toLocaleString("ru-RU")} ₽`);
         doc.moveDown(0.5);
       }
+
+      // --- QR-код и проверка ---
+      const checkUrl = `https://numino.ru/check?id=${trip.id}`;
+      doc.moveDown(1);
+      doc.text(`Код проверки: ${trip.id.substring(0, 8)}`, {fontSize: 9, color: 'grey'});
+      doc.text(`Проверка: ${checkUrl}`, {fontSize: 7, color: 'grey'});
+      doc.moveDown(0.5);
+      try {
+        const qrDataUrl = await QRCode.toDataURL(checkUrl, {width: 100, margin: 1});
+        const qrBase64 = qrDataUrl.split(',')[1];
+        const qrBuffer = Buffer.from(qrBase64, 'base64');
+        doc.image(qrBuffer, {fit: [80, 80], align: 'right'});
+      } catch (_) {}
 
       // --- Подписи ---
       doc.moveDown(2);
