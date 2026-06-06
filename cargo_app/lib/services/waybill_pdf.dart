@@ -33,6 +33,9 @@ class WaybillPdf {
           _row('Автомобиль:', '${vehicle?.brand ?? '—'} ${vehicle?.model ?? ''}'),
           _row('Гос. номер:', vehicle?.plateNumber ?? '—'),
           _row('Водитель:', driverName),
+          if (driver?['licenseNumber'] != null && driver!['licenseNumber'].toString().isNotEmpty) _row('Вод. удост.:', driver['licenseNumber'].toString()),
+          if (driver?['medExamNumber'] != null && driver!['medExamNumber'].toString().isNotEmpty) _row('Медосмотр №:', driver['medExamNumber'].toString()),
+          if (vehicle?.techExamNumber != null && vehicle!.techExamNumber!.isNotEmpty) _row('Техосмотр №:', vehicle.techExamNumber!),
           pw.SizedBox(height: 4),
           _row('Пробег:', '${trip.mileage.toStringAsFixed(1)} км (${trip.mileageSource == MileageSource.auto ? "автоматически" : "вручную"})'),
           pw.SizedBox(height: 10),
@@ -52,7 +55,12 @@ class WaybillPdf {
             _divider(),
             pw.SizedBox(height: 10),
           ],
-          pw.SizedBox(height: 20),
+          pw.SizedBox(height: 10),
+          _divider(),
+          pw.SizedBox(height: 8),
+          pw.Text('Код проверки: ${trip.id.substring(0, 8)}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey)),
+          pw.Text('Проверка: https://numino.ru/check?id=${trip.id}', style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey)),
+          pw.SizedBox(height: 12),
           pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
             pw.Column(children: [
               pw.Container(width: 150, child: const pw.Divider()),

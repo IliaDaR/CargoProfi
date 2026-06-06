@@ -160,6 +160,9 @@ class LocalStorage {
     'id': v.id, 'ownerId': v.ownerId, 'plateNumber': v.plateNumber, 'brand': v.brand, 'model': v.model,
     'year': v.year, 'vin': v.vin, 'fuelType': v.fuelType, 'createdAt': v.createdAt.toIso8601String(),
     'isActive': v.isActive, 'activeDriverId': v.activeDriverId,
+    if (v.techExamNumber != null) 'techExamNumber': v.techExamNumber,
+    if (v.techExamDate != null) 'techExamDate': v.techExamDate!.toIso8601String(),
+    if (v.techExamPhotoUrl != null) 'techExamPhotoUrl': v.techExamPhotoUrl,
   };
 
   Map<String,dynamic> _tripToMap(Trip t) => {

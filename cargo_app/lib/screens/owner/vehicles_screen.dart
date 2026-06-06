@@ -14,7 +14,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
   String get _ownerId => context.read<LocalStorage>().currentUser?['uid'] ?? 'local';
   void _addVehicle(LocalStorage store) {
     final plateCtrl = TextEditingController(), brandCtrl = TextEditingController(), modelCtrl = TextEditingController();
-    final yearCtrl = TextEditingController(), vinCtrl = TextEditingController();
+    final yearCtrl = TextEditingController(), vinCtrl = TextEditingController(), techCtrl = TextEditingController();
     showDialog(context: context, builder: (ctx) => AlertDialog(
       title: const Text('Добавить автомобиль'),
       content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -23,6 +23,7 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
         const SizedBox(height: 10), TextField(controller: modelCtrl, decoration: const InputDecoration(labelText: 'Модель *', border: OutlineInputBorder())),
         const SizedBox(height: 10), TextField(controller: yearCtrl, decoration: const InputDecoration(labelText: 'Год выпуска', border: OutlineInputBorder()), keyboardType: TextInputType.number),
         const SizedBox(height: 10), TextField(controller: vinCtrl, decoration: const InputDecoration(labelText: 'VIN', border: OutlineInputBorder())),
+        const SizedBox(height: 10), TextField(controller: techCtrl, decoration: const InputDecoration(labelText: '№ техосмотра', border: OutlineInputBorder())),
       ])),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
@@ -32,27 +33,37 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
             id: 'v${DateTime.now().millisecondsSinceEpoch}', ownerId: _ownerId,
             plateNumber: plateCtrl.text, brand: brandCtrl.text, model: modelCtrl.text,
             year: int.tryParse(yearCtrl.text), vin: vinCtrl.text.isEmpty ? null : vinCtrl.text,
+            techExamNumber: techCtrl.text.isEmpty ? null : techCtrl.text,
             createdAt: DateTime.now(),
           ));
           Navigator.pop(ctx);
+          techCtrl.dispose();
         }, child: const Text('Добавить')),
       ],
     ));
   }
 
   void _addDriver(LocalStorage store) {
-    final nameCtrl = TextEditingController(), phoneCtrl = TextEditingController();
+    final nameCtrl = TextEditingController(), phoneCtrl = TextEditingController(), licenseCtrl = TextEditingController();
+    final medCtrl = TextEditingController();
     showDialog(context: context, builder: (ctx) => AlertDialog(
       title: const Text('Добавить водителя'),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
+      content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'ФИО', border: OutlineInputBorder())),
         const SizedBox(height: 10), TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: 'Телефон', border: OutlineInputBorder())),
-      ]),
+        const SizedBox(height: 10), TextField(controller: licenseCtrl, decoration: const InputDecoration(labelText: '№ ВУ', border: OutlineInputBorder())),
+        const SizedBox(height: 10), TextField(controller: medCtrl, decoration: const InputDecoration(labelText: '№ медосмотра', border: OutlineInputBorder())),
+      ])),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
         ElevatedButton(onPressed: () {
           if (nameCtrl.text.isEmpty) return;
-          store.addDriver({'uid': 'd${DateTime.now().millisecondsSinceEpoch}', 'displayName': nameCtrl.text, 'email': '', 'phone': phoneCtrl.text, 'ownerId': _ownerId});
+          store.addDriver({
+            'uid': 'd${DateTime.now().millisecondsSinceEpoch}',
+            'displayName': nameCtrl.text, 'phone': phoneCtrl.text,
+            'licenseNumber': licenseCtrl.text, 'medExamNumber': medCtrl.text,
+            'email': '', 'ownerId': _ownerId,
+          });
           Navigator.pop(ctx);
           setState(() {});
         }, child: const Text('Добавить')),
