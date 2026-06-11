@@ -5,7 +5,6 @@ import 'package:printing/printing.dart';
 import '../../models/trip.dart';
 import '../../services/local_storage.dart';
 import '../../services/waybill_pdf.dart';
-import '../../services/cloud_functions_service.dart';
 import '../../utils/constants.dart';
 import 'trip_detail_screen.dart';
 
@@ -22,7 +21,10 @@ class _TripsScreenState extends State<TripsScreen> {
   String? _generatingWaybill; // ID рейса, для которого генерируется PDF
 
   List<Trip> _filtered(LocalStorage s) {
-    var r = s.trips.reversed.toList();
+    final ownerId = s.currentUser?['uid'] ?? '';
+    final myDriverIds = s.drivers.where((d) => d['ownerId'] == ownerId).map((d) => d['uid']).toSet();
+    var r = s.trips.where((t) => myDriverIds.contains(t.driverId)).toList()
+      ..sort((a, b) => b.startTime.compareTo(a.startTime));
     if (_statusFilter.isNotEmpty) r = r.where((t) => t.status.name == _statusFilter).toList();
     if (_search.isNotEmpty) { final q = _search.toLowerCase(); r = r.where((t) => (t.routeDescription?.toLowerCase().contains(q) ?? false) || (t.cargoDescription?.toLowerCase().contains(q) ?? false)).toList(); }
     _totalFiltered = r.length;
@@ -82,7 +84,7 @@ class _TripsScreenState extends State<TripsScreen> {
           final store = context.read<LocalStorage>();
           bool generated = false;
           try {
-            final cloudFn = context.read<CloudFunctionsService>();
+            final cloudFn = context.read<dynamic>();
             final url = await cloudFn.generateWaybill(t.id);
             if (url != null && mounted) {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF сохранён в облаке!'), backgroundColor: Colors.green));
@@ -103,7 +105,11 @@ class _TripsScreenState extends State<TripsScreen> {
                 mileage: t.mileage, mileageSource: t.mileageSource,
                 cargoDescription: t.cargoDescription, routeDescription: t.routeDescription,
                 income: t.income, createdAt: t.createdAt, track: t.track,
-                waybillUuid: waybillUuid,
+                manualMileage: t.manualMileage,
+                waybillUrl: t.waybillUrl, waybillUuid: waybillUuid,
+                signatureStatus: t.signatureStatus, signatureUrl: t.signatureUrl,
+                signatureHash: t.signatureHash, signedPdfUrl: t.signedPdfUrl,
+                signedAt: t.signedAt, signedBy: t.signedBy,
               );
               store.saveTrips();
             }
@@ -116,7 +122,7 @@ class _TripsScreenState extends State<TripsScreen> {
       const SizedBox(width: 4),
       // Кнопка «Скачать PDF для Госключа»
       IconButton(
-        icon: const Icon(Icons.lock_outline, size: 16, color: Colors.amber.shade700),
+        icon: Icon(Icons.lock_outline, size: 16, color: Colors.amber.shade700),
         tooltip: 'Скачать PDF для Госключа',
         onPressed: () async {
           final store = context.read<LocalStorage>();
@@ -129,6 +135,19 @@ class _TripsScreenState extends State<TripsScreen> {
         tooltip: 'Редактировать',
         onPressed: () => _showEditDialog(t),
       ),
+      // Кнопка подписания УКЭП (Госключ)
+      if (t.waybillUrl != null && t.signatureStatus != 'signed')
+        IconButton(
+          icon: const Icon(Icons.fingerprint, size: 16, color: Colors.indigo),
+          tooltip: 'Подписать УКЭП (Госключ)',
+          onPressed: () => _signWaybill(t),
+        ),
+      if (t.signatureStatus == 'signed')
+        Icon(
+          Icons.verified_user,
+          size: 16,
+          color: Colors.green.shade700,
+        ),
     ]);
   }
 
@@ -161,9 +180,18 @@ class _TripsScreenState extends State<TripsScreen> {
               mileage: double.tryParse(mileageCtrl.text) ?? trip.mileage,
               mileageSource: trip.mileageSource, cargoDescription: cargoCtrl.text, routeDescription: routeCtrl.text,
               income: double.tryParse(incomeCtrl.text), createdAt: trip.createdAt, track: trip.track,
+              manualMileage: trip.manualMileage,
+              waybillUrl: trip.waybillUrl, waybillUuid: trip.waybillUuid,
+              signatureStatus: trip.signatureStatus, signatureUrl: trip.signatureUrl,
+              signatureHash: trip.signatureHash, signedPdfUrl: trip.signedPdfUrl,
+              signedAt: trip.signedAt, signedBy: trip.signedBy,
             );
             store.saveTrips();
-            try { context.read<CloudFunctionsService>().endTrip(tripId: trip.id, latitude: trip.endLatitude ?? 0, longitude: trip.endLongitude ?? 0, income: double.tryParse(incomeCtrl.text)); } catch (_) {}
+            try {
+              context.read<dynamic>().updateTrip(tripId: trip.id, routeDescription: routeCtrl.text, cargoDescription: cargoCtrl.text, income: double.tryParse(incomeCtrl.text), mileage: double.tryParse(mileageCtrl.text));
+            } catch (e) {
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка синхронизации: $e'), backgroundColor: Colors.red, duration: const Duration(seconds: 3)));
+            }
           }
           Navigator.pop(ctx);
           setState(() {});
@@ -177,6 +205,71 @@ class _TripsScreenState extends State<TripsScreen> {
     final store = context.read<LocalStorage>();
     final d = store.drivers.where((d) => d['uid'] == id).firstOrNull;
     return d?['displayName'] ?? id.substring(0, 8);
+  }
+
+  Future<void> _signWaybill(Trip trip) async {
+    final store = context.read<LocalStorage>();
+    final cloudFn = context.read<dynamic>();
+
+    showDialog(context: context, barrierDismissible: false, builder: (ctx) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24), child: Row(mainAxisSize: MainAxisSize.min, children: [
+      CircularProgressIndicator(strokeWidth: 2),
+      SizedBox(width: 16),
+      Text('Отправка на подпись в Госключ...'),
+    ])))));
+
+    try {
+      final result = await cloudFn.signWaybill(trip.id);
+      if (mounted) Navigator.pop(context);
+
+      if (result != null && result['success'] == true) {
+        if (result['alreadySigned'] == true) {
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Путевой лист уже подписан'),
+            backgroundColor: Colors.blue,
+          ));
+        } else {
+          final idx = store.trips.indexWhere((t) => t.id == trip.id);
+          if (idx != -1) {
+            store.trips[idx] = Trip(
+              id: trip.id, driverId: trip.driverId, vehicleId: trip.vehicleId, status: trip.status,
+              startTime: trip.startTime, startLatitude: trip.startLatitude, startLongitude: trip.startLongitude,
+              endTime: trip.endTime, endLatitude: trip.endLatitude, endLongitude: trip.endLongitude,
+              mileage: trip.mileage, mileageSource: trip.mileageSource,
+              cargoDescription: trip.cargoDescription, routeDescription: trip.routeDescription,
+              income: trip.income, createdAt: trip.createdAt, track: trip.track,
+              waybillUrl: trip.waybillUrl, waybillUuid: trip.waybillUuid,
+              signatureStatus: 'signed',
+              signatureUrl: result['signatureUrl'],
+              signedPdfUrl: result['signedPdfUrl'],
+              signedAt: DateTime.now(),
+            );
+            store.saveTrips();
+            setState(() {});
+          }
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: const Text('Путевой лист подписан УКЭП!'),
+            backgroundColor: Colors.green.shade700,
+            action: result['signedPdfUrl'] != null ? SnackBarAction(label: 'Скачать', textColor: Colors.white, onPressed: () async {
+              final bytes = await WaybillPdf.generate(trip, store);
+              await Printing.layoutPdf(onLayout: (_) => bytes);
+            }) : null,
+          ));
+        }
+      } else {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(result?['error'] ?? 'Не удалось подписать. Проверьте настройки Госключа.'),
+          backgroundColor: Colors.red,
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Ошибка: $e'),
+          backgroundColor: Colors.red,
+        ));
+      }
+    }
   }
 
   Widget _chip(TripStatus s) => Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: (s == TripStatus.active ? Colors.green : Colors.blue).withOpacity(0.1), borderRadius: BorderRadius.circular(10)), child: Text(tripStatusLabel(s), style: TextStyle(color: s == TripStatus.active ? Colors.green : Colors.blue, fontSize: 11, fontWeight: FontWeight.w600)));

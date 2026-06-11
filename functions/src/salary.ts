@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import {Timestamp} from "firebase-admin/firestore";
 import {CalculateSalaryInput, Trip, SalaryRule, SalaryPayment} from "./types";
+import {checkIsOwner} from "./auth";
 
 const db = admin.firestore();
 
@@ -18,7 +19,7 @@ const db = admin.firestore();
  */
 export const calculateSalary = functions.https.onCall(
   {
-    enforceAppCheck: false,
+    enforceAppCheck: true,
   },
   async (request) => {
     const uid = request.auth?.uid;
@@ -36,6 +37,8 @@ export const calculateSalary = functions.https.onCall(
         "Только владелец может рассчитывать зарплату"
       );
     }
+
+    const isSuperAdmin = ownerDoc.data()?.role === "superadmin" || ownerDoc.data()?.role === "admin";
 
     const input = request.data as CalculateSalaryInput;
 
@@ -70,17 +73,26 @@ export const calculateSalary = functions.https.onCall(
     }
 
     const driverData = driverDoc.data();
-    if (driverData?.ownerId !== uid) {
+    if (!isSuperAdmin && driverData?.ownerId !== uid) {
       throw new functions.https.HttpsError(
         "permission-denied",
         "Водитель не принадлежит вашему парку"
       );
     }
 
+    const effectiveOwnerId = isSuperAdmin ? (driverData?.ownerId as string) : uid;
+
+    if (!effectiveOwnerId) {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "Не удалось определить владельца водителя"
+      );
+    }
+
     // Ищем активное правило
     const ruleSnapshot = await db
       .collection("salaryRules")
-      .where("ownerId", "==", uid)
+      .where("ownerId", "==", effectiveOwnerId)
       .where("driverId", "==", input.driverId)
       .where("isActive", "==", true)
       .limit(1)
@@ -145,7 +157,7 @@ export const calculateSalary = functions.https.onCall(
 
     const payment: SalaryPayment = {
       id: paymentRef.id,
-      ownerId: uid,
+      ownerId: effectiveOwnerId,
       driverId: input.driverId,
       periodStart: Timestamp.fromDate(startDate),
       periodEnd: Timestamp.fromDate(endDate),
@@ -188,7 +200,7 @@ export const calculateSalary = functions.https.onCall(
  */
 export const getSalaryHistory = functions.https.onCall(
   {
-    enforceAppCheck: false,
+    enforceAppCheck: true,
   },
   async (request) => {
     const uid = request.auth?.uid;
@@ -233,8 +245,3 @@ export const getSalaryHistory = functions.https.onCall(
     return {payments, count: payments.length};
   }
 );
-
-async function checkIsOwner(uid: string): Promise<boolean> {
-  const ownerDoc = await db.collection("owners").doc(uid).get();
-  return ownerDoc.exists && (ownerDoc.data()?.role === "owner" || ownerDoc.data()?.role === "superadmin" || ownerDoc.data()?.role === "admin");
-}

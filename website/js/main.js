@@ -43,85 +43,30 @@
   });
 
   // ===== MODAL =====
-  var modal = document.getElementById('loginModal');
-  var msgEl = document.getElementById('loginMessage');
-
-  function openModal() {
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeModal() {
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-    msgEl.textContent = '';
-    msgEl.className = 'modal__msg';
-  }
-
-  document.querySelectorAll('.login-btn').forEach(function (b) {
-    b.addEventListener('click', function (e) {
-      e.preventDefault();
-      openModal();
-    });
-  });
-
-  document.getElementById('closeModal').addEventListener('click', closeModal);
-  modal.querySelector('.modal__bg').addEventListener('click', closeModal);
-
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
-  });
-
-  // Focus trap
-  modal.addEventListener('keydown', function(e) {
-    if (e.key !== 'Tab' || !modal.classList.contains('active')) return;
-    var focusable = modal.querySelectorAll('input,button,a');
-    if (focusable.length === 0) return;
-    var first = focusable[0], last = focusable[focusable.length - 1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-  });
-
-  // ===== LOGIN / REGISTER TOGGLE =====
-  var isReg = false;
-  var registerNameField = null;
-
-  function buildNameField() {
-    var g = document.createElement('div');
-    g.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-top:2px';
-    g.innerHTML = '<label>Имя</label><input type="text" placeholder="Иван Петров" required autocomplete="name">';
-    return g;
-  }
-
-  document.getElementById('showRegister').addEventListener('click', function (e) {
-    e.preventDefault();
-    isReg = !isReg;
-    var form = document.getElementById('loginForm');
-    var submitBtn = document.getElementById('modalSubmit');
-    if (isReg) {
-      document.getElementById('modalTitle').textContent = 'Регистрация';
-      document.getElementById('modalSub').textContent = 'Владелец автопарка';
-      submitBtn.textContent = 'Зарегистрироваться';
-      registerNameField = buildNameField();
-      form.insertBefore(registerNameField, form.children[0]);
-    } else {
-      document.getElementById('modalTitle').textContent = 'Вход в кабинет';
-      document.getElementById('modalSub').textContent = 'Владелец автопарка или водитель';
-      submitBtn.textContent = 'Войти';
-      if (registerNameField) { registerNameField.remove(); registerNameField = null; }
-    }
-  });
+  // Модалка входа удалена — вход через отдельную страницу /login.html
 
   // ===== ХЭШ-ПАРОЛЬ (SHA-256, async) =====
-  async function hashPassword(pass) {
+  async function hashPassword(pass, salt) {
     if (window.crypto && window.crypto.subtle) {
-      var buf = new TextEncoder().encode(pass);
+      var buf = new TextEncoder().encode((salt || '') + pass);
       var hash = await window.crypto.subtle.digest('SHA-256', buf);
       return Array.from(new Uint8Array(hash)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
     }
     // Fallback без crypto — сохраняем как есть (демо-режим)
     return 'plain:' + pass;
   }
+
+  function generateSalt() {
+    var bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes).map(function(b) { return b.toString(16).padStart(2,'0'); }).join('');
+  }
+
+  async function verifyPassword(pass, storedHash, storedSalt) {
+    if (storedSalt) return await hashPassword(pass, storedSalt) === storedHash;
+    return await hashPassword(pass, '') === storedHash;
+  }
+
   // SharedPreferences на Flutter Web добавляет префикс "flutter." ко всем ключам
   function getUsers() {
     try { return JSON.parse(localStorage.getItem('flutter.numino_users')) || {}; } catch(_) { return {}; }
@@ -132,81 +77,11 @@
   (async function() {
     var u = getUsers();
     if (!u['admin@numino.ru']) {
-      u['admin@numino.ru'] = { pass: await hashPassword('admin123'), name: 'Администратор', role: 'admin' };
-      u['owner@numino.ru'] = { pass: await hashPassword('owner123'), name: 'Владелец парка', role: 'owner' };
+      u['admin@numino.ru'] = { pass: await hashPassword('admin123', 'fixed_salt_admin_01'), passSalt: 'fixed_salt_admin_01', name: 'Администратор', role: 'admin' };
+      u['owner@numino.ru'] = { pass: await hashPassword('owner123', 'fixed_salt_owner_01'), passSalt: 'fixed_salt_owner_01', name: 'Владелец парка', role: 'owner' };
       saveUsers(u);
     }
   })();
-
-  document.getElementById('loginForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    var email = '', pass = '', name = '';
-    var inputs = e.target.querySelectorAll('input');
-    for (var i = 0; i < inputs.length; i++) {
-      if (inputs[i].type === 'email') email = inputs[i].value.trim().toLowerCase();
-      if (inputs[i].type === 'password') pass = inputs[i].value;
-      if (inputs[i].type === 'text') name = inputs[i].value.trim();
-    }
-    if (!email || !pass) { msgEl.textContent = 'Заполните все поля'; msgEl.className = 'modal__msg error'; return; }
-    if (!isValidEmail(email)) { msgEl.textContent = 'Неверный формат email'; msgEl.className = 'modal__msg error'; return; }
-    if (pass.length < 6) { msgEl.textContent = 'Пароль минимум 6 символов'; msgEl.className = 'modal__msg error'; return; }
-
-    var btn = e.target.querySelector('button[type="submit"]');
-    if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
-
-    // Firebase Auth (основной метод)
-    if (window._firebaseReady && window._firebaseAuth) {
-      try {
-        if (isReg) {
-          if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
-          await createUserWithEmailAndPassword(window._firebaseAuth, email, pass);
-        } else {
-          await signInWithEmailAndPassword(window._firebaseAuth, email, pass);
-        }
-      } catch (err) {
-        var msg = 'Ошибка входа';
-        if (err.code) {
-          if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') msg = 'Неверный email или пароль';
-          else if (err.code === 'auth/too-many-requests') msg = 'Слишком много попыток. Попробуйте позже.';
-          else if (err.code === 'auth/invalid-email') msg = 'Неверный формат email';
-          else if (err.code === 'auth/email-already-in-use') msg = 'Email уже зарегистрирован';
-          else if (err.code === 'auth/weak-password') msg = 'Пароль слишком простой (минимум 6 символов)';
-          else if (err.code === 'auth/network-request-failed') msg = 'Ошибка сети. Проверьте подключение.';
-          else msg = 'Ошибка: ' + (err.code || 'сервис недоступен');
-        }
-        msgEl.textContent = msg;
-        msgEl.className = 'modal__msg error';
-        if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; }
-        return;
-      }
-    } else {
-      // Резервный вход через localStorage
-      var users = getUsers();
-      if (isReg) {
-        if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
-        if (users[email]) { msgEl.textContent = 'Пользователь уже существует'; msgEl.className = 'modal__msg error'; if (btn) { btn.disabled = false; btn.textContent = isReg ? 'Зарегистрироваться' : 'Войти'; } return; }
-        var hashed = await hashPassword(pass);
-        users[email] = { pass: hashed, name: name, role: 'owner' };
-        saveUsers(users);
-        msgEl.textContent = 'Регистрация успешна! Выполните вход.';
-        msgEl.className = 'modal__msg success';
-        isReg = true; document.getElementById('showRegister').click();
-        if (btn) { btn.disabled = false; btn.textContent = 'Войти'; }
-        return;
-      }
-      var user = users[email];
-      var hashedInput = await hashPassword(pass);
-      if (!user || user.pass !== hashedInput) {
-        msgEl.textContent = 'Неверный email или пароль';
-        msgEl.className = 'modal__msg error';
-        if (btn) { btn.disabled = false; btn.textContent = 'Войти'; }
-        return;
-      }
-    }
-    msgEl.textContent = 'Вход выполнен! Переход в кабинет...';
-    msgEl.className = 'modal__msg success';
-    setTimeout(function () { window.location.href = 'admin/index.html'; }, 600);
-  });
 
   // ===== CONTACT FORM — отправляется через FormSubmit + сохраняет тикет локально =====
   var contactForm = document.getElementById('contactForm');
@@ -351,15 +226,6 @@
       if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     });
   });
-
-  // ===== XSS PROTECTION =====
-  // Экранирует HTML-сущности при вставке в DOM.
-  // Не удаляет символы — пользователь может вводить < и >.
-  function escapeHtml(s) {
-    var d = document.createElement('div');
-    d.appendChild(document.createTextNode(s));
-    return d.innerHTML;
-  }
 
   // ===== EMAIL VALIDATION =====
   function isValidEmail(email) {

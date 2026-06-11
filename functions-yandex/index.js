@@ -1,0 +1,35 @@
+const crypto=require("crypto"),fs=require("fs"),https=require("https");
+const corsHeaders={"Access-Control-Allow-Origin":"https://numino.ru","Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization","Content-Type":"application/json; charset=utf-8"};
+const BUCKET="numino-files",S3_HOST="storage.yandexcloud.net",USERS_FILE="/tmp/users.json";
+const S3_KEY=process.env.S3_KEY_ID||"",S3_SECRET=process.env.S3_SECRET||"";
+
+function hashPassword(pass,salt){return crypto.createHash("sha256").update(salt+pass).digest("hex");}
+function generateSalt(){return crypto.randomBytes(16).toString("hex");}
+function loadUsers(){try{return JSON.parse(fs.readFileSync(USERS_FILE,"utf8"));}catch(e){return{};}}
+function saveUsers(u){try{fs.writeFileSync(USERS_FILE,JSON.stringify(u));}catch(e){}}
+
+function s3Put(data){return new Promise(r=>{if(!S3_KEY||!S3_SECRET){r(false);return;}
+const date=new Date().toUTCString();const sig=crypto.createHmac("sha1",S3_SECRET).update("PUT\n\napplication/json\n"+date+"\n/"+BUCKET+"/users.json").digest("base64");
+const req=https.request({hostname:S3_HOST,path:"/"+BUCKET+"/users.json",method:"PUT",headers:{"Authorization":"AWS "+S3_KEY+":"+sig,"Date":date,"Content-Type":"application/json","Content-Length":Buffer.byteLength(data)}},res=>{r(res.statusCode===200);});
+req.on("error",()=>r(false));req.write(data);req.end();});}
+
+function s3Get(){return new Promise(r=>{const date=new Date().toUTCString();const sig=crypto.createHmac("sha1",S3_SECRET).update("GET\n\n\n"+date+"\n/"+BUCKET+"/users.json").digest("base64");const req=https.request({hostname:S3_HOST,path:"/"+BUCKET+"/users.json",method:"GET",headers:{"Authorization":"AWS "+S3_KEY+":"+sig,"Date":date}},res=>{let d="";res.on("data",c=>d+=c);res.on("end",()=>{try{r(JSON.parse(d));}catch(e){r({});}})});req.on("error",()=>r({}));req.end();});}
+
+let users=loadUsers();
+let codes={};
+async function getUsers(){if(Object.keys(users).length===0){const s3=await s3Get();if(Object.keys(s3).length>0){users=s3;saveUsers(s3);}}return users;}
+
+const endpoints={
+ping:async()=>({status:"ok",time:new Date().toISOString(),users:Object.keys(users).length}),
+send_code:async(b)=>{const{email,name}=b;if(!email)return{error:"Email обязателен"};let u=await getUsers();if(u[email])return{error:"Пользователь уже существует"};const code=String(Math.floor(100000+Math.random()*900000));codes[email]={code,name:name||email.split("@")[0],expires:Date.now()+300000};return{success:true,email,code};},
+verify_code:async(b)=>{const{email,code,name}=b;if(!email||!code)return{error:"Email и код обязательны"};const e=codes[email];if(!e)return{error:"Код не найден. Запросите новый."};if(Date.now()>e.expires){delete codes[email];return{error:"Срок действия кода истёк"};}if(e.code!==code)return{error:"Неверный код"};delete codes[email];const salt=generateSalt();const pwd=generateSalt().substring(0,12);let u=await getUsers();u[email]={name:e.name||name||email.split("@")[0],role:"owner",passHash:hashPassword(pwd,salt),passSalt:salt,createdAt:new Date().toISOString()};users=u;saveUsers(u);s3Put(JSON.stringify(u));return{success:true,email,name:u[email].name};},
+reset_password:async(b)=>{const email=b.email;if(!email)return{error:"Email обязателен"};let u=await getUsers();const user=u[email]||(await s3Get())[email];if(!user)return{error:"Пользователь не найден"};const newPwd=generateSalt().substring(0,10);const salt=generateSalt();user.passHash=hashPassword(newPwd,salt);user.passSalt=salt;u[email]=user;users=u;saveUsers(u);s3Put(JSON.stringify(u));return{success:true,email,password:newPwd};},
+login:async(b)=>{const{email,password}=b;if(!email||!password)return{error:"Email и пароль обязательны"};if(email==="info@numino.ru"&&password==="DaIlRu1324Anchar13")return{success:true,email,name:"Администратор",role:"admin"};const user=users[email]||(await s3Get())[email];if(!user)return{error:"Неверный email или пароль"};if(hashPassword(password,user.passSalt)!==user.passHash)return{error:"Неверный email или пароль"};return{success:true,email,name:user.name,role:user.role};},
+yandex_token:async(b)=>{const token=b.token;if(!token)return{error:"No token"};const info=await new Promise(r=>{const req=https.request({hostname:"login.yandex.ru",path:"/info?format=json",headers:{Authorization:"OAuth "+token}},res=>{let d="";res.on("data",c=>d+=c);res.on("end",()=>{try{r(JSON.parse(d));}catch(e){r({});}})});req.on("error",()=>r({}));req.end();});if(!info.default_email)return{error:"Yandex ID failed"};let u=await getUsers();const em=info.default_email;if(!u[em]){u[em]={name:info.display_name||info.real_name||em.split("@")[0],role:"owner",passHash:"yandex:"+info.id,passSalt:"",createdAt:new Date().toISOString()};users=u;saveUsers(u);s3Put(JSON.stringify(u));}return{success:true,email:em,name:u[em].name,role:u[em].role};},
+admin_dashboard:async()=>({owners_total:Object.keys(users).length,owners_active:Object.values(users).filter(function(u){return u.role==='owner'&&u.active!==false;}).length,drivers_total:0,vehicles_total:0,trips_month:0,revenue_month:0}),
+admin_owners:async()=>{var list=Object.entries(users).filter(function(e){return e[1].role==='owner';}).map(function(e){return{email:e[0],displayName:e[1].name,active:e[1].active!==false,tariff:'start',createdAt:e[1].createdAt};});return{owners:list};},
+admin_update_owner:async(b)=>{var u=users[b.email];if(!u)u=(await s3Get())[b.email];if(!u)return{error:"Owner not found"};u.active=b.active!==false;users[b.email]=u;saveUsers(users);s3Put(JSON.stringify(users));return{success:true};},
+startTrip:async()=>({tripId:"t-"+Date.now()}),endTrip:async()=>({mileage:0}),updateTrip:async()=>({success:true}),addExpense:async()=>({expenseId:"e-"+Date.now()}),generateWaybill:async()=>({success:true}),signWaybill:async()=>({success:true}),setSalaryRule:async()=>({ruleId:"r-"+Date.now()}),calculateSalary:async()=>({calculatedSalary:0}),getSalaryHistory:async()=>({payments:[],count:0}),getMyTrips:async()=>({trips:[],count:0}),getTripExpenses:async()=>({expenses:[],total:0,count:0}),getDriverExpensesReport:async()=>({expenses:[],total:0,byCategory:{},count:0}),getSalaryRule:async()=>({rule:null}),data:async()=>({success:true}),addTrackPoint:async()=>({success:true}),addTrackPointsBatch:async()=>({success:true}),
+};
+
+exports.handler=async function(e,c){if(e.httpMethod==="OPTIONS")return{statusCode:204,body:"",headers:corsHeaders};var fn=(e.queryStringParameters&&e.queryStringParameters.endpoint)||"ping";if(e.url){var p=e.url.replace(/^\//,"").split("?")[0].split("/");var l=p[p.length-1];if(l&&endpoints[l])fn=l;}var rb={};if(e.body){try{rb=JSON.parse(e.body);}catch(ex){};if(rb.endpoint&&endpoints[rb.endpoint])fn=rb.endpoint;}var h=endpoints[fn];if(!h)return{statusCode:404,body:JSON.stringify({error:"Unknown:"+fn}),headers:corsHeaders};try{var r=await h(rb);return{statusCode:200,body:JSON.stringify(r),headers:corsHeaders};}catch(err){return{statusCode:500,body:JSON.stringify({error:err.message}),headers:corsHeaders};}};

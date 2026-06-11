@@ -1,0 +1,53 @@
+openapi: "3.0.0"
+info:
+  title: Numino API
+  version: 1.0.0
+servers:
+  - url: https://api.numino.ru
+
+paths:
+  /auth/register:
+    post:
+      operationId: authRegister
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: numino-api
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          schema: { type: string }
+
+  /auth/login:
+    post:
+      operationId: authLogin
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: numino-api
+
+  /check:
+    get:
+      operationId: checkWaybill
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: numino-api
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema: { type: string }
+
+  /{function}:
+    post:
+      operationId: callFunction
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: numino-api
+      parameters:
+        - name: function
+          in: path
+          required: true
+          schema: { type: string }
+        - name: X-API-Key
+          in: header
+          schema: { type: string }

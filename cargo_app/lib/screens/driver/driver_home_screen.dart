@@ -13,8 +13,9 @@ import '../../utils/constants.dart';
 import '../../utils/distance.dart';
 import '../../utils/navigation.dart';
 import '../../services/notification_service.dart';
-import '../../services/cloud_functions_service.dart';
 import '../auth/role_screen.dart';
+import 'trip_detail_screen.dart';
+import 'driver_profile_screen.dart';
 
 Position? _lastPosition;
 
@@ -33,11 +34,57 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   String? _activeTripId;
   DateTime? _tripStart;
   Duration _elapsed = Duration.zero;
+  Timer? _idleGpsTimer;
+  Position? _lastIdlePosition;
+  Position? _lastKnownPosition;
+  bool _shownMovementReminder = false;
 
   @override
   void initState() {
     super.initState();
     _checkActive();
+    _startIdleMovementDetection();
+  }
+
+  void _startIdleMovementDetection() {
+    _idleGpsTimer?.cancel();
+    _idleGpsTimer = Timer.periodic(const Duration(seconds: 60), (_) async {
+      if (_hasActiveTrip) return;
+      try {
+        final pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.low,
+        ).timeout(const Duration(seconds: 5));
+        if (_lastIdlePosition != null && !_hasActiveTrip && !_shownMovementReminder) {
+          final dist = haversineDistance(
+            _lastIdlePosition!.latitude, _lastIdlePosition!.longitude,
+            pos.latitude, pos.longitude,
+          );
+          if (dist > 0.1) {
+            _shownMovementReminder = true;
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Обнаружено движение. Не забудьте начать рейс!'),
+                  backgroundColor: Colors.orange.shade700,
+                  duration: const Duration(seconds: 6),
+                  action: SnackBarAction(
+                    label: 'Начать',
+                    textColor: Colors.white,
+                    onPressed: () {
+                      if (_cargoCtrl.text.isEmpty && _routeCtrl.text.isEmpty) {
+                        _routeCtrl.text = 'Без маршрута';
+                      }
+                      _startTrip();
+                    },
+                  ),
+                ),
+              );
+            }
+          }
+        }
+        _lastIdlePosition = pos;
+      } catch (_) {}
+    });
   }
 
   void _checkActive() {
@@ -47,7 +94,16 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       _hasActiveTrip = active != null;
       _activeTripId = active?.id;
       _tripStart = active?.startTime;
+      _shownMovementReminder = active != null;
     });
+  }
+
+  @override
+  void dispose() {
+    _idleGpsTimer?.cancel();
+    _cargoCtrl.dispose();
+    _routeCtrl.dispose();
+    super.dispose();
   }
 
   void _startTrip() async {
@@ -84,13 +140,18 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     }
     if (chosenId == null) return; // отмена
 
-    // Получаем реальные GPS-координаты (веб: browser, Android: GPS)
-    double lat = 55.75, lon = 37.61;
+    // Получаем реальные GPS-координаты
+    double lat = _lastKnownPosition?.latitude ?? 0;
+    double lon = _lastKnownPosition?.longitude ?? 0;
     try {
       final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).timeout(const Duration(seconds: 10));
       lat = pos.latitude; lon = pos.longitude;
+      _lastKnownPosition = pos;
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Не удалось получить GPS. Использованы координаты по умолчанию.'), backgroundColor: Colors.orange));
+      if (lat == 0 && lon == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('GPS недоступен. Включите GPS и повторите.'), backgroundColor: Colors.red, duration: Duration(seconds: 4)));
+        return;
+      }
     }
 
     final tripId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -113,7 +174,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     _checkActive();
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Рейс начат!'), backgroundColor: Colors.green));
     // Синхронизация с облаком (если доступно)
-    try { context.read<CloudFunctionsService>().startTrip(vehicleId: chosenId, latitude: lat, longitude: lon, cargoDescription: cargo, routeDescription: route); } catch (_) {}
+    try { context.read<dynamic>().startTrip(vehicleId: chosenId, latitude: lat, longitude: lon, cargoDescription: cargo, routeDescription: route); } catch (_) {}
     NotificationService.tripStarted(Trip(
       id: tripId, driverId: widget.driverId, vehicleId: chosenId, status: TripStatus.active,
       startTime: now, startLatitude: lat, startLongitude: lon,
@@ -133,7 +194,14 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Кабинет водителя'), actions: [
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.person),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => DriverProfileScreen(driverId: widget.driverId)));
+          },
+        ),
+        title: const Text('Кабинет водителя'), actions: [
         IconButton(icon: const Icon(Icons.logout), onPressed: () {
           store.setCurrentUser(null);
           goHome(context);
@@ -157,12 +225,19 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         Text('История рейсов', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         if (driverTrips.isEmpty) const Center(child: Padding(padding: EdgeInsets.all(20), child: Text('Нет рейсов')))
-        else ...driverTrips.reversed.map((t) => Card(margin: const EdgeInsets.only(bottom: 8), child: ListTile(
+        else ...driverTrips.reversed.map((t) => InkWell(
+          onTap: t.status == TripStatus.completed
+            ? () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => TripDetailScreen(tripId: t.id)));
+              }
+            : null,
+          child: Card(margin: const EdgeInsets.only(bottom: 8), child: ListTile(
           leading: CircleAvatar(backgroundColor: (t.status == TripStatus.active ? Colors.green : Colors.blue).withOpacity(0.15), child: Icon(t.status == TripStatus.active ? Icons.drive_eta : Icons.check_circle, color: t.status == TripStatus.active ? Colors.green : Colors.blue)),
           title: Text(t.routeDescription ?? 'Без маршрута'),
           subtitle: Text('${df.format(t.startTime)} • ${t.mileage.toStringAsFixed(1)} км'),
           trailing: Text('${t.income?.toStringAsFixed(0) ?? 0} ₽', style: TextStyle(fontWeight: FontWeight.bold, color: t.income != null ? Colors.green.shade700 : Colors.grey)),
-        ))),
+        )),
+      )),
       ])),
     );
   }
@@ -183,6 +258,9 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
   Timer? _gpsTimer;
   Duration _elapsed = Duration.zero;
   final List<TrackPoint> _track = [];
+  Position? _lastGpsPosition;
+  DateTime? _stationarySince;
+  double _lastSpeed = 0;
 
   @override
   void initState() {
@@ -209,36 +287,96 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
 
   void _startGps() {
     _gpsTimer?.cancel();
-    _gpsTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
+    _scheduleNextGps();
+  }
+
+  void _scheduleNextGps() {
+    final interval = _getAdaptiveInterval();
+    _gpsTimer = Timer(interval, _pollGps);
+  }
+
+  Duration _getAdaptiveInterval() {
+    if (_lastSpeed > 15) return const Duration(seconds: 30);  // driving
+    if (_lastSpeed > 3) return const Duration(seconds: 60);    // slow
+    if (_stationarySince != null &&
+        DateTime.now().difference(_stationarySince!).inMinutes > 30) {
+      return const Duration(minutes: 30);  // parked — check rarely
+    }
+    return const Duration(minutes: 5);  // stationary
+  }
+
+  Future<void> _pollGps() async {
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      ).timeout(const Duration(seconds: 10));
+
+      // Calculate speed from position delta
+      if (_lastGpsPosition != null) {
+        _lastSpeed = pos.speed > 0
+            ? pos.speed * 3.6  // m/s → km/h
+            : _lastSpeed;
+        if (_lastSpeed < 3) {
+          _stationarySince ??= DateTime.now();
+        } else {
+          _stationarySince = null;
+        }
+      }
+      _lastGpsPosition = pos;
+      final now = DateTime.now();
+      _track.add(TrackPoint(latitude: pos.latitude, longitude: pos.longitude, timestamp: now));
+
+      // Сохраняем трек в рейс (защита от краша)
+      final store = context.read<LocalStorage>();
+      final tIdx = store.trips.indexWhere((t) => t.id == widget.tripId);
+      if (tIdx != -1) {
+        store.trips[tIdx] = Trip(
+          id: store.trips[tIdx].id, driverId: store.trips[tIdx].driverId,
+          vehicleId: store.trips[tIdx].vehicleId, status: store.trips[tIdx].status,
+          startTime: store.trips[tIdx].startTime,
+          startLatitude: store.trips[tIdx].startLatitude,
+          startLongitude: store.trips[tIdx].startLongitude,
+          endTime: store.trips[tIdx].endTime,
+          endLatitude: store.trips[tIdx].endLatitude,
+          endLongitude: store.trips[tIdx].endLongitude,
+          mileage: store.trips[tIdx].mileage,
+          mileageSource: store.trips[tIdx].mileageSource,
+          cargoDescription: store.trips[tIdx].cargoDescription,
+          routeDescription: store.trips[tIdx].routeDescription,
+          income: store.trips[tIdx].income,
+          createdAt: store.trips[tIdx].createdAt,
+          track: _track.toList(),
+          manualMileage: store.trips[tIdx].manualMileage,
+          waybillUrl: store.trips[tIdx].waybillUrl,
+          waybillUuid: store.trips[tIdx].waybillUuid,
+          signatureStatus: store.trips[tIdx].signatureStatus,
+          signatureUrl: store.trips[tIdx].signatureUrl,
+          signatureHash: store.trips[tIdx].signatureHash,
+          signedPdfUrl: store.trips[tIdx].signedPdfUrl,
+          signedAt: store.trips[tIdx].signedAt,
+          signedBy: store.trips[tIdx].signedBy,
+        );
+      }
+
+      // Sync queue + cloud
+      store.addToSyncQueue('track_point', {
+        'tripId': widget.tripId, 'latitude': pos.latitude,
+        'longitude': pos.longitude, 'timestamp': now.toIso8601String(),
+      });
       try {
-        final pos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-        ).timeout(const Duration(seconds: 10));
-        final now = DateTime.now();
-        _track.add(TrackPoint(latitude: pos.latitude, longitude: pos.longitude, timestamp: now));
-        // Сохраняем в офлайн-буфер для синхронизации и в LocalStorage
-        final store = context.read<LocalStorage>();
-        store.addToSyncQueue('track_point', {
-          'tripId': widget.tripId,
-          'latitude': pos.latitude,
-          'longitude': pos.longitude,
-          'timestamp': now.toIso8601String(),
+        final cloudFn = context.read<dynamic>();
+        await cloudFn.addTrackPoint(tripId: widget.tripId, latitude: pos.latitude, longitude: pos.longitude);
+        final cutoff = DateTime.now().subtract(const Duration(minutes: 2));
+        store.syncQueue.removeWhere((item) {
+          if (item['type'] != 'track_point') return false;
+          final ts = DateTime.tryParse(item['data']['timestamp'] ?? '');
+          return ts != null && ts.isBefore(cutoff);
         });
-        // Пробуем сразу синхронизировать с облаком, при успехе чистим очередь
-        try {
-          final cloudFn = context.read<CloudFunctionsService>();
-          await cloudFn.addTrackPoint(tripId: widget.tripId, latitude: pos.latitude, longitude: pos.longitude);
-          // Успешно отправили — очищаем старые точки из очереди (оставляем только последние 2 минуты)
-          final cutoff = DateTime.now().subtract(const Duration(minutes: 2));
-          final q = store.syncQueue;
-          q.removeWhere((item) {
-            if (item['type'] != 'track_point') return false;
-            final ts = DateTime.tryParse(item['data']['timestamp'] ?? '');
-            return ts != null && ts.isBefore(cutoff);
-          });
-        } catch (_) {}
       } catch (_) {}
-    });
+    } catch (_) {}
+
+    // Schedule next poll with adaptive interval
+    _scheduleNextGps();
   }
 
   @override
@@ -316,7 +454,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
             NotificationService.highExpense(Expense(id: '', tripId: widget.tripId, driverId: widget.driverId, amount: a, category: cat, latitude: lat, longitude: lon, photoTimestamp: now, createdAt: now), driverName);
           }
           // Синхронизация с облаком
-          try { context.read<CloudFunctionsService>().addExpense(tripId: widget.tripId, amount: a, category: cat.name, latitude: lat, longitude: lon, description: descCtrl.text); } catch (_) {}
+          try { context.read<dynamic>().addExpense(tripId: widget.tripId, amount: a, category: cat.name, latitude: lat, longitude: lon, description: descCtrl.text); } catch (_) {}
           Navigator.pop(ctx);
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Расход добавлен'), backgroundColor: Colors.green));
         }, child: const Text('Сохранить')),
@@ -355,7 +493,11 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
           if (idx == -1) return;
           final old = store.trips[idx];
           final manual = double.tryParse(mileageCtrl.text) ?? 0;
-          final mileage = manual > 0 ? manual : (useAuto ? autoMileage : 100.0);
+          final mileage = manual > 0 ? manual : (useAuto ? autoMileage : 0.0);
+          if (mileage <= 0) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Укажите пробег'), backgroundColor: Colors.red));
+            return;
+          }
           store.trips[idx] = Trip(
             id: old.id, driverId: old.driverId, vehicleId: old.vehicleId, status: TripStatus.completed,
             startTime: old.startTime, startLatitude: old.startLatitude, startLongitude: old.startLongitude,
@@ -366,7 +508,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
           );
           store.saveTrips(); // Сохраняем в SharedPreferences
           // Синхронизация с облаком
-          try { context.read<CloudFunctionsService>().endTrip(tripId: widget.tripId, latitude: lat, longitude: lon, income: double.tryParse(incomeCtrl.text)); } catch (_) {}
+          try { context.read<dynamic>().endTrip(tripId: widget.tripId, latitude: lat, longitude: lon, income: double.tryParse(incomeCtrl.text)); } catch (_) {}
           // Освобождаем машину
           final vIdx2 = store.vehicles.indexWhere((v) => v.id == old.vehicleId);
           if (vIdx2 != -1) {
@@ -415,12 +557,29 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
           const SizedBox(width: 10),
           Expanded(child: _statCard('Чеков', '${tripExpenses.length}', Icons.image, Colors.purple)),
         ]),
+        _buildSyncStatus(store),
         const SizedBox(height: 16),
         SizedBox(height: 48, child: ElevatedButton.icon(onPressed: _addExpense, icon: const Icon(Icons.add), label: const Text('Добавить расход'), style: ElevatedButton.styleFrom(backgroundColor: Colors.amber.shade700, foregroundColor: Colors.white))),
         const SizedBox(height: 12),
         SizedBox(height: 48, child: ElevatedButton.icon(onPressed: _endTrip, icon: const Icon(Icons.stop_circle), label: const Text('Завершить рейс'), style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white))),
       ])),
     );
+  }
+
+  Widget _buildSyncStatus(LocalStorage store) {
+    final pending = store.syncQueue.length;
+    if (pending == 0) {
+      return Row(children: [
+        Icon(Icons.cloud_done, size: 14, color: Colors.green.shade700),
+        const SizedBox(width: 4),
+        Text('Синхронизировано', style: TextStyle(fontSize: 11, color: Colors.green.shade700)),
+      ]);
+    }
+    return Row(children: [
+      const SizedBox(height: 14, width: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+      const SizedBox(width: 4),
+      Text('Ожидает синхронизации: $pending', style: const TextStyle(fontSize: 11, color: Colors.orange)),
+    ]);
   }
 
   Widget _statCard(String title, String value, IconData icon, Color color) {

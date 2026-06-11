@@ -28,6 +28,9 @@ export interface DriverProfile {
   ownerId: string;
   assignedVehicleId?: string;
   licenseNumber?: string;
+  medExamNumber?: string;
+  medExamDate?: Timestamp;
+  medExamPhotoUrl?: string;
   createdAt: Timestamp;
 }
 
@@ -41,6 +44,9 @@ export interface Vehicle {
   vin?: string;
   registrationNumber?: string;
   fuelType?: string;
+  techExamNumber?: string;
+  techExamDate?: Timestamp;
+  techExamPhotoUrl?: string;
   createdAt: Timestamp;
 }
 
@@ -73,6 +79,13 @@ export interface Trip {
   routeDescription?: string;
   income?: number;
   waybillUrl?: string;
+  waybillUuid?: string;
+  signatureStatus?: "pending" | "signed" | "failed";
+  signatureUrl?: string;
+  signatureHash?: string;
+  signedPdfUrl?: string;
+  signedAt?: Timestamp;
+  signedBy?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -151,6 +164,14 @@ export interface EndTripInput {
   longitude: number;
   manualMileage?: number;
   income?: number;
+}
+
+export interface UpdateTripInput {
+  tripId: string;
+  routeDescription?: string;
+  cargoDescription?: string;
+  income?: number;
+  mileage?: number;
 }
 
 export interface AddExpenseInput {

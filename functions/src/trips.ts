@@ -5,10 +5,13 @@ import {
   StartTripInput,
   AddTrackPointInput,
   EndTripInput,
+  UpdateTripInput,
   Trip,
   GeoPoint,
 } from "./types";
 import {calculateTotalDistance} from "./distance";
+import {checkIsOwner} from "./auth";
+import {notifyTripStarted, notifyTripCompleted} from "./notifications";
 
 const db = admin.firestore();
 
@@ -19,7 +22,7 @@ const db = admin.firestore();
  */
 export const startTrip = functions.https.onCall(
   {
-    enforceAppCheck: false,
+    enforceAppCheck: true,
   },
   async (request) => {
     const uid = request.auth?.uid;
@@ -101,6 +104,11 @@ export const startTrip = functions.https.onCall(
 
     await tripRef.set(trip);
 
+    // Notify owner
+    if (driverDoc.data()?.ownerId) {
+      notifyTripStarted(driverDoc.data()!.ownerId, driverDoc.data()!.displayName || "Водитель", tripRef.id).catch(() => {});
+    }
+
     functions.logger.info("Рейс начат", {tripId: tripRef.id, driverId: uid});
 
     return {
@@ -120,7 +128,7 @@ export const startTrip = functions.https.onCall(
  */
 export const addTrackPoint = functions.https.onCall(
   {
-    enforceAppCheck: false,
+    enforceAppCheck: true,
   },
   async (request) => {
     const uid = request.auth?.uid;
@@ -188,7 +196,7 @@ export const addTrackPoint = functions.https.onCall(
  */
 export const addTrackPointsBatch = functions.https.onCall(
   {
-    enforceAppCheck: false,
+    enforceAppCheck: true,
   },
   async (request) => {
     const uid = request.auth?.uid;
@@ -230,6 +238,7 @@ export const addTrackPointsBatch = functions.https.onCall(
     }
 
     // Собираем новые точки в массив и делаем один update
+    const now = Timestamp.now();
     const newPoints: GeoPoint[] = [];
     for (const pt of points) {
       newPoints.push({
@@ -256,7 +265,7 @@ export const addTrackPointsBatch = functions.https.onCall(
  */
 export const endTrip = functions.https.onCall(
   {
-    enforceAppCheck: false,
+    enforceAppCheck: true,
   },
   async (request) => {
     const uid = request.auth?.uid;
@@ -351,6 +360,17 @@ export const endTrip = functions.https.onCall(
 
     await tripRef.update(updateData);
 
+    // Notify owner
+    const driverEndDoc = await db.collection("drivers").doc(trip.driverId).get();
+    if (driverEndDoc.exists && driverEndDoc.data()?.ownerId) {
+      notifyTripCompleted(
+        driverEndDoc.data()!.ownerId,
+        driverEndDoc.data()!.displayName || "Водитель",
+        tripRef.id,
+        mileage
+      ).catch(() => {});
+    }
+
     functions.logger.info("Рейс завершён", {
       tripId: tripRef.id,
       mileage,
@@ -371,11 +391,77 @@ export const endTrip = functions.https.onCall(
 );
 
 /**
+ * Обновление полей рейса владельцем (маршрут, груз, доход, пробег).
+ */
+export const updateTrip = functions.https.onCall(
+  {
+    enforceAppCheck: true,
+  },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "Пользователь не аутентифицирован"
+      );
+    }
+
+    if (!(await checkIsOwner(uid))) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Только владелец может редактировать рейсы"
+      );
+    }
+
+    const input = request.data as UpdateTripInput;
+
+    if (!input.tripId) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Не указан tripId"
+      );
+    }
+
+    const tripRef = db.collection("trips").doc(input.tripId);
+    const tripDoc = await tripRef.get();
+
+    if (!tripDoc.exists) {
+      throw new functions.https.HttpsError("not-found", "Рейс не найден");
+    }
+
+    const now = Timestamp.now();
+    const updateData: Record<string, unknown> = {updatedAt: now};
+
+    if (input.routeDescription !== undefined) {
+      updateData.routeDescription = input.routeDescription;
+    }
+    if (input.cargoDescription !== undefined) {
+      updateData.cargoDescription = input.cargoDescription;
+    }
+    if (input.income !== undefined) {
+      updateData.income = input.income;
+    }
+    if (input.mileage !== undefined) {
+      updateData.mileage = input.mileage;
+    }
+
+    await tripRef.update(updateData);
+
+    functions.logger.info("Рейс обновлён", {
+      tripId: input.tripId,
+      fields: Object.keys(updateData),
+    });
+
+    return {success: true, tripId: input.tripId};
+  }
+);
+
+/**
  * Получение списка рейсов для водителя.
  */
 export const getMyTrips = functions.https.onCall(
   {
-    enforceAppCheck: false,
+    enforceAppCheck: true,
   },
   async (request) => {
     const uid = request.auth?.uid;

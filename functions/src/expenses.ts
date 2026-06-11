@@ -2,6 +2,8 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import {Timestamp} from "firebase-admin/firestore";
 import {AddExpenseInput, Expense} from "./types";
+import {checkIsOwner} from "./auth";
+import {notifyHighExpense} from "./notifications";
 
 const db = admin.firestore();
 
@@ -12,7 +14,7 @@ const db = admin.firestore();
  */
 export const addExpense = functions.https.onCall(
   {
-    enforceAppCheck: false,
+    enforceAppCheck: true,
   },
   async (request) => {
     const uid = request.auth?.uid;
@@ -108,6 +110,19 @@ export const addExpense = functions.https.onCall(
 
     await expenseRef.set(expense);
 
+    // Notify owner if large expense
+    if (input.amount >= 10000) {
+      const driverDoc = await db.collection("drivers").doc(uid).get();
+      if (driverDoc.exists && driverDoc.data()?.ownerId) {
+        notifyHighExpense(
+          driverDoc.data()!.ownerId,
+          driverDoc.data()!.displayName || "Водитель",
+          input.amount,
+          input.category
+        ).catch(() => {});
+      }
+    }
+
     functions.logger.info("Добавлен расход", {
       expenseId: expenseRef.id,
       tripId: input.tripId,
@@ -129,7 +144,7 @@ export const addExpense = functions.https.onCall(
  */
 export const getTripExpenses = functions.https.onCall(
   {
-    enforceAppCheck: false,
+    enforceAppCheck: true,
   },
   async (request) => {
     const uid = request.auth?.uid;
@@ -189,21 +204,11 @@ export const getTripExpenses = functions.https.onCall(
 );
 
 /**
- * Вспомогательная: проверка что пользователь — owner.
- */
-async function checkIsOwner(uid: string): Promise<boolean> {
-  const ownerDoc = await db.collection("owners").doc(uid).get();
-  if (!ownerDoc.exists) return false;
-  const role = ownerDoc.data()?.role;
-  return role === "owner" || role === "superadmin" || role === "admin";
-}
-
-/**
  * Получение расходов водителя за период (для владельца).
  */
 export const getDriverExpensesReport = functions.https.onCall(
   {
-    enforceAppCheck: false,
+    enforceAppCheck: true,
   },
   async (request) => {
     const uid = request.auth?.uid;
@@ -234,7 +239,17 @@ export const getDriverExpensesReport = functions.https.onCall(
 
     // Проверка: водитель принадлежит владельцу
     const driverDoc = await db.collection("drivers").doc(driverId).get();
-    if (!driverDoc.exists || driverDoc.data()?.ownerId !== uid) {
+    if (!driverDoc.exists) {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "Водитель не найден"
+      );
+    }
+
+    const ownerDoc = await db.collection("owners").doc(uid).get();
+    const isSuperAdmin = ownerDoc.data()?.role === "superadmin" || ownerDoc.data()?.role === "admin";
+
+    if (!isSuperAdmin && driverDoc.data()?.ownerId !== uid) {
       throw new functions.https.HttpsError(
         "permission-denied",
         "Водитель не принадлежит вашему парку"

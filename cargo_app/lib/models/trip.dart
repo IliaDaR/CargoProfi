@@ -20,6 +20,12 @@ class Trip {
   final double? income;
   final String? waybillUrl;
   final String? waybillUuid;
+  final String? signatureStatus;
+  final String? signatureUrl;
+  final String? signatureHash;
+  final String? signedPdfUrl;
+  final DateTime? signedAt;
+  final String? signedBy;
   final DateTime createdAt;
 
   Trip({
@@ -42,6 +48,12 @@ class Trip {
     this.income,
     this.waybillUrl,
     this.waybillUuid,
+    this.signatureStatus,
+    this.signatureUrl,
+    this.signatureHash,
+    this.signedPdfUrl,
+    this.signedAt,
+    this.signedBy,
     required this.createdAt,
   });
 
@@ -71,6 +83,12 @@ class Trip {
       income: data['income']?.toDouble(),
       waybillUrl: data['waybillUrl'],
       waybillUuid: data['waybillUuid'],
+      signatureStatus: data['signatureStatus'],
+      signatureUrl: data['signatureUrl'],
+      signatureHash: data['signatureHash'],
+      signedPdfUrl: data['signedPdfUrl'],
+      signedAt: data['signedAt'] != null ? _parseDate(data['signedAt']) : null,
+      signedBy: data['signedBy'],
       createdAt: _parseDate(data['createdAt']),
     );
   }

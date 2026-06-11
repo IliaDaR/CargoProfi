@@ -43,12 +43,16 @@ class SalaryRule {
     return fixedValue ?? 0;
   }
 
+  String get displayLabel {
+    if (type == SalaryRuleType.percent) {
+      return '${(percentValue ?? 0).toStringAsFixed(0)}% от дохода';
+    }
+    return '${(fixedValue ?? 0).toStringAsFixed(0)} ₽ за рейс';
+  }
+
   static DateTime _parseDate(dynamic value) {
     if (value is String) return DateTime.parse(value);
     if (value != null) return (value as dynamic).toDate() as DateTime;
     return DateTime.now();
-  }
-}
-    return '${(fixedValue ?? 0).toStringAsFixed(0)} ₽ за рейс';
   }
 }

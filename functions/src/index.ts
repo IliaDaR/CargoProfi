@@ -7,6 +7,7 @@ export {
   addTrackPoint,
   addTrackPointsBatch,
   endTrip,
+  updateTrip,
   getMyTrips,
 } from "./trips";
 
@@ -17,7 +18,12 @@ export {
 } from "./expenses";
 
 export {generateWaybill} from "./pdf";
+export {signWaybill} from "./goskluch";
 
 export {setSalaryRule, getSalaryRule} from "./salaryRules";
 
 export {calculateSalary, getSalaryHistory} from "./salary";
+
+export {checkWaybill} from "./check";
+export {generateInviteCode, validateInviteCode} from "./invites";
+export {getOwnerNotifications, markNotificationRead} from "./notifications";

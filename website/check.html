@@ -7,48 +7,81 @@
   <meta name="robots" content="noindex, nofollow">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#0f172a;padding:40px 20px;min-height:100vh;display:flex;justify-content:center}
+    body{font-family:Inter,system-ui,sans-serif;background:#f8fafc;color:#0f172a;padding:40px 20px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start}
     .card{background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08);padding:32px;max-width:600px;width:100%}
-    h1{font-size:1.5rem;font-weight:700;margin-bottom:8px;color:#2563eb}
+    h1{font-size:1.5rem;font-weight:700;margin-bottom:4px;color:#2563eb}
+    h2{font-size:.85rem;font-weight:400;color:#64748b;margin-bottom:20px}
     .status{display:inline-block;padding:4px 12px;border-radius:100px;font-size:.8rem;font-weight:600}
     .valid{background:#dcfce7;color:#16a34a}
     .invalid{background:#fee2e2;color:#dc2626}
+    .loading{color:#64748b;font-size:.9rem}
     table{width:100%;border-collapse:collapse;margin-top:16px}
     td{padding:8px 0;border-bottom:1px solid #e2e8f0}
-    td:first-child{color:#64748b;width:140px;font-size:.85rem}
+    td:first-child{color:#64748b;width:160px;font-size:.85rem}
     td:last-child{font-weight:500}
     .footer{margin-top:24px;font-size:.75rem;color:#94a3b8;text-align:center}
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .6s linear infinite;margin-right:8px;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Путевой лист</h1>
-    <div id="content">Загрузка...</div>
-    <div class="footer">Проверка через Numino &copy; 2026</div>
+    <h1>Проверка путевого листа</h1>
+    <h2>Официальная верификация документа</h2>
+    <div id="content"><span class="spinner"></span><span class="loading">Проверка...</span></div>
+    <div class="footer">Сервис Numino &copy; 2026</div>
   </div>
   <script>
     (function() {
       var params = new URLSearchParams(window.location.search);
       var id = params.get('id');
       var el = document.getElementById('content');
-      if (!id) { el.innerHTML = '<p style="color:red">Не указан идентификатор путевого листа.</p>'; return; }
-      // Показываем данные из URL-параметров или базовую информацию
-      var tripDate = params.get('date') || '';
-      var plate = params.get('plate') || '';
-      var driver = params.get('driver') || '';
-      var mileage = params.get('mileage') || '';
-      var route = params.get('route') || '';
-      el.innerHTML = '<table>'+
-        '<tr><td>Номер рейса</td><td>'+id.substring(0,8)+'</td></tr>'+
-        (tripDate ? '<tr><td>Дата</td><td>'+tripDate+'</td></tr>' : '')+
-        (plate ? '<tr><td>Госномер</td><td>'+plate+'</td></tr>' : '')+
-        (driver ? '<tr><td>Водитель</td><td>'+driver+'</td></tr>' : '')+
-        (mileage ? '<tr><td>Пробег</td><td>'+mileage+' км</td></tr>' : '')+
-        (route ? '<tr><td>Маршрут</td><td>'+route+'</td></tr>' : '')+
-        '<tr><td>Статус</td><td><span class="status valid">Действителен</span></td></tr>'+
-        '<tr><td>Дата проверки</td><td>'+new Date().toLocaleDateString('ru-RU')+'</td></tr>'+
-        '</table>'+
-        '<p style="margin-top:16px;color:#64748b;font-size:.85rem">Путевой лист сформирован сервисом Numino. Полные данные рейса доступны владельцу автопарка.</p>';
+
+      if (!id || id.length < 8) {
+        el.innerHTML = '<p style="color:#dc2626">Не указан или некорректен идентификатор путевого листа. Проверьте ссылку.</p>';
+        return;
+      }
+
+      fetch('https://api.numino.ru/check?id=' + encodeURIComponent(id))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.error) {
+            el.innerHTML = '<p style="color:#dc2626">' + escapeHtml(data.error) +
+              '</p><p style="margin-top:8px;color:#64748b;font-size:.85rem">Проверьте правильность ссылки или обратитесь к владельцу автопарка.</p>';
+            return;
+          }
+
+          if (!data.found) {
+            el.innerHTML = '<p style="color:#dc2626">Путевой лист не найден в системе.</p>' +
+              '<p style="margin-top:8px;color:#64748b;font-size:.85rem">Возможно, документ был удалён или ссылка некорректна.</p>';
+            return;
+          }
+
+          var statusClass = data.status === 'completed' ? 'valid' : 'invalid';
+          var statusText = data.status === 'completed' ? 'Действителен' : 'Недействителен';
+
+          var rows = '';
+          rows += '<tr><td>Номер рейса</td><td>' + escapeHtml(id.substring(0, 8)) + '</td></tr>';
+          if (data.plate) rows += '<tr><td>Госномер</td><td>' + escapeHtml(data.plate) + '</td></tr>';
+          if (data.date) rows += '<tr><td>Дата</td><td>' + escapeHtml(data.date) + '</td></tr>';
+          if (data.mileage) rows += '<tr><td>Пробег</td><td>' + data.mileage + ' км</td></tr>';
+          if (data.route) rows += '<tr><td>Маршрут</td><td>' + escapeHtml(data.route) + '</td></tr>';
+          rows += '<tr><td>Статус</td><td><span class="status ' + statusClass + '">' + statusText + '</span></td></tr>';
+          rows += '<tr><td>Дата проверки</td><td>' + new Date().toLocaleDateString('ru-RU') + '</td></tr>';
+
+          el.innerHTML = '<table>' + rows + '</table>' +
+            '<p style="margin-top:16px;color:#64748b;font-size:.85rem">Путевой лист сформирован сервисом Numino. Полные данные рейса доступны владельцу автопарка.</p>';
+        })
+        .catch(function() {
+          el.innerHTML = '<p style="color:#dc2626">Ошибка соединения с сервером.</p>' +
+            '<p style="margin-top:8px;color:#64748b;font-size:.85rem">Попробуйте обновить страницу или проверьте подключение к интернету.</p>';
+        });
+
+      function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+      }
     })();
   </script>
 </body>

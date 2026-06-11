@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Кабинет владельца — Numino</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CargoProfi">
+<link rel="apple-touch-icon" href="icons/Icon-192.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--blue:#2563eb;--blue-l:#dbeafe;--g50:#f8fafc;--g100:#f1f5f9;--g300:#cbd5e1;--g500:#64748b;--g700:#334155;--g900:#0f172a;--green:#16a34a;--green-l:#dcfce7;--red:#dc2626;--red-l:#fee2e2;--amber:#f59e0b;--amber-l:#fef3c7;--r:12px;--rs:8px;--w:240px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,system-ui,sans-serif;background:var(--g50);color:var(--g900);display:flex;min-height:100vh}
+.sidebar{width:var(--w);background:#fff;border-right:1px solid var(--g300);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:10;overflow-y:auto}
+.sidebar .logo{padding:20px;font-size:1.3rem;font-weight:700;color:var(--blue);border-bottom:1px solid var(--g300)}
+.sidebar nav{flex:1;padding:12px}
+.sidebar nav a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--rs);color:var(--g700);text-decoration:none;font-size:.9rem;font-weight:500;margin-bottom:2px;transition:all .15s}
+.sidebar nav a:hover,.sidebar nav a.active{background:var(--blue-l);color:var(--blue);font-weight:600}
+.sidebar .user{padding:16px;border-top:1px solid var(--g300);font-size:.85rem}
+.sidebar .user button{width:100%;margin-top:8px;padding:8px;border:1px solid var(--g300);border-radius:var(--rs);background:#fff;cursor:pointer;font-size:.8rem}
+.main{margin-left:var(--w);flex:1;padding:24px}
+h1{font-size:1.4rem;font-weight:700;margin-bottom:20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.card{background:#fff;border-radius:var(--r);padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid var(--g300)}
+.card .ic{width:36px;height:36px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:8px}
+.card .val{font-size:1.5rem;font-weight:700}.card .lbl{font-size:.8rem;color:var(--g500);margin-top:2px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.toolbar input,.toolbar select{padding:8px 12px;border:1px solid var(--g300);border-radius:var(--rs);font-size:.85rem;background:#fff}
+.toolbar input{flex:1;min-width:120px}
+.btn{padding:8px 16px;border-radius:var(--rs);border:none;font-size:.85rem;font-weight:600;cursor:pointer;transition:.15s}
+.btn-p{background:var(--blue);color:#fff}.btn-p:hover{background:#1d4ed8}
+.btn-o{border:1px solid var(--g300);background:#fff}.btn-o:hover{background:var(--g100)}
+.btn-r{background:var(--red);color:#fff}.btn-g{background:var(--green);color:#fff}
+.btn-s{font-size:.75rem;padding:4px 10px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+th{text-align:left;padding:10px 12px;font-size:.8rem;color:var(--g500);font-weight:600;background:var(--g50);border-bottom:1px solid var(--g300)}
+td{padding:10px 12px;font-size:.85rem;border-bottom:1px solid var(--g100)}tr:hover td{background:var(--g50)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal>div{background:#fff;border-radius:var(--r);padding:24px;max-width:480px;width:90%;max-height:90vh;overflow-y:auto}
+.modal input,.modal select{width:100%;padding:10px;border:1px solid var(--g300);border-radius:var(--rs);font-size:.9rem;margin-bottom:10px}
+.modal label{font-size:.8rem;font-weight:600;color:var(--g700);display:block;margin-bottom:4px;margin-top:8px}
+.chip{display:inline-block;padding:2px 10px;border-radius:100px;font-size:.75rem;font-weight:600}
+.chip-g{background:var(--green-l);color:var(--green)}.chip-r{background:var(--red-l);color:var(--red)}
+.chip-a{background:var(--amber-l);color:var(--amber)}.chip-b{background:var(--blue-l);color:var(--blue)}
+.placeholder{text-align:center;padding:60px 20px;color:var(--g500)}
+.placeholder .ic{font-size:48px;margin-bottom:12px}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--g300);justify-content:space-around;padding:8px 0;z-index:10}
+.bottom-nav a{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:var(--g500);font-size:.7rem;font-weight:500}
+.bottom-nav a.active{color:var(--blue)}
+@media(max-width:800px){.sidebar{display:none}.main{margin-left:0;padding-bottom:70px}.bottom-nav{display:flex}.cards{grid-template-columns:repeat(2,1fr)}table{font-size:.75rem}}
+@media(max-width:500px){.cards{grid-template-columns:1fr}}
+@media(prefers-color-scheme:dark){:root{--blue:#3b82f6;--g50:#0f172a;--g100:#1e293b;--g300:#334155;--g500:#94a3b8;--g700:#cbd5e1;--g900:#f1f5f9;--green:#22c55e;--amber:#fbbf24}body{color:var(--g900)}.card,.sidebar,table{background:var(--g100)}.sidebar,.bottom-nav{border-color:var(--g300)}.bottom-nav{background:var(--g100)}td{border-color:var(--g300)}.toolbar input,.toolbar select,.btn-o{background:var(--g100);border-color:var(--g300);color:var(--g900)}.modal>div{background:var(--g100);color:var(--g900)}.modal label{color:var(--g500)}.modal input,.modal select{background:var(--g50);border-color:var(--g300);color:var(--g900)}}
+</style>
+</head>
+<body>
+<div class="sidebar" id="sidebar"><div class="logo">Numino</div><nav id="nav"></nav><div class="user"><div id="uname">—</div><button onclick="logout()">Выйти</button></div></div>
+<div class="main"><h1 id="title">Дашборд</h1><div id="content"></div></div>
+<div class="bottom-nav" id="bnav"></div>
+<div id="modal" class="modal" style="display:none" onclick="if(event.target===this)closeModal()"><div id="mbody"></div></div>
+
+<script>
+var U=null;try{U=JSON.parse(localStorage.getItem('flutter.current_user'));}catch(e){}if(!U||!U.email)location.href='/login.html';
+document.getElementById('uname').textContent=U.displayName||U.email;
+function L(k){try{return JSON.parse(localStorage.getItem('flutter.'+k)||'[]');}catch(e){return[];}}
+function S(k,v){localStorage.setItem('flutter.'+k,JSON.stringify(v));}
+function H(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML;}
+function F(n){return new Intl.NumberFormat('ru-RU').format(n);}
+function D(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('ru-RU');}catch(e){return d;}}
+function id(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
+var V=L('vehicles'),T=L('trips'),E=L('expenses'),DR=L('drivers'),SR=L('salary_rules'),SP=L('salary_payments');
+
+// NAVIGATION
+var tabs={
+dashboard:Rdash,vehicles:Rveh,trips:Rtrips,expenses:Rexp,salary:Rsal,profile:Rprof
+};
+var titles={dashboard:'Дашборд',vehicles:'Автомобили и водители',trips:'Рейсы',expenses:'Расходы',salary:'Зарплата',profile:'Профиль'};
+var icons={dashboard:'📊',vehicles:'🚛',trips:'🛣️',expenses:'📋',salary:'💰',profile:'👤'};
+
+function nav(tab){
+  document.querySelectorAll('#nav a,#bnav a').forEach(function(a){a.classList.toggle('active',a.dataset.tab===tab);});
+  document.getElementById('title').textContent=titles[tab]||tab;
+  (tabs[tab]||Rdash)();
+}
+var navItems=Object.keys(titles);
+var nhtml='',bn='';
+navItems.forEach(function(t){
+  nhtml+='<a href="#'+t+'" data-tab="'+t+'">'+icons[t]+' '+titles[t]+'</a>';
+  bn+='<a href="#'+t+'" data-tab="'+t+'"><span>'+icons[t]+'</span>'+titles[t]+'</a>';
+});
+document.getElementById('nav').innerHTML=nhtml;
+document.getElementById('bnav').innerHTML=bn;
+window.addEventListener('hashchange',function(){nav(location.hash.replace('#','')||'dashboard');});
+nav(location.hash.replace('#','')||'dashboard');
+
+// MODAL
+function modal(html){document.getElementById('mbody').innerHTML=html;document.getElementById('modal').style.display='flex';}
+function closeModal(){document.getElementById('modal').style.display='none';nav(location.hash.replace('#','')||'dashboard');}
+function logout(){localStorage.removeItem('flutter.current_user');location.href='/';}
+
+// ===== DASHBOARD =====
+function Rdash(){
+  var active=V.filter(function(v){return v.isActive;}).length;
+  var free=V.length-active;
+  var comp=T.filter(function(t){return t.status==='completed';}).length;
+  var inc=T.filter(function(t){return t.status==='completed';}).reduce(function(s,t){return s+(t.income||0);},0);
+  var h='<div class="cards">';
+  h+=cardH('Всего машин',V.length,'🚛','#dbeafe');
+  h+=cardH('В рейсе',active,'🟢','#dcfce7');
+  h+=cardH('Свободны',free,'⚪','#f1f5f9');
+  h+=cardH('Рейсов',comp,'🛣️','#f3e8ff');
+  h+=cardH('Доход',F(inc)+' ₽','💰','#dcfce7');
+  h+='</div>';
+  if(V.length===0)h+=ph('Добро пожаловать, '+H(U.displayName||U.email)+'!','Добавьте первую машину.','🚛');
+  h+='<div style="margin-bottom:20px"><button class="btn btn-p" onclick="location.hash=\'vehicles\';setTimeout(function(){addVehicle()},100)">+ Машина</button> <button class="btn btn-o" style="margin-left:8px" onclick="location.hash=\'vehicles\';setTimeout(function(){addDriver()},100)">+ Водитель</button> <button class="btn btn-o" style="margin-left:8px" onclick="location.hash=\'trips\'">📋 Рейсы</button></div>';
+  var activeT=T.filter(function(t){return t.status==='active';});
+  if(activeT.length>0){h+='<h3 style="margin-top:20px">Активные рейсы</h3><table><tr><th>Водитель</th><th>Маршрут</th><th>Начало</th><th></th></tr>';
+    activeT.forEach(function(t){h+='<tr><td>'+H((DR.find(function(d){return d.uid===t.driverId;})||{}).displayName||t.driverId)+'</td><td>'+H(t.routeDescription||'—')+'</td><td>'+D(t.startTime)+'</td><td><button class="btn btn-s btn-o" onclick="location.hash=\'trips?status=active\'">🗺️</button></td></tr>';});
+    h+='</table>';}
+  document.getElementById('content').innerHTML=h;
+}
+function cardH(title,value,icon,bg){return '<div class="card"><div class="ic" style="background:'+bg+'">'+icon+'</div><div class="val">'+value+'</div><div class="lbl">'+title+'</div></div>';}
+function ph(title,desc,icon){return '<div class="placeholder"><div class="ic">'+(icon||'📋')+'</div><h3>'+title+'</h3><p>'+desc+'</p></div>';}
+
+function Rprof(){
+  var p=null;try{p=JSON.parse(localStorage.getItem('flutter.profile')||'{}');}catch(e){p={};}
+  var h='<div class="cards"><div class="card"><div class="val">'+H(U.displayName||U.email)+'</div><div class="lbl">Имя</div></div><div class="card"><div class="val">'+H(U.email)+'</div><div class="lbl">Email</div></div></div>';
+  h+='<h3>Настройки</h3><div style="max-width:400px"><label>Компания</label><input id="pf1" value="'+H(p.companyName||'')+'"><label>Телефон</label><input id="pf2" value="'+H(p.phone||'')+'"><label>Новый пароль</label><input id="pf3" type="password" placeholder="Оставьте пустым если не меняете"><button class="btn btn-p" style="margin-top:12px" onclick="saveProfile()">Сохранить</button></div>';
+  document.getElementById('content').innerHTML=h;
+}
+function sha256(s){var buf=new TextEncoder().encode(s);return crypto.subtle.digest('SHA-256',buf).then(function(h){return Array.from(new Uint8Array(h)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');});}
+async function saveProfile(){
+  var p={};try{p=JSON.parse(localStorage.getItem('flutter.profile')||'{}');}catch(e){}
+  p.companyName=document.getElementById('pf1').value;p.phone=document.getElementById('pf2').value;
+  var pw=document.getElementById('pf3').value;if(pw&&pw.length>=6)p.passwordHash=await sha256(pw);
+  localStorage.setItem('flutter.profile',JSON.stringify(p));nav('profile');alert('Сохранено');
+}
+
+// ===== VEHICLES =====
+function Rveh(){refreshV();var h='<div class="toolbar"><button class="btn btn-p" onclick="addVehicle()">+ Машина</button><button class="btn btn-o" onclick="addDriver()">+ Водитель</button></div>';
+  h+='<h3 style="margin:16px 0 8px">Машины ('+V.length+')</h3>';
+  if(V.length===0)h+=ph('Нет машин','Добавьте первую машину.','🚛');
+  else{h+='<table><tr><th>Госномер</th><th>Марка, модель</th><th>Статус</th><th>Водитель</th><th>Техосмотр</th><th></th></tr>';
+    V.forEach(function(v,i){
+      var texp=v.techExamDate?new Date(v.techExamDate)<new Date()?'<span class="chip chip-r">Просрочен</span>':'<span class="chip chip-g">✅ '+D(v.techExamDate)+'</span>':'<span class="chip">—</span>';
+      var drv=DR.find(function(d){return d.uid===v.activeDriverId;});
+      h+='<tr><td><b>'+H(v.plateNumber||'')+'</b></td><td>'+H(v.brand||'')+' '+H(v.model||'')+'</td><td>'+(v.isActive?'<span class="chip chip-g">В рейсе</span>':'<span class="chip">Свободна</span>')+'</td><td>'+H(drv?drv.displayName:'—')+'</td><td>'+texp+'</td><td><button class="btn btn-s btn-o" onclick="editVehicle('+i+')">✏️</button> <button class="btn btn-s btn-r" onclick="delVehicle('+i+')">🗑</button></td></tr>';
+    });
+    h+='</table>';}
+  h+='<h3 style="margin:24px 0 8px">Водители ('+DR.length+')</h3>';
+  if(DR.length===0)h+=ph('Нет водителей','Добавьте первого водителя.','👤');
+  else{h+='<table><tr><th>ФИО</th><th>Телефон</th><th>Email</th><th>Медосмотр</th><th></th></tr>';
+    DR.forEach(function(d,i){
+      var med=d.medExamDate?new Date(d.medExamDate)<new Date()?'<span class="chip chip-r">Просрочен</span>':'<span class="chip chip-g">✅ '+D(d.medExamDate)+'</span>':'<span class="chip">—</span>';
+      h+='<tr><td>'+H(d.displayName||'')+'</td><td>'+H(d.phone||'')+'</td><td>'+H(d.email||'')+'</td><td>'+med+'</td><td><button class="btn btn-s btn-o" onclick="editDriver('+i+')">✏️</button> <button class="btn btn-s btn-r" onclick="delDriver('+i+')">🗑</button></td></tr>';
+    });
+    h+='</table>';}
+  document.getElementById('content').innerHTML=h;
+}
+
+function addVehicle(){
+  modal('<h3>Добавить машину</h3><label>Госномер *</label><input id="vf1"><label>Марка *</label><input id="vf2"><label>Модель *</label><input id="vf3"><label>Год</label><input id="vf4" type="number"><label>VIN</label><input id="vf5"><label>№ техосмотра</label><input id="vf6"><label>Дата техосмотра</label><input id="vf7" type="date"><label>Водитель</label><select id="vf8"><option value="">Не назначен</option></select><div style="margin-top:12px"><button class="btn btn-p" onclick="saveVehicle()">Сохранить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');
+  var s=document.getElementById('vf8');DR.forEach(function(d){s.innerHTML+='<option value="'+d.uid+'">'+H(d.displayName||d.uid)+'</option>';});
+}
+function saveVehicle(){
+  var p=document.getElementById('vf1').value.trim(),b=document.getElementById('vf2').value.trim(),m=document.getElementById('vf3').value.trim();
+  if(!p||!b||!m){alert('Госномер, марка и модель обязательны');return;}
+  V.push({id:id(),plateNumber:p,brand:b,model:m,year:parseInt(document.getElementById('vf4').value)||null,vin:document.getElementById('vf5').value||null,techExamNumber:document.getElementById('vf6').value||null,techExamDate:document.getElementById('vf7').value||null,activeDriverId:document.getElementById('vf8').value||null,isActive:false,ownerId:U.email,createdAt:new Date().toISOString()});
+  refreshV();closeModal();
+}
+function editVehicle(i){var v=V[i];modal('<h3>Редактировать</h3><label>Госномер</label><input id="vf1" value="'+H(v.plateNumber)+'"><label>Марка</label><input id="vf2" value="'+H(v.brand||'')+'"><label>Модель</label><input id="vf3" value="'+H(v.model||'')+'"><div style="margin-top:12px"><button class="btn btn-p" onclick="saveEditV('+i+')">Сохранить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');}
+function saveEditV(i){V[i].plateNumber=document.getElementById('vf1').value;V[i].brand=document.getElementById('vf2').value;V[i].model=document.getElementById('vf3').value;refreshV();closeModal();}
+function delVehicle(i){if(V[i].isActive){alert('Нельзя удалить машину в рейсе');return;}if(confirm('Удалить '+V[i].plateNumber+'?')){V.splice(i,1);refreshV();}}
+function addDriver(){
+  modal('<h3>Добавить водителя</h3><label>ФИО *</label><input id="df1"><label>Телефон</label><input id="df2"><label>Email</label><input id="df3"><label>№ ВУ</label><input id="df4"><label>№ медосмотра</label><input id="df5"><label>Дата медосмотра</label><input id="df6" type="date"><div style="margin-top:12px"><button class="btn btn-p" onclick="saveDriver()">Сохранить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');
+}
+function saveDriver(){
+  var n=document.getElementById('df1').value.trim();if(!n){alert('ФИО обязательно');return;}
+  DR.push({uid:id(),displayName:n,phone:document.getElementById('df2').value,email:document.getElementById('df3').value,licenseNumber:document.getElementById('df4').value||null,medExamNumber:document.getElementById('df5').value||null,medExamDate:document.getElementById('df6').value||null,ownerId:U.email,role:'driver',createdAt:new Date().toISOString()});
+  refreshV();closeModal();
+}
+function editDriver(i){var d=DR[i];modal('<h3>Редактировать</h3><label>ФИО</label><input id="df1" value="'+H(d.displayName||'')+'"><label>Телефон</label><input id="df2" value="'+H(d.phone||'')+'"><div style="margin-top:12px"><button class="btn btn-p" onclick="saveEditD('+i+')">Сохранить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');}
+function saveEditD(i){DR[i].displayName=document.getElementById('df1').value;DR[i].phone=document.getElementById('df2').value;refreshV();closeModal();}
+function delDriver(i){if(confirm('Удалить '+DR[i].displayName+'?')){DR.splice(i,1);refreshV();}}
+
+function refreshV(){S('vehicles',V);S('drivers',DR);}
+
+// ===== TRIPS =====
+function Rtrips(){
+  var s=(new URLSearchParams(location.hash.split('?')[1]||'')).get('status')||'';
+  var filtered=T.slice().reverse();
+  if(s)filtered=filtered.filter(function(t){return t.status===s;});
+  // Date filter
+  var fromEl=document.getElementById('tfrom'),toEl=document.getElementById('tto');
+  if(fromEl&&fromEl.value)filtered=filtered.filter(function(t){return new Date(t.startTime)>=new Date(fromEl.value);});
+  if(toEl&&toEl.value)filtered=filtered.filter(function(t){return new Date(t.startTime)<=new Date(toEl.value+'T23:59:59');});
+  var h='<div class="toolbar"><select onchange="location.hash=\'trips?status=\'+this.value" id="ts"><option value="">Все</option><option value="active"'+(s==='active'?' selected':'')+'>Активные</option><option value="completed"'+(s==='completed'?' selected':'')+'>Завершённые</option></select> <input type="date" id="tfrom" style="width:140px" onchange="filterTrips()" placeholder="С"> <input type="date" id="tto" style="width:140px" onchange="filterTrips()" placeholder="По"> <button class="btn btn-o" onclick="document.getElementById(\'tfrom\').value=\'\';document.getElementById(\'tto\').value=\'\';filterTrips()\">Сброс</button></div>';
+  h+='<div id="mapview" style="display:none;height:400px;margin-bottom:16px;border-radius:var(--r);overflow:hidden"></div>';
+  if(filtered.length===0)h+=ph('Нет рейсов','Рейсы появятся когда водители начнут работу.','🛣️');
+  else{var page=parseInt((new URLSearchParams(location.hash.split('?')[1]||'')).get('page')||'0')||0;var pagesize=20;var paged=filtered.slice(page*pagesize,(page+1)*pagesize);
+  h+='<table><tr><th>Дата</th><th>Маршрут</th><th>Пробег</th><th>Доход</th><th>Статус</th><th></th></tr>';
+    paged.forEach(function(t,i){
+      var st=t.status==='active'?'<span class="chip chip-g">Активен</span>':t.status==='completed'?'<span class="chip chip-b">Завершён</span>':'<span class="chip chip-r">Отменён</span>';
+      h+='<tr><td>'+D(t.startTime)+'</td><td>'+H(t.routeDescription||'—')+'</td><td>'+(t.mileage||0)+' км</td><td>'+(t.income?F(t.income)+' ₽':'—')+'</td><td>'+st+'</td><td>'+ (t.status==='active'?'<button class="btn btn-s btn-r" onclick="cancelTrip(\''+t.id+'\')">✕</button> <button class="btn btn-s btn-o" onclick="showMap(\''+t.id+'\')">🗺️</button> ':'')+ (t.status==='completed'?'<button class="btn btn-s btn-p" onclick="genPDF(\''+t.id+'\')">📄 ПЛ</button> ':'')+'<button class="btn btn-s btn-o" onclick="editTrip(\''+t.id+'\')">✏️</button></td></tr>';
+    });
+    h+='</table>';
+    if(filtered.length>pagesize){var np=page+1;h+='<div style="margin-top:8px"><button class="btn btn-o" onclick="location.hash=\'trips?page='+np+'\'">Показать ещё ('+Math.min(np*pagesize,filtered.length)+' из '+filtered.length+')</button></div>';}
+  }
+  document.getElementById('content').innerHTML=h;
+}
+
+function editTrip(id){
+  var t=T.find(function(x){return x.id===id;});if(!t)return;
+  modal('<h3>Редактировать рейс</h3><label>Маршрут</label><input id="tf1" value="'+H(t.routeDescription||'')+'"><label>Доход (₽)</label><input id="tf2" type="number" value="'+(t.income||'')+'"><div style="margin-top:12px"><button class="btn btn-p" onclick="saveTrip(\''+id+'\')">Сохранить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');
+}
+function saveTrip(id){var t=T.find(function(x){return x.id===id;});if(t){t.routeDescription=document.getElementById('tf1').value;t.income=parseFloat(document.getElementById('tf2').value)||0;S('trips',T);closeModal();}}
+function genPDF(id){alert('Путевой лист для рейса '+id+'\nФункция генерации PDF будет доступна в ближайшее время.');}
+function filterTrips(){nav('trips');}
+function cancelTrip(id){var t=T.find(function(x){return x.id===id;});if(t&&confirm('Отменить рейс?')){t.status='cancelled';S('trips',T);nav('trips');}}
+
+var _map=null;
+function showMap(id){
+  var t=T.find(function(x){return x.id===id;});if(!t)return;
+  var mv=document.getElementById('mapview');mv.style.display='block';
+  var track=t.track||[];
+  if(track.length===0&&t.startLatitude){track=[{latitude:t.startLatitude,longitude:t.startLongitude}];}
+  if(track.length===0){mv.innerHTML='<div class="placeholder"><div class="ic">🗺️</div><p>Нет GPS-данных для этого рейса</p></div>';return;}
+  setTimeout(function(){
+    if(_map){_map.remove();_map=null;}
+    _map=L.map('mapview').setView([track[0].latitude,track[0].longitude],12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(_map);
+    var pts=track.map(function(p){return [p.latitude,p.longitude];});
+    L.polyline(pts,{color:'#2563eb',weight:4}).addTo(_map);
+    var start=track[0],end=track[track.length-1];
+    L.marker([start.latitude,start.longitude]).addTo(_map).bindPopup('Старт: '+D(t.startTime));
+    L.marker([end.latitude,end.longitude]).addTo(_map).bindPopup('Последняя точка');
+    _map.fitBounds(L.polyline(pts).getBounds().pad(0.1));
+  },100);
+}
+
+// ===== EXPENSES =====
+function Rexp(){
+  // Persistence: mutations save individually
+  var h='<div class="toolbar"><select id="ef" onchange="refreshExp()"><option value="">Все водители</option>';DR.forEach(function(d){h+='<option value="'+d.uid+'">'+H(d.displayName||d.uid)+'</option>';});
+  h+='</select> <input type="date" id="efrom" style="width:140px" onchange="nav(\'expenses\')" placeholder="С"> <input type="date" id="eto" style="width:140px" onchange="nav(\'expenses\')" placeholder="По"><button class="btn btn-o" onclick="exportCSV(\'expenses\')">📥 CSV</button></div>';
+  // Filter expenses
+  var flt=E.slice();
+  var drvEl=document.getElementById('ef');if(drvEl&&drvEl.value)flt=flt.filter(function(e){return e.driverId===drvEl.value;});
+  var fromEl=document.getElementById('efrom'),toEl=document.getElementById('eto');
+  if(fromEl&&fromEl.value)flt=flt.filter(function(e){return new Date(e.createdAt)>=new Date(fromEl.value);});
+  if(toEl&&toEl.value)flt=flt.filter(function(e){return new Date(e.createdAt)<=new Date(toEl.value+'T23:59:59');});
+  var byCat={};var total=0;
+  flt.forEach(function(e){byCat[e.category]=byCat[e.category]||0;byCat[e.category]+=e.amount;total+=e.amount;});
+  h+='<div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">';
+  var cats=['fuel','parking','repair','toll','washing','tires','insurance','other'];
+  var clabels={fuel:'Топливо',parking:'Стоянка',repair:'Ремонт',toll:'Дорожный сбор',washing:'Мойка',tires:'Шиномонтаж',insurance:'Страховка',other:'Прочее'};
+  cats.forEach(function(c){h+='<div class="card"><div class="val">'+F(byCat[c]||0)+' ₽</div><div class="lbl">'+clabels[c]+'</div></div>';});
+  h+='</div><p style="margin-bottom:16px"><b>Всего:</b> '+F(total)+' ₽</p>';
+  if(flt.length===0)h+=ph('Нет расходов','Расходы появятся когда водители начнут добавлять их в рейсах.','📋');
+  else{h+='<table><tr><th>Дата</th><th>Категория</th><th>Сумма</th><th>Описание</th><th>Чек</th><th></th></tr>';
+    flt.slice().reverse().slice(0,20).forEach(function(e,i){
+      var ridx=E.indexOf(e);
+      h+='<tr><td>'+D(e.createdAt)+'</td><td>'+clabels[e.category]+'</td><td>'+F(e.amount)+' ₽</td><td>'+H(e.description||'—')+'</td><td>'+(e.receiptUrl?'<img src="'+H(e.receiptUrl)+'" style="width:40px;height:40px;object-fit:cover;border-radius:4px;cursor:pointer" onclick="window.open(\''+encodeURIComponent(e.receiptUrl)+'\',\'_blank\')">':'—')+'</td><td><button class="btn btn-s btn-r" onclick="delExpense('+ridx+')">🗑</button></td></tr>';
+    });
+    h+='</table>';}
+  document.getElementById('content').innerHTML=h;
+}
+
+function delExpense(i){if(confirm('Удалить расход '+F(E[i].amount)+' ₽?')){E.splice(i,1);S('expenses',E);nav('expenses');}}
+
+// ===== SALARY =====
+function Rsal(){
+  // Persistence: mutations save individually
+  var h='<h3>Правила начисления</h3><div class="toolbar"><select id="sdriver">';DR.forEach(function(d){h+='<option value="'+d.uid+'">'+H(d.displayName||d.uid)+'</option>';});
+  h+='</select><select id="stype"><option value="percent">% от дохода</option><option value="fixed">Фикс за рейс</option></select><input id="sval" type="number" placeholder="Значение" style="width:100px"><button class="btn btn-p" onclick="addRule()">Сохранить</button></div>';
+  h+='<h3 style="margin-top:20px">Период</h3><div class="toolbar"><input type="date" id="spfrom" style="width:150px"> → <input type="date" id="spto" style="width:150px"></div><button class="btn btn-p" style="margin-top:12px" onclick="calcSalary()">Рассчитать зарплату</button> <button class="btn btn-o" style="margin-top:12px" onclick="exportCSV(\'salary\')">📥 CSV</button>';
+  h+='<h3 style="margin-top:20px">История выплат</h3>';
+  if(SP.length===0)h+=ph('Нет выплат','Рассчитайте зарплату для водителя.','💰');
+  else{h+='<table><tr><th>Водитель</th><th>Период</th><th>Сумма</th><th>Рейсов</th><th>Статус</th><th></th></tr>';
+    SP.slice().reverse().forEach(function(p,i){
+      var st=p.status==='paid'?'<span class="chip chip-g">Оплачено</span>':p.status==='calculated'?'<span class="chip chip-a">Рассчитано</span>':'<span class="chip chip-r">Отменено</span>';
+      h+='<tr><td>'+H(p.driverName||p.driverId)+'</td><td>'+D(p.periodStart)+' – '+D(p.periodEnd)+'</td><td>'+F(p.calculatedSalary)+' ₽</td><td>'+(p.tripCount||0)+'</td><td>'+st+'</td><td>'+(p.status==='calculated'?'<button class="btn btn-s btn-g" onclick="markPaid('+i+')">✓</button> <button class="btn btn-s btn-r" onclick="markCancelled('+i+')">✕</button>':'')+'</td></tr>';
+    });
+    h+='</table>';}
+  document.getElementById('content').innerHTML=h;
+}
+
+function markPaid(i){SP[i].status='paid';SP[i].paidAt=new Date().toISOString();S('salary_payments',SP);nav('salary');}
+function markCancelled(i){SP[i].status='cancelled';S('salary_payments',SP);nav('salary');}
+
+function addRule(){
+  var d=document.getElementById('sdriver').value,t=document.getElementById('stype').value,v=parseFloat(document.getElementById('sval').value)||15;
+  SR.push({id:id(),driverId:d,type:t,percentValue:t==='percent'?v:null,fixedValue:t==='fixed'?v:null,isActive:true,ownerId:U.email,createdAt:new Date().toISOString()});
+  S('salary_rules',SR);nav('salary');
+}
+function calcSalary(){
+  var d=document.getElementById('sdriver').value,r=SR.filter(function(x){return x.driverId===d&&x.isActive;})[0];
+  if(!r){alert('Сначала задайте правило для этого водителя');return;}
+  var from=document.getElementById('spfrom').value,to=document.getElementById('spto').value;
+  if(!from||!to){from=new Date(Date.now()-2592000000).toISOString().split('T')[0];to=new Date().toISOString().split('T')[0];}
+  var trips=T.filter(function(t){return t.driverId===d&&t.status==='completed'&&t.startTime>=from+'T00:00:00'&&t.startTime<=to+'T23:59:59';});
+  if(trips.length===0){alert('Нет завершённых рейсов за этот период');return;}
+  var inc=trips.reduce(function(s,t){return s+(t.income||0);},0);
+  var sal=r.type==='percent'?Math.round(inc*(r.percentValue||0)/100):trips.length*(r.fixedValue||0);
+  SP.push({id:id(),driverId:d,driverName:(DR.find(function(x){return x.uid===d;})||{}).displayName||d,periodStart:from,periodEnd:to,tripIds:trips.map(function(t){return t.id;}),totalIncome:inc,calculatedSalary:sal,tripCount:trips.length,ruleType:r.type,ruleValue:r.type==='percent'?r.percentValue:r.fixedValue,status:'calculated',createdAt:new Date().toISOString()});
+  S('salary_payments',SP);nav('salary');alert('Зарплата рассчитана: '+F(sal)+' ₽');
+}
+
+function exportCSV(type){
+  var csv='',data=[],cols=[];
+  if(type==='expenses'){cols=['Дата','Категория','Сумма','Описание'];data=E;csv=cols.join(',')+'\n';data.forEach(function(e){csv+=[D(e.createdAt),e.category,F(e.amount),'"'+(e.description||'').replace(/"/g,'""')+'"'].join(',')+'\n';});}
+  else if(type==='salary'){cols=['Водитель','Период с','Период по','Сумма','Рейсов','Статус'];data=SP;csv=cols.join(',')+'\n';data.forEach(function(p){csv+=[p.driverName||p.driverId,D(p.periodStart),D(p.periodEnd),F(p.calculatedSalary),p.tripCount||0,p.status].join(',')+'\n';});}
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=type+'.csv';a.click();
+}
+</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js',{scope:'/cabinet/'});}</script>
+</body>
+</html>

@@ -1,14 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:html' as html;
-
-void goHome(BuildContext context) {
-  if (kIsWeb) {
-    html.window.location.href = '/';
-  } else {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const Scaffold(body: Center(child: CircularProgressIndicator()))),
-      (_) => false,
-    );
-  }
-}
+export '_navigation_stub.dart'
+    if (dart.library.html) '_navigation_web.dart'
+    if (dart.library.io) '_navigation_mobile.dart';

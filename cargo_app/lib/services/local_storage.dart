@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,21 +42,11 @@ class LocalStorage {
 
   bool get isInitialized => _initialized;
 
-  /// При первом запуске заполняем демо-данными.
+  /// При первом запуске создаём preset-аккаунты. Без демо-данных.
   void _seedIfEmpty() {
-    if (_prefs!.getString(_kVehicles) == null) {
-      _saveVehicles(DemoData.vehicles);
-      _saveTrips(DemoData.trips);
-      _saveExpenses(DemoData.expenses);
-      _saveDrivers(DemoData.drivers);
-      _saveSalaryRules(DemoData.salaryRules);
-      _saveSalaryPayments(DemoData.salaryPayments);
-      // Суперадмин
-      users.add({'uid': 'admin', 'email': 'admin@numino.ru', 'passwordHash': '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'displayName': 'Администратор', 'role': 'superadmin', 'phone': '+79990000001'});
-      // Владелец парка
-      users.add({'uid': 'owner1', 'email': 'owner@numino.ru', 'passwordHash': '43a0d17178a9d26c9e0fe9a74b0b45e38d32f27aed887a008a54bf6e033bf7b9', 'displayName': 'Владелец парка', 'role': 'owner', 'phone': '+79990000002'});
-      // Водитель
-      users.add({'uid': 'driver1', 'email': 'driver@numino.ru', 'passwordHash': '494d022492052a06f8f81949639a1d148c1051fa3d4e4688fbd96efe649cd382', 'displayName': 'Иван Петров', 'role': 'driver', 'phone': '+79990000003'});
+    if (_prefs!.getString(_kUsers) == null) {
+      _addUserInternal('admin@numino.ru', 'admin123', 'Администратор', 'superadmin', 'fixed_salt_admin_01');
+      _addUserInternal('owner@numino.ru', 'owner123', 'Владелец парка', 'owner', 'fixed_salt_owner_01');
       _prefs!.setString(_kUsers, jsonEncode(users));
     } else {
       _loadAll();
@@ -90,17 +81,31 @@ class LocalStorage {
     return sha256.convert(utf8.encode(input)).toString();
   }
 
+  static String _generateSalt() {
+    final rng = Random.secure();
+    final bytes = List<int>.generate(16, (_) => rng.nextInt(256));
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
+
+  static String _hashWithSalt(String input, String salt) {
+    return sha256.convert(utf8.encode(salt + input)).toString();
+  }
+
   Map<String, dynamic>? findUser(String email, String password) {
     try {
-      final hash = _hash(password);
-      return users.where((u) => u['email'] == email && u['passwordHash'] == hash).firstOrNull;
+      final user = users.where((u) => u['email'] == email).firstOrNull;
+      if (user == null) return null;
+      final salt = user['passwordSalt'] as String?;
+      final hash = salt != null ? _hashWithSalt(password, salt) : _hash(password);
+      return hash == user['passwordHash'] ? user : null;
     } catch (_) { return null; }
   }
 
   /// Офлайн-регистрация (пароль сохраняется для локальной аутентификации).
   Map<String, dynamic>? registerUser(String email, String password, String name, String role) {
     if (users.any((u) => u['email'] == email)) return null;
-    final user = {'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'passwordHash': _hash(password), 'displayName': name, 'role': role};
+    final salt = _generateSalt();
+    final user = {'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'passwordHash': _hashWithSalt(password, salt), 'passwordSalt': salt, 'displayName': name, 'role': role};
     users.add(user);
     _prefs!.setString(_kUsers, jsonEncode(users));
     return user;
@@ -138,6 +143,7 @@ class LocalStorage {
 
   void saveVehicles() => _saveVehicles(vehicles);
   void saveExpenses() => _saveExpenses(expenses);
+  void saveDrivers() => _saveDrivers(drivers);
   void addDriver(Map<String,dynamic> d) { drivers.add(d); _saveDrivers(drivers); }
   void addSalaryRule(SalaryRule r) { salaryRules.add(r); _saveSalaryRules(salaryRules); }
   void addSalaryPayment(SalaryPayment p) { salaryPayments.add(p); _saveSalaryPayments(salaryPayments); }
@@ -199,7 +205,12 @@ class LocalStorage {
   // ===== СУПЕРАДМИН: управление пользователями =====
 
   void addUser(String email, String password, String name, String role) {
-    users.add({'uid': DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'passwordHash': _hash(password), 'displayName': name, 'role': role, 'active': true});
+    _addUserInternal(email, password, name, role, null);
+  }
+
+  void _addUserInternal(String email, String password, String name, String role, String? fixedSalt, [String? uid]) {
+    final salt = fixedSalt ?? _generateSalt();
+    users.add({'uid': uid ?? DateTime.now().millisecondsSinceEpoch.toString(), 'email': email, 'passwordHash': _hashWithSalt(password, salt), 'passwordSalt': salt, 'displayName': name, 'role': role, 'active': true});
     _prefs!.setString(_kUsers, jsonEncode(users));
   }
 
@@ -249,6 +260,29 @@ class LocalStorage {
 
   void saveTickets(List<Map<String, dynamic>> list) {
     _prefs!.setString('tickets', jsonEncode(list));
+  }
+
+  List<Map<String,dynamic>> get invites {
+    try {
+      final raw = _prefs!.getString('invites');
+      if (raw != null && raw.isNotEmpty) {
+        return List<Map<String,dynamic>>.from(jsonDecode(raw) as List);
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  void saveInvites() => _prefs!.setString('invites', jsonEncode(invites));
+
+  void addInvite(String code, String ownerId, String driverName) {
+    final list = invites;
+    list.add({
+      'code': code, 'ownerId': ownerId, 'driverName': driverName,
+      'createdAt': DateTime.now().toIso8601String(),
+      'expiresAt': DateTime.now().add(const Duration(hours: 48)).toIso8601String(),
+      'used': false,
+    });
+    _prefs!.setString('invites', jsonEncode(list));
   }
 
   // ===== СИНХРОНИЗАЦИЯ (офлайн-буфер) =====

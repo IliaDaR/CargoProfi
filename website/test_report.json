@@ -1,10 +1,7 @@
 {
-  "passed": 10,
-  "failed": 2,
+  "passed": 15,
+  "failed": 0,
   "warnings": 0,
-  "errors": [
-    "❌ HTML структура (секции, модалка): 10 кнопок без type",
-    "❌ Контактная форма (FormSubmit, honeypot): No honeypot"
-  ],
-  "total": 12
+  "errors": [],
+  "total": 15
 }

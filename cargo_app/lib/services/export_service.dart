@@ -22,7 +22,8 @@ class ExportService {
     final buf = StringBuffer();
     buf.writeln('Дата,Категория,Сумма,Описание');
     for (final e in list) {
-      buf.writeln('${df.format(e.createdAt)},"${categoryLabel(e.category.name)}",${e.amount},"${e.description ?? ''}"');
+      final desc = (e.description ?? '').replaceAll('"', '""');
+      buf.writeln('${df.format(e.createdAt)},"${categoryLabel(e.category.name)}",${e.amount},"$desc"');
     }
     return Uint8List.fromList(utf8.encode('\uFEFF${buf.toString()}'));
   }

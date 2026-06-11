@@ -53,7 +53,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         ]),
       ])),
       if (list.isNotEmpty)
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Card(color: Colors.green.shade50, child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Card(color: Colors.green.shade50, child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Text('Всего: ${total.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const Spacer(),
@@ -65,18 +65,16 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             const Spacer(), Text('${e.value.toStringAsFixed(0)} ₽', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
           ]))),
         ]))),
-      Expanded(child: Column(children: [
-        Expanded(child: list.isEmpty ? const Center(child: Text('Нет расходов')) : SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(columns: const [
-          DataColumn(label: Text('Дата')), DataColumn(label: Text('Категория')), DataColumn(label: Text('Сумма')), DataColumn(label: Text('Описание')), DataColumn(label: Text('Чек')), DataColumn(label: Text('')),
-        ], rows: list.map((e) => DataRow(cells: [
-          DataCell(Text(df.format(e.createdAt))), DataCell(Text(expenseCategoryLabel(e.category))),
-          DataCell(Text('${e.amount.toStringAsFixed(0)} ₽')), DataCell(Text(e.description ?? '—')),
-          DataCell(_buildReceipt(e)),
-          DataCell(IconButton(icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red), onPressed: () => _deleteExpense(e.id))),
-        ])).toList()))),
-        if (totalCount > _pageSize)
-          Padding(padding: const EdgeInsets.all(8), child: TextButton(onPressed: () => setState(() => _pageSize += 20), child: Text('Показать ещё ($_pageSize из $totalCount)'))),
-      ])),
+      Expanded(child: list.isEmpty ? const Center(child: Text('Нет расходов')) : SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(columns: const [
+        DataColumn(label: Text('Дата')), DataColumn(label: Text('Категория')), DataColumn(label: Text('Сумма')), DataColumn(label: Text('Описание')), DataColumn(label: Text('Чек')), DataColumn(label: Text('')),
+      ], rows: list.map((e) => DataRow(cells: [
+        DataCell(Text(df.format(e.createdAt))), DataCell(Text(expenseCategoryLabel(e.category))),
+        DataCell(Text('${e.amount.toStringAsFixed(0)} ₽')), DataCell(Text(e.description ?? '—')),
+        DataCell(_buildReceipt(e)),
+        DataCell(IconButton(icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red), onPressed: () => _deleteExpense(e.id))),
+      ])).toList()))),
+      if (totalCount > _pageSize)
+        Padding(padding: const EdgeInsets.all(8), child: TextButton(onPressed: () => setState(() => _pageSize += 20), child: Text('Показать ещё ($_pageSize из $totalCount)'))),
     ]);
   }
 

@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import '../models/trip.dart';
+import '../utils/constants.dart';
 import '../services/local_storage.dart';
 
 /// Генерирует PDF путевого листа по форме Минтранса.
@@ -15,6 +16,9 @@ class WaybillPdf {
     final vehicle = store.vehicles.where((v) => v.id == trip.vehicleId).firstOrNull;
     final driver = store.drivers.where((d) => d['uid'] == trip.driverId).firstOrNull;
     final driverName = driver?['displayName'] ?? trip.driverId;
+
+    final waybillUuid = trip.waybillUuid ?? '${trip.id}-${DateTime.now().millisecondsSinceEpoch}';
+    final checkUrl = 'https://numino.ru/check?id=$waybillUuid';
 
     pdf.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
@@ -58,19 +62,31 @@ class WaybillPdf {
           pw.SizedBox(height: 10),
           _divider(),
           pw.SizedBox(height: 8),
-          pw.Text('Код проверки: ${trip.id.substring(0, 8)}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey)),
-          pw.Text('Проверка: https://numino.ru/check?id=${trip.id}', style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey)),
+          pw.Text('Код проверки: ${waybillUuid.substring(0, 8)}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey)),
+          pw.Text('Проверка: $checkUrl', style: pw.TextStyle(fontSize: 7, color: PdfColors.grey)),
+          pw.SizedBox(height: 6),
+          _qrCodeWidget(checkUrl),
           pw.SizedBox(height: 12),
           pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
             pw.Column(children: [
-              pw.Container(width: 150, child: const pw.Divider()),
-              pw.Text('Водитель', style: const pw.TextStyle(fontSize: 10)),
+              pw.Divider(),
+              pw.Text('Водитель', style: pw.TextStyle(fontSize: 10)),
             ]),
             pw.Column(children: [
-              pw.Container(width: 150, child: const pw.Divider()),
-              pw.Text('Владелец', style: const pw.TextStyle(fontSize: 10)),
+              pw.Divider(),
+              pw.Text('Владелец', style: pw.TextStyle(fontSize: 10)),
             ]),
           ]),
+          pw.SizedBox(height: 10),
+          if (trip.signatureStatus == 'signed') ...[
+            pw.Text('ЭЦП: документ подписан УКЭП (Госключ)', style: pw.TextStyle(fontSize: 9, color: PdfColors.green)),
+            if (trip.signatureHash != null)
+              pw.Text('Хэш: ${trip.signatureHash}', style: pw.TextStyle(fontSize: 7, color: PdfColors.grey)),
+            if (trip.signedAt != null)
+              pw.Text('Подписан: ${df.format(trip.signedAt!)} ${DateFormat('HH:mm').format(trip.signedAt!)}', style: pw.TextStyle(fontSize: 7, color: PdfColors.grey)),
+          ] else ...[
+            pw.Text('Место для УКЭП (Госключ)', style: pw.TextStyle(fontSize: 9, color: PdfColors.grey)),
+          ],
         ];
       },
     ));
@@ -82,7 +98,7 @@ class WaybillPdf {
     final df = DateFormat('dd.MM.yyyy');
     return pw.Center(
       child: pw.Column(children: [
-        pw.Text('ПУТЕВОЙ ЛИСТ ГРУЗОВОГО АВТОМОБИЛЯ', style: const pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+        pw.Text('ПУТЕВОЙ ЛИСТ ГРУЗОВОГО АВТОМОБИЛЯ', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 4),
         pw.Text('Форма по Приказу Минтранса России', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey)),
         pw.SizedBox(height: 8),
@@ -95,7 +111,7 @@ class WaybillPdf {
   }
 
   static pw.Widget _sectionTitle(String text) {
-    return pw.Text(text, style: const pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline));
+    return pw.Text(text, style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline));
   }
 
   static pw.Widget _row(String label, String value) {
@@ -110,5 +126,9 @@ class WaybillPdf {
 
   static pw.Widget _divider() {
     return pw.Container(height: 1, color: PdfColors.grey300);
+  }
+
+  static pw.Widget _qrCodeWidget(String data) {
+    return pw.Text('numino.ru/check', style: pw.TextStyle(fontSize: 6, color: PdfColors.grey));
   }
 }

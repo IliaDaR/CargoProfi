@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Вход — Numino</title><meta name="robots" content="noindex, nofollow"><link rel="icon" href="assets/favicon.svg">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}:root{--blue:#2563eb;--blue-d:#1d4ed8;--g50:#f8fafc;--g100:#f1f5f9;--g400:#94a3b8;--g700:#334155;--g900:#0f172a;--r:12px}
+body{font-family:Inter,system-ui,sans-serif;background:var(--g50);color:var(--g900);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:var(--r);box-shadow:0 4px 24px rgba(0,0,0,.08);padding:40px;max-width:420px;width:100%}
+.logo{display:block;margin:0 auto 8px;width:48px}
+h1{text-align:center;font-size:1.25rem;font-weight:700;margin-bottom:4px}
+.sub{text-align:center;color:var(--g400);font-size:.85rem;margin-bottom:24px}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:16px}
+.field label{font-size:.8rem;font-weight:600;color:var(--g700)}
+.field input{width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:.9rem}
+.field input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.btn{width:100%;padding:12px;border:none;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;transition:.2s}
+.btn--primary{background:var(--blue);color:#fff}.btn--primary:hover{background:var(--blue-d);transform:translateY(-1px)}.btn--primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn--outline{background:transparent;color:var(--blue);border:1px solid var(--blue);margin-top:8px}.btn--outline:hover{background:var(--blue);color:#fff}
+.btn--sm{width:auto;padding:8px 16px;font-size:.8rem;border:1px solid #e2e8f0;background:#fff;border-radius:8px;color:var(--g400);text-decoration:none;display:inline-block;margin-top:16px}
+.msg{text-align:center;font-size:.8rem;margin-top:12px;min-height:20px}.msg.error{color:#dc2626}.msg.success{color:#16a34a}
+@media(prefers-color-scheme:dark){body{background:#1e293b;color:#e2e8f0}.card{background:#334155}.field input{background:#475569;border-color:#64748b;color:#e2e8f0}.field label{color:#cbd5e1}.btn--sm{background:#334155;border-color:#475569;color:#94a3b8}}
+</style>
+</head>
+<body>
+<div class="card">
+<img class="logo" src="assets/logo.svg" alt="Numino"><h1>Вход в кабинет</h1><p class="sub" id="subtitle">Рабочий кабинет перевозчика</p>
+<form id="authForm" autocomplete="on">
+<div class="field" id="nameField" style="display:none"><label for="authName">Имя</label><input type="text" id="authName" placeholder="Иван Петров" autocomplete="name"></div>
+<div class="field"><label for="authEmail">Email</label><input type="email" id="authEmail" placeholder="ivan@perevozki.ru" required autocomplete="email"></div>
+<div class="field"><label for="passLabel">Пароль</label><input type="password" id="authPass" placeholder="Минимум 6 символов" required minlength="6" autocomplete="current-password"></div>
+<button type="submit" class="btn btn--primary" id="submitBtn">Войти</button>
+<button type="button" class="btn btn--outline" id="regBtn">Зарегистрироваться</button>
+</form>
+<div style="text-align:center;margin-top:8px"><a href="#" id="forgotLink" style="font-size:.8rem;color:var(--blue);text-decoration:none">Забыли пароль?</a></div>
+<div style="margin-top:16px;text-align:center"><div style="color:#94a3b8;font-size:.8rem;margin-bottom:8px">или</div><a href="https://oauth.yandex.ru/authorize?response_type=token&client_id=0e4317419b05488097eed2e06c88400f&redirect_uri=https://numino.ru/callback.html" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#fc3f1d;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:.9rem"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="12" r="11"/><text x="12" y="17" text-anchor="middle" font-size="14" font-weight="bold" fill="#fc3f1d">Я</text></svg>Войти через Яндекс ID</a></div>
+<div class="msg" id="msg"></div>
+<a href="/" class="btn--sm">← На главную</a>
+</div>
+<script>
+(function(){
+var isReg=false,codeSent=false,form=document.getElementById('authForm'),nameField=document.getElementById('nameField'),
+    regBtn=document.getElementById('regBtn'),forgot=document.getElementById('forgotLink'),msg=document.getElementById('msg'),
+    btn=document.getElementById('submitBtn'),subtitle=document.getElementById('subtitle'),passLabel=document.getElementById('passLabel');
+
+function setMsg(t,c){msg.textContent=t;msg.className='msg '+(c||'');}
+function setLoading(v){btn.disabled=v;btn.textContent=v?'Загрузка...':(isReg?(codeSent?'Подтвердить':'Отправить код'):'Войти');}
+function isValidEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);}
+
+regBtn.addEventListener('click',function(e){e.preventDefault();isReg=!isReg;nameField.style.display=isReg?'flex':'none';
+  if(isReg){regBtn.style.display='none';btn.textContent='Отправить код';subtitle.textContent='Регистрация нового владельца';
+    document.getElementById('authPass').type='text';document.getElementById('authPass').placeholder='6 цифр кода';passLabel.textContent='Код верификации';codeSent=false;document.getElementById('authPass').value='';}
+  else{regBtn.style.display='block';btn.textContent='Войти';subtitle.textContent='Рабочий кабинет перевозчика';
+    document.getElementById('authPass').type='password';document.getElementById('authPass').placeholder='Минимум 6 символов';passLabel.textContent='Пароль';codeSent=false;document.getElementById('authPass').value='';}
+  setMsg('');});
+if(location.hash==='#register')setTimeout(function(){regBtn.click();},100);
+
+forgot.addEventListener('click',function(e){e.preventDefault();
+  if(!isReg){setMsg('Введите email для восстановления','');nameField.style.display='none';regBtn.style.display='none';
+    document.getElementById('authPass').style.display='none';btn.textContent='Восстановить пароль';
+    window._forgotMode=true;subtitle.textContent='На указанный email будет отправлен новый пароль';}
+});
+
+form.addEventListener('submit',async function(e){e.preventDefault();
+  var email=document.getElementById('authEmail').value.trim().toLowerCase(),pass=document.getElementById('authPass').value,name=document.getElementById('authName').value.trim();
+  if(!email||!pass){setMsg('Заполните все поля','error');return;}
+  if(!isValidEmail(email)){setMsg('Неверный формат email','error');return;}
+  if(pass.length<6){setMsg(isReg?'Код — 6 цифр':'Пароль минимум 6 символов','error');return;}
+  if(isReg&&!name){setMsg('Введите имя','error');return;}
+  setLoading(true);setMsg('');
+
+  if(isReg&&!codeSent){
+    try{var r=await fetch('https://functions.yandexcloud.net/d4ebe398cf4irb742g3f?endpoint=send_code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,name:name})});
+      var d=await r.json();if(d.success){codeSent=true;setMsg('Код: '+d.code+' (отправлен на '+email+')','success');btn.textContent='Подтвердить';setLoading(false);return;}
+      if(d.error){setMsg(d.error,'error');setLoading(false);return;}}catch(ex){setMsg('Сервер недоступен','error');setLoading(false);return;}
+  }
+
+  if(isReg&&codeSent){
+    try{var r2=await fetch('https://functions.yandexcloud.net/d4ebe398cf4irb742g3f?endpoint=verify_code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,code:pass,name:name})});
+      var d2=await r2.json();if(d2.success){localStorage.setItem('flutter.current_user',JSON.stringify({uid:email,email:email,role:'owner',displayName:d2.name||name}));setMsg('Регистрация успешна!','success');setTimeout(function(){location.href='/cabinet/';},500);return;}
+      if(d2.error){setMsg(d2.error,'error');setLoading(false);return;}}catch(ex){setMsg('Сервер недоступен','error');setLoading(false);return;}
+  }
+
+  if(!isReg&&window._forgotMode){
+    try{var r4=await fetch('https://functions.yandexcloud.net/d4ebe398cf4irb742g3f?endpoint=reset_password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})});
+      var d4=await r4.json();if(d4.success){setMsg('Новый пароль отправлен на '+email,'success');window._forgotMode=false;
+        document.getElementById('authPass').style.display='block';btn.textContent='Войти';regBtn.style.display='block';subtitle.textContent='Рабочий кабинет перевозчика';setLoading(false);return;}
+      if(d4.error){setMsg(d4.error,'error');setLoading(false);return;}}catch(ex){setMsg('Сервер недоступен','error');setLoading(false);return;}
+  }
+  if(!isReg&&!window._forgotMode){
+    try{var r3=await fetch('https://functions.yandexcloud.net/d4ebe398cf4irb742g3f?endpoint=login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass})});
+    var d3=await r3.json();if(d3.success){var dest=d3.role==='admin'?'/panel-9c45a77d1394114d/':'/cabinet/';localStorage.setItem('flutter.current_user',JSON.stringify({uid:email,email:email,role:d3.role||'owner',displayName:d3.name}));setMsg('Вход выполнен!','success');setTimeout(function(){location.href=dest;},500);return;}
+    if(d3.error){setMsg(d3.error,'error');setLoading(false);return;}}catch(ex){setMsg('Сервер недоступен','error');setLoading(false);return;}}
+});
+})();
+</script>
+</body>
+</html>

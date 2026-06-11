@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 import {Timestamp} from "firebase-admin/firestore";
 import {Trip, Vehicle, DriverProfile} from "./types";
 import * as QRCode from "qrcode";
+import {checkIsOwner} from "./auth";
 
 const db = admin.firestore();
 
@@ -22,7 +23,7 @@ const db = admin.firestore();
  */
 export const generateWaybill = functions.https.onCall(
   {
-    enforceAppCheck: false,
+    enforceAppCheck: true,
     timeoutSeconds: 60,
     memory: "512MiB",
   },
@@ -35,8 +36,7 @@ export const generateWaybill = functions.https.onCall(
       );
     }
 
-    const ownerDoc = await db.collection("owners").doc(uid).get();
-    if (!ownerDoc.exists || (ownerDoc.data()?.role !== "owner" && ownerDoc.data()?.role !== "superadmin" && ownerDoc.data()?.role !== "admin")) {
+    if (!(await checkIsOwner(uid))) {
       throw new functions.https.HttpsError(
         "permission-denied",
         "Только владелец может формировать путевые листы"
@@ -88,7 +88,8 @@ export const generateWaybill = functions.https.onCall(
       PDFDocument,
       trip,
       vehicle,
-      driver
+      driver,
+      waybillUuid
     );
 
     const bucket = admin.storage().bucket();
@@ -104,9 +105,11 @@ export const generateWaybill = functions.https.onCall(
     await file.makePublic();
 
     const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
+    const waybillUuid = `${tripId}-${Date.now()}`;
 
     await db.collection("trips").doc(tripId).update({
       waybillUrl: publicUrl,
+      waybillUuid: waybillUuid,
       updatedAt: Timestamp.now(),
     });
 
@@ -118,6 +121,7 @@ export const generateWaybill = functions.https.onCall(
     return {
       success: true,
       waybillUrl: publicUrl,
+      waybillUuid: waybillUuid,
       tripId,
     };
   }
@@ -131,7 +135,8 @@ async function generateWaybillPdf(
   PDFDocument: typeof import("pdfkit"),
   trip: Trip,
   vehicle: Vehicle | null,
-  driver: DriverProfile | null
+  driver: DriverProfile | null,
+  waybillUuid: string
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
@@ -178,6 +183,24 @@ async function generateWaybillPdf(
       doc.text(
         `Водитель: ${driver?.displayName || "—"}${" ".repeat(20)}Удостоверение: ${driver?.licenseNumber || "—"}`
       );
+      doc.moveDown(0.3);
+
+      if (driver?.medExamNumber) {
+        const medDate = driver.medExamDate?.toDate?.();
+        const medDateStr = medDate ? medDate.toLocaleDateString("ru-RU") : "—";
+        doc.text(
+          `Медосмотр №: ${driver.medExamNumber}${" ".repeat(20)}Дата: ${medDateStr}`,
+          {fontSize: 9, color: 'grey'}
+        );
+      }
+      if (vehicle?.techExamNumber) {
+        const techDate = vehicle.techExamDate?.toDate?.();
+        const techDateStr = techDate ? techDate.toLocaleDateString("ru-RU") : "—";
+        doc.text(
+          `Техосмотр №: ${vehicle.techExamNumber}${" ".repeat(20)}Дата: ${techDateStr}`,
+          {fontSize: 9, color: 'grey'}
+        );
+      }
       doc.moveDown(1);
 
       // --- Линия ---
@@ -240,9 +263,9 @@ async function generateWaybillPdf(
       }
 
       // --- QR-код и проверка ---
-      const checkUrl = `https://numino.ru/check?id=${trip.id}`;
+      const checkUrl = `https://numino.ru/check?id=${waybillUuid}`;
       doc.moveDown(1);
-      doc.text(`Код проверки: ${trip.id.substring(0, 8)}`, {fontSize: 9, color: 'grey'});
+      doc.text(`Код проверки: ${waybillUuid.substring(0, 8)}`, {fontSize: 9, color: 'grey'});
       doc.text(`Проверка: ${checkUrl}`, {fontSize: 7, color: 'grey'});
       doc.moveDown(0.5);
       try {
@@ -257,6 +280,35 @@ async function generateWaybillPdf(
       doc.text("____________________________  /Водитель/", {indent: 300});
       doc.moveDown(1);
       doc.text("____________________________  /Владелец/", {indent: 300});
+      doc.moveDown(1);
+
+      if (trip.signatureStatus === "signed") {
+        doc.fontSize(9);
+        doc.text(
+          `ЭЦП: документ подписан УКЭП (Госключ)`,
+          {color: 'green'}
+        );
+        if (trip.signatureHash) {
+          doc.moveDown(0.3);
+          doc.text(
+            `Хэш: ${trip.signatureHash}`,
+            {fontSize: 7, color: 'grey'}
+          );
+        }
+        if (trip.signedAt) {
+          const d = trip.signedAt.toDate();
+          doc.text(
+            `Дата подписания: ${d.toLocaleDateString("ru-RU")} ${d.toLocaleTimeString("ru-RU")}`,
+            {fontSize: 7, color: 'grey'}
+          );
+        }
+      } else {
+        doc.text("Место для УКЭП (Госключ)", {
+          indent: 300,
+          fontSize: 9,
+          color: 'grey',
+        });
+      }
 
       doc.end();
     } catch (err) {

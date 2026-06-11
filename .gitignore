@@ -17,6 +17,7 @@ cargo_app/android/.gradle/
 cargo_app/android/app/build/
 cargo_app/android/build/
 cargo_app/android/local.properties
+cargo_app/android/key.properties
 cargo_app/ios/Pods/
 cargo_app/ios/.symlinks/
 cargo_app/.flutter-plugins
@@ -32,3 +33,4 @@ cargo_app/pubspec.lock
 # OS
 .DS_Store
 Thumbs.db
+.aider*

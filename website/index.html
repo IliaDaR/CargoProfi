@@ -60,7 +60,7 @@
         <a href="#pricing">Тарифы</a>
         <a href="#contact">Контакты</a>
       </nav>
-      <button type="button" class="btn btn--sm btn--primary login-btn">Войти</button>
+      <button type="button" class="btn btn--sm btn--primary" onclick="location.href='login.html'">Войти</button>
     </div>
   </header>
 
@@ -77,12 +77,13 @@
             <span>📄 PDF по Минтрансу</span>
           </div>
           <div class="hero__btns">
-            <button type="button" class="btn btn--primary btn--lg login-btn">Войти в кабинет</button>
+            <button type="button" class="btn btn--primary btn--lg" onclick="location.href='login.html'">Войти в кабинет</button>
+            <button type="button" class="btn btn--outline btn--lg" onclick="location.href='login.html#register'">Создать аккаунт</button>
             <a href="#download" class="btn btn--outline btn--lg">Скачать приложение</a>
           </div>
         </div>
         <div class="hero__img">
-          <img src="assets/dashboard-preview.svg" alt="Дашборд" loading="lazy">
+          <img src="assets/dashboard-preview.svg" alt="Дашборд" width="540" height="405">
         </div>
       </div>
     </section>
@@ -231,46 +232,34 @@
       <div class="container">
         <h2 class="section__title">Тарифы</h2>
         <div class="pricing__grid">
-          <div class="plan">
+          <div class="plan plan--pop">
+            <div class="plan__badge">Популярный</div>
             <h3>Старт</h3>
             <p style="font-size:2rem;margin-bottom:4px">🚚</p>
-            <p class="plan__cars">1–2 машины</p>
+            <p class="plan__cars">1–6 машин</p>
             <div class="plan__price">990 ₽<span>/мес</span></div>
             <ul>
               <li>GPS-трекинг</li>
-              <li>Путевые листы</li>
+              <li>Путевые листы по Минтрансу</li>
               <li>Учёт расходов</li>
+              <li>Расчёт зарплаты</li>
               <li>Email-поддержка</li>
             </ul>
-            <p class="plan__trial">Первые 21 день бесплатно</p>
-            <button type="button" class="btn btn--outline btn--full login-btn">Начать</button>
+            <p class="plan__trial">Первые 30 дней бесплатно</p>
+            <button type="button" class="btn btn--primary btn--full" onclick="location.href='login.html#register'">Попробовать</button>
           </div>
-          <div class="plan plan--pop">
-            <div class="plan__badge">Популярный</div>
+          <div class="plan">
             <h3>Бизнес</h3>
             <p style="font-size:2rem;margin-bottom:4px">🚛</p>
-            <p class="plan__cars">3–5 машин</p>
+            <p class="plan__cars">от 7 машин</p>
             <div class="plan__price">1 990 ₽<span>/мес</span></div>
             <ul>
               <li>Всё из Старта</li>
-              <li>Расчёт зарплаты</li>
               <li>Сводка по расходам</li>
               <li>Приоритетная поддержка</li>
-            </ul>
-            <button type="button" class="btn btn--primary btn--full login-btn">Попробовать</button>
-          </div>
-          <div class="plan">
-            <h3>Корпоративный</h3>
-            <p style="font-size:2rem;margin-bottom:4px">🏢</p>
-            <p class="plan__cars">от 6 машин</p>
-            <div class="plan__price">Индивидуально</div>
-            <ul>
-              <li>Всё из Бизнеса</li>
-              <li>API-доступ</li>
-              <li>Интеграция с 1С</li>
               <li>Персональный менеджер</li>
             </ul>
-            <a href="#contact" class="btn btn--outline btn--full">Связаться</a>
+            <button type="button" class="btn btn--outline btn--full" onclick="location.href='login.html#register'">Попробовать</button>
           </div>
         </div>
       </div>
@@ -285,10 +274,10 @@
         <div class="download__text">
           <h2>Приложение для водителя</h2>
           <p>GPS-трекинг, фото чеков, история рейсов — всегда под рукой на Android.</p>
-          <a href="https://github.com/IliaDaR/CargoProfi/releases" class="btn btn--download" target="_blank" id="downloadApk">
+          <button type="button" class="btn btn--download" onclick="window.open('/downloads/numino-driver.apk','_blank')" id="downloadApk">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.9 17.39c-.26-.8-1.01-1.39-1.9-1.39h-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3H7c-.89 0-1.64.59-1.9 1.39L3.53 22h15.94l-1.57-4.61zM12 2L8 6h3v5h2V6h3l-4-4z"/></svg>
             Скачать APK
-          </a>
+          </button>
           <p class="download__ver">Версия 1.0 &bull; Android 8+ &bull; ~15 MB</p>
         </div>
       </div>
@@ -298,16 +287,17 @@
     <section class="testimonials">
       <div class="container" style="text-align:center">
         <h2 class="section__title">Нам доверяют</h2>
+      <div class="testimonials__grid">
       <div class="testimonials__card">
-        <p class="testimonials__quote">«С Numino перестали терять чеки и путаться в зарплате водителей. Раньше уходило полдня на бумажки — теперь всё в телефоне.»</p>
+        <p class="testimonials__quote">С Numino перестали терять чеки и путаться в зарплате водителей. Раньше уходило полдня на бумажки — теперь всё в телефоне.</p>
         <p class="testimonials__author">— Алексей, владелец парка на 4 машины</p>
       </div>
-      <div class="testimonials__card" style="margin-top:12px">
-        <p class="testimonials__quote">«GPS-трекинг и авторасчёт пробега — то, чего не хватало годами. Водители довольны, я спокоен.»</p>
+      <div class="testimonials__card">
+        <p class="testimonials__quote">GPS-трекинг и авторасчёт пробега — то, чего не хватало годами. Водители довольны, я спокоен.</p>
         <p class="testimonials__author">— Дмитрий, транспортная компания «Грузовик»</p>
       </div>
-      <div class="testimonials__card" style="margin-top:12px">
-        <p class="testimonials__quote">«Путевые листы по Минтрансу в один клик — это сэкономило нам 20 часов в месяц. Спасибо!»</p>
+      <div class="testimonials__card">
+        <p class="testimonials__quote">Путевые листы по Минтрансу в один клик — это сэкономило нам 20 часов в месяц. Спасибо!</p>
         <p class="testimonials__author">— Ольга, бухгалтер автопарка</p>
       </div>
       </div>
@@ -320,12 +310,12 @@
           <h2>Остались вопросы?</h2>
           <p>Напишите нам — поможем с настройкой и подберём тариф.</p>
           <div class="contact__links">
-            <a href="mailto:ilia.davkin@ya.ru">ilia.davkin@ya.ru</a>
+            <a href="mailto:info@numino.ru">info@numino.ru</a>
             <a href="tel:+79183951315">+7 (918) 395-13-15</a>
             <span class="contact__tag">MAX</span>
           </div>
         </div>
-        <form class="contact__form" id="contactForm" action="https://formsubmit.co/ilia.davkin@ya.ru" method="POST">
+        <form class="contact__form" id="contactForm" action="https://formsubmit.co/info@numino.ru" method="POST">
           <label class="sr-only" for="contactName">Имя</label>
           <input type="text" id="contactName" name="name" placeholder="Имя" required autocomplete="name">
           <label class="sr-only" for="contactEmail">Email</label>
@@ -353,29 +343,12 @@
         <a href="#download">Приложение</a>
         <a href="eula.html">Условия</a>
         <a href="privacy.html">Конфиденциальность</a>
-        <a href="#" class="login-btn">Войти</a>
+         <a href="login.html">Войти</a>
       </nav>
     </div>
   </footer>
 
-  <!-- LOGIN MODAL -->
-  <div class="modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal__bg"></div>
-    <div class="modal__box">
-      <button type="button" class="modal__x" id="closeModal">&times;</button>
-      <h3 id="modalTitle">Вход в кабинет</h3>
-      <p id="modalSub">Владелец автопарка или администратор</p>
-      <form id="loginForm">
-        <label for="loginEmail">Email</label>
-        <input type="email" id="loginEmail" placeholder="ivan@company.ru" required autocomplete="email">
-        <label for="loginPassword">Пароль</label>
-        <input type="password" id="loginPassword" placeholder="••••••" required autocomplete="current-password" minlength="6">
-        <button type="submit" class="btn btn--primary btn--full" id="modalSubmit">Войти</button>
-      </form>
-      <p class="modal__switch"><a href="#" id="showRegister">Зарегистрироваться</a></p>
-      <p class="modal__msg" id="loginMessage"></p>
-    </div>
-  </div>
+  <!-- Модалка входа удалена — вход через отдельную страницу /login.html -->
 
   <script src="js/main.js"></script>
   <script type="application/ld+json">

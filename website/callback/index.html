@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход через Яндекс ID — Numino</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Inter,system-ui,sans-serif;background:#f8fafc;min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .card{background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:40px;max-width:420px;width:100%;text-align:center}
+    .spinner{width:40px;height:40px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    h1{font-size:1.2rem;margin-bottom:8px}
+    p{color:#64748b;font-size:.9rem}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="spinner"></div>
+    <h1>Вход через Яндекс ID</h1>
+    <p id="status">Выполняется вход...</p>
+  </div>
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.hash.substring(1) || window.location.search);
+      var token = params.get('access_token');
+      var error = params.get('error');
+      var statusEl = document.getElementById('status');
+
+      if (error) {
+        statusEl.textContent = 'Ошибка авторизации. Попробуйте снова.';
+        setTimeout(function() { location.href = '/login.html?error=yandex'; }, 2000);
+        return;
+      }
+
+      if (!token) {
+        // Check for authorization code (server-side flow, not used)
+        var code = new URLSearchParams(window.location.search).get('code');
+        if (code) {
+          fetch('https://functions.yandexcloud.net/d4ebe398cf4irb742g3f', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: 'yandex_callback', code: code })
+          }).then(r => r.json()).then(d => {
+            if (d.session) { localStorage.setItem('flutter.current_user', d.session); location.href = ((d.role||'')==='admin'?'/panel-9c45a77d1394114d/':'/cabinet/') + '?cb=' + Date.now(); }
+            else { location.href = '/login.html?error=yandex'; }
+          }).catch(function() { location.href = '/login.html?error=yandex'; });
+          return;
+        }
+        statusEl.textContent = 'Не получен токен. Перенаправление...';
+        setTimeout(function() { location.href = '/login.html?error=yandex'; }, 1500);
+        return;
+      }
+
+      // Token flow: get user info via Cloud Function
+      fetch('https://functions.yandexcloud.net/d4ebe398cf4irb742g3f', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: 'yandex_token', token: token })
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.success) {
+          localStorage.setItem('flutter.current_user', JSON.stringify({
+            uid: d.email, email: d.email, role: 'owner', displayName: d.name || d.email.split('@')[0]
+          }));
+          location.href = ((d.role||'')==='admin'?'/panel-9c45a77d1394114d/':'/cabinet/') + '?cb=' + Date.now();
+        } else {
+          statusEl.textContent = 'Не удалось войти. Перенаправление...';
+          setTimeout(function() { location.href = '/login.html?error=yandex'; }, 1500);
+        }
+      }).catch(function() { location.href = '/login.html?error=yandex'; });
+    })();
+  </script>
+</body>
+</html>
