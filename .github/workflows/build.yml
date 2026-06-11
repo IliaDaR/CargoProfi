@@ -12,28 +12,11 @@ permissions:
 
 jobs:
 
-  build-web:
-    name: Сборка Web
+  deploy-website:
+    name: Деплой сайта
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.44'
-          channel: 'stable'
-          cache: true
-
-      - name: Flutter pub get
-        working-directory: cargo_app
-        run: flutter pub get
-
-      - name: Сборка Flutter Web
-        working-directory: cargo_app
-        run: flutter build web --release
-
-      - name: Копирование админки
-        run: rm -rf website/admin && cp -r cargo_app/build/web website/admin
 
       - name: Архивация сайта
         run: cd website && zip -r ../numino-site.zip ./*
