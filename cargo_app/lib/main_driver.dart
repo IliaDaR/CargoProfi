@@ -98,41 +98,26 @@ class _InviteCodeFormState extends State<_InviteCodeForm> {
 
     setState(() { _loading = true; _error = null; });
 
-    // Try cloud validation
+    // Validate via Yandex Cloud only (no localStorage)
     try {
       final result = await widget.cloudFn.validateInviteCode(code);
       if (result != null && result['success'] == true) {
-        _login(result['ownerId'] ?? '', result['driverName'] ?? 'Водитель', code);
+        _login(result['ownerId'] ?? '', result['driverName'] ?? 'Водитель');
         return;
       }
-    } catch (_) {}
-
-    // Offline: check localStorage invites
-    final invites = widget.storage.invites;
-    final invite = invites.where((i) => i['code'] == code && i['used'] != true).firstOrNull;
-    if (invite == null) {
-      setState(() { _error = 'Код не найден или уже использован'; _loading = false; });
-      return;
+      setState(() { _error = result?['error'] ?? 'Код не найден или уже использован'; _loading = false; });
+    } catch (_) {
+      setState(() { _error = 'Нет соединения с сервером. Проверьте интернет.'; _loading = false; });
     }
-
-    _login(invite['ownerId'] ?? '', invite['driverName'] ?? 'Водитель', code);
   }
 
-  void _login(String ownerId, String driverName, String code) {
+  void _login(String ownerId, String driverName) {
     widget.storage.setCurrentUser({
       'uid': 'driver-${DateTime.now().millisecondsSinceEpoch}',
       'role': 'driver',
       'ownerId': ownerId,
       'displayName': driverName,
-      'inviteCode': code,
     });
-    // Mark invite as used
-    final invites = widget.storage.invites;
-    final invite = invites.where((i) => i['code'] == code).firstOrNull;
-    if (invite != null) {
-      invite['used'] = true;
-      widget.storage.saveInvites();
-    }
     widget.onSuccess(widget.storage.currentUser?['uid'] ?? 'driver', driverName);
   }
 
