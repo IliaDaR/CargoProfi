@@ -72,9 +72,7 @@ function H(s){var d=document.createElement('div');d.appendChild(document.createT
 function F(n){return new Intl.NumberFormat('ru-RU').format(n);}
 function D(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('ru-RU');}catch(e){return d;}}
 function id(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
-function genInviteCode(){var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',c='';for(var i=0;i<8;i++){c+=chars[Math.floor(Math.random()*chars.length)];if(i===3)c+='-';}return c;}
-function saveInvites(){S('invites',INV);}
-var V=L('vehicles'),T=L('trips'),E=L('expenses'),DR=L('drivers'),SR=L('salary_rules'),SP=L('salary_payments'),INV=L('invites');
+var V=L('vehicles'),T=L('trips'),E=L('expenses'),DR=L('drivers'),SR=L('salary_rules'),SP=L('salary_payments');
 
 // NAVIGATION
 var tabs={
@@ -214,22 +212,26 @@ function delVehicle(i){if(V[i].isActive){alert('Нельзя удалить ма
 function addDriver(){
   modal('<h3>Добавить водителя</h3><label>ФИО *</label><input id="df1"><label>Телефон</label><input id="df2"><label>Email</label><input id="df3"><label>№ ВУ</label><input id="df4"><label>№ медосмотра</label><input id="df5"><label>Дата медосмотра</label><input id="df6" type="date"><div style="margin-top:12px"><button class="btn btn-p" onclick="saveDriver()">Сохранить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');
 }
-function saveDriver(){
+async function saveDriver(){
   var n=document.getElementById('df1').value.trim();if(!n){alert('ФИО обязательно');return;}
-  var code=genInviteCode();
-  DR.push({uid:id(),displayName:n,phone:document.getElementById('df2').value,email:document.getElementById('df3').value,licenseNumber:document.getElementById('df4').value||null,medExamNumber:document.getElementById('df5').value||null,medExamDate:document.getElementById('df6').value||null,inviteCode:code,ownerId:U.email,role:'driver',createdAt:new Date().toISOString()});
-  INV.push({code:code,driverName:n,ownerId:U.email,used:false,createdAt:new Date().toISOString()});
-  saveInvites();
-  // Sync to Yandex Cloud
-  try{var u=JSON.parse(localStorage.getItem('flutter.current_user')||'{}');fetch('https://d5d1q7q3j6q0b2e7qhf0.apigw.yandexcloud.net/create_invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:u.email||'',driverName:n})}).catch(function(){});}catch(e){}
-  refreshV();closeModal();
-  alert('Водитель добавлен!\n\nКод приглашения: '+code+'\n\nПередайте этот код водителю для входа в приложение.');
+  var ph=document.getElementById('df2').value,em=document.getElementById('df3').value,lic=document.getElementById('df4').value,medN=document.getElementById('df5').value,medD=document.getElementById('df6').value;
+  // Создать инвайт-код через Яндекс Облако
+  try{
+    var r=await fetch('https://d5d1q7q3j6q0b2e7qhf0.apigw.yandexcloud.net/create_invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:U.email,driverName:n})});
+    var d=await r.json();
+    if(!d.success){alert('Ошибка: '+d.error);return;}
+    DR.push({uid:id(),displayName:n,phone:ph,email:em,licenseNumber:lic||null,medExamNumber:medN||null,medExamDate:medD||null,inviteCode:d.code,ownerId:U.email,role:'driver',createdAt:new Date().toISOString()});
+    refreshV();closeModal();
+    alert('Водитель добавлен!\n\nКод приглашения: '+d.code+'\n\nПередайте этот код водителю для входа в приложение.');
+  }catch(e){
+    alert('Ошибка соединения с сервером. Проверьте интернет.');
+  }
 }
 function editDriver(i){var d=DR[i];modal('<h3>Редактировать</h3><label>ФИО</label><input id="df1" value="'+H(d.displayName||'')+'"><label>Телефон</label><input id="df2" value="'+H(d.phone||'')+'"><div style="margin-top:12px"><button class="btn btn-p" onclick="saveEditD('+i+')">Сохранить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');}
 function saveEditD(i){DR[i].displayName=document.getElementById('df1').value;DR[i].phone=document.getElementById('df2').value;refreshV();closeModal();}
 function delDriver(i){if(confirm('Удалить '+DR[i].displayName+'?')){DR.splice(i,1);refreshV();}}
 
-function refreshV(){S('vehicles',V);S('drivers',DR);saveInvites();}
+function refreshV(){S('vehicles',V);S('drivers',DR);}
 
 // ===== TRIPS =====
 function Rtrips(){
