@@ -57,30 +57,34 @@ td{padding:10px 12px;font-size:.85rem;border-bottom:1px solid var(--g100)}tr:hov
 </style>
 </head>
 <body>
+<div id="splash" style="position:fixed;inset:0;background:#f8fafc;display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity .3s;flex-direction:column;gap:24px"><div style="font-size:1.3rem;font-weight:700;color:#2563eb">Numino</div><div style="width:44px;height:44px;border:4px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:s .7s linear infinite"></div></div>
+<style>@keyframes s{to{transform:rotate(360deg)}}@media(prefers-color-scheme:dark){#splash{background:#0f172a}}</style>
 <div class="sidebar" id="sidebar"><div class="logo">Numino</div><nav id="nav"></nav><div class="user"><div id="uname">—</div><button onclick="logout()">Выйти</button></div></div>
 <div class="main"><h1 id="title">Дашборд</h1><div id="content"></div></div>
 <div class="bottom-nav" id="bnav"></div>
 <div id="modal" class="modal" style="display:none" onclick="if(event.target===this)closeModal()"><div id="mbody"></div></div>
 
 <script>
-var U=null;try{U=JSON.parse(localStorage.getItem('flutter.current_user'));}catch(e){}if(!U||!U.email)location.href='/login.html';
-document.getElementById('uname').textContent=U.displayName||U.email;
+var U=null;try{U=JSON.parse(localStorage.getItem('flutter.current_user'));}catch(e){}if(!U||!U.email){authRequired();}else{document.getElementById('uname').textContent=U.displayName||U.email;}
 function L(k){try{return JSON.parse(localStorage.getItem('flutter.'+k)||'[]');}catch(e){return[];}}
 function S(k,v){localStorage.setItem('flutter.'+k,JSON.stringify(v));}
 function H(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML;}
 function F(n){return new Intl.NumberFormat('ru-RU').format(n);}
 function D(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('ru-RU');}catch(e){return d;}}
 function id(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
-var V=L('vehicles'),T=L('trips'),E=L('expenses'),DR=L('drivers'),SR=L('salary_rules'),SP=L('salary_payments');
+function genInviteCode(){var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',c='';for(var i=0;i<8;i++){c+=chars[Math.floor(Math.random()*chars.length)];if(i===3)c+='-';}return c;}
+function saveInvites(){S('invites',INV);}
+var V=L('vehicles'),T=L('trips'),E=L('expenses'),DR=L('drivers'),SR=L('salary_rules'),SP=L('salary_payments'),INV=L('invites');
 
 // NAVIGATION
 var tabs={
-dashboard:Rdash,vehicles:Rveh,trips:Rtrips,expenses:Rexp,salary:Rsal,profile:Rprof
+  login:Rlogin,dashboard:Rdash,vehicles:Rveh,trips:Rtrips,expenses:Rexp,salary:Rsal,profile:Rprof
 };
-var titles={dashboard:'Дашборд',vehicles:'Автомобили и водители',trips:'Рейсы',expenses:'Расходы',salary:'Зарплата',profile:'Профиль'};
-var icons={dashboard:'📊',vehicles:'🚛',trips:'🛣️',expenses:'📋',salary:'💰',profile:'👤'};
+var titles={login:'Вход',dashboard:'Дашборд',vehicles:'Автомобили и водители',trips:'Рейсы',expenses:'Расходы',salary:'Зарплата',profile:'Профиль'};
+var icons={login:'🔐',dashboard:'📊',vehicles:'🚛',trips:'🛣️',expenses:'📋',salary:'💰',profile:'👤'};
 
 function nav(tab){
+  if(tab==='login'){document.getElementById('sidebar').style.display='none';try{document.querySelector('.bottom-nav').style.display='none';}catch(e){}}else{document.getElementById('sidebar').style.display='';try{document.querySelector('.bottom-nav').style.display='';}catch(e){}}
   document.querySelectorAll('#nav a,#bnav a').forEach(function(a){a.classList.toggle('active',a.dataset.tab===tab);});
   document.getElementById('title').textContent=titles[tab]||tab;
   (tabs[tab]||Rdash)();
@@ -88,6 +92,7 @@ function nav(tab){
 var navItems=Object.keys(titles);
 var nhtml='',bn='';
 navItems.forEach(function(t){
+  if(t==='login')return;
   nhtml+='<a href="#'+t+'" data-tab="'+t+'">'+icons[t]+' '+titles[t]+'</a>';
   bn+='<a href="#'+t+'" data-tab="'+t+'"><span>'+icons[t]+'</span>'+titles[t]+'</a>';
 });
@@ -95,11 +100,42 @@ document.getElementById('nav').innerHTML=nhtml;
 document.getElementById('bnav').innerHTML=bn;
 window.addEventListener('hashchange',function(){nav(location.hash.replace('#','')||'dashboard');});
 nav(location.hash.replace('#','')||'dashboard');
+try{document.getElementById('splash').style.opacity='0';setTimeout(function(){var s=document.getElementById('splash');if(s)s.remove();},300);}catch(e){}
+setTimeout(function(){var s=document.getElementById('splash');if(s&&s.style.opacity!=='0')s.remove();},5000);
+history.replaceState(null,'',location.hash||'#dashboard');
 
 // MODAL
 function modal(html){document.getElementById('mbody').innerHTML=html;document.getElementById('modal').style.display='flex';}
 function closeModal(){document.getElementById('modal').style.display='none';nav(location.hash.replace('#','')||'dashboard');}
 function logout(){localStorage.removeItem('flutter.current_user');location.href='/';}
+
+// LOGIN (embedded in cabinet SPA — no separate page)
+function authRequired(){location.hash='login';}
+function Rlogin(){
+  var h='<div style="max-width:400px;margin:60px auto;text-align:center">';
+  h+='<div style="font-size:2rem;font-weight:700;color:var(--blue,#2563eb);margin-bottom:8px" lang="en">Numino</div>';
+  h+='<p style="color:var(--g500,#6b7280);margin-bottom:24px">Войдите в кабинет владельца</p>';
+  h+='<input id="lemail" type="email" placeholder="Email" style="width:100%;padding:12px;border:1px solid var(--g300,#d1d5db);border-radius:var(--rs,6px);margin-bottom:10px;font-size:.9rem">';
+  h+='<input id="lpass" type="password" placeholder="Пароль" style="width:100%;padding:12px;border:1px solid var(--g300,#d1d5db);border-radius:var(--rs,6px);margin-bottom:16px;font-size:.9rem">';
+  h+='<button class="btn btn-p" onclick="doLogin()" style="width:100%;padding:12px;font-size:1rem">Войти</button>';
+  h+='<p style="margin-top:16px;font-size:.8rem;color:var(--g500,#6b7280)">Нет аккаунта? <a href="/login.html" style="color:var(--blue,#2563eb)">Зарегистрироваться</a></p></div>';
+  document.getElementById('content').innerHTML=h;
+}
+async function doLogin(){
+  var email=document.getElementById('lemail').value.trim();
+  var pass=document.getElementById('lpass').value;
+  if(!email||!pass){alert('Введите email и пароль');return;}
+  var hash=await sha256(pass);
+  var users=[];try{users=JSON.parse(localStorage.getItem('flutter.users')||'[]');}catch(e){}
+  var u=users.find(function(x){return x.email===email&&x.passwordHash===hash;});
+  if(!u){alert('Неверный email или пароль');return;}
+  localStorage.setItem('flutter.current_user',JSON.stringify({email:u.email,displayName:u.displayName||u.email,uid:u.uid}));
+  U=JSON.parse(localStorage.getItem('flutter.current_user'));
+  document.getElementById('sidebar').style.display='';
+  try{document.querySelector('.bottom-nav').style.display='';}catch(e){}
+  document.getElementById('uname').textContent=U.displayName||U.email;
+  location.hash='dashboard';
+}
 
 // ===== DASHBOARD =====
 function Rdash(){
@@ -152,10 +188,11 @@ function Rveh(){refreshV();var h='<div class="toolbar"><button class="btn btn-p"
     h+='</table>';}
   h+='<h3 style="margin:24px 0 8px">Водители ('+DR.length+')</h3>';
   if(DR.length===0)h+=ph('Нет водителей','Добавьте первого водителя.','👤');
-  else{h+='<table><tr><th>ФИО</th><th>Телефон</th><th>Email</th><th>Медосмотр</th><th></th></tr>';
+  else{h+='<table><tr><th>ФИО</th><th>Телефон</th><th>Код</th><th>Медосмотр</th><th></th></tr>';
     DR.forEach(function(d,i){
       var med=d.medExamDate?new Date(d.medExamDate)<new Date()?'<span class="chip chip-r">Просрочен</span>':'<span class="chip chip-g">✅ '+D(d.medExamDate)+'</span>':'<span class="chip">—</span>';
-      h+='<tr><td>'+H(d.displayName||'')+'</td><td>'+H(d.phone||'')+'</td><td>'+H(d.email||'')+'</td><td>'+med+'</td><td><button class="btn btn-s btn-o" onclick="editDriver('+i+')">✏️</button> <button class="btn btn-s btn-r" onclick="delDriver('+i+')">🗑</button></td></tr>';
+      var inv=d.inviteCode?'<code style="font-size:.85rem;background:var(--g100);padding:2px 8px;border-radius:4px">'+H(d.inviteCode)+'</code>':'<span class="chip">—</span>';
+      h+='<tr><td>'+H(d.displayName||'')+'</td><td>'+H(d.phone||'')+'</td><td>'+inv+'</td><td>'+med+'</td><td><button class="btn btn-s btn-o" onclick="editDriver('+i+')">✏️</button> <button class="btn btn-s btn-r" onclick="delDriver('+i+')">🗑</button></td></tr>';
     });
     h+='</table>';}
   document.getElementById('content').innerHTML=h;
@@ -179,14 +216,20 @@ function addDriver(){
 }
 function saveDriver(){
   var n=document.getElementById('df1').value.trim();if(!n){alert('ФИО обязательно');return;}
-  DR.push({uid:id(),displayName:n,phone:document.getElementById('df2').value,email:document.getElementById('df3').value,licenseNumber:document.getElementById('df4').value||null,medExamNumber:document.getElementById('df5').value||null,medExamDate:document.getElementById('df6').value||null,ownerId:U.email,role:'driver',createdAt:new Date().toISOString()});
+  var code=genInviteCode();
+  DR.push({uid:id(),displayName:n,phone:document.getElementById('df2').value,email:document.getElementById('df3').value,licenseNumber:document.getElementById('df4').value||null,medExamNumber:document.getElementById('df5').value||null,medExamDate:document.getElementById('df6').value||null,inviteCode:code,ownerId:U.email,role:'driver',createdAt:new Date().toISOString()});
+  INV.push({code:code,driverName:n,ownerId:U.email,used:false,createdAt:new Date().toISOString()});
+  saveInvites();
+  // Sync to Yandex Cloud
+  try{var u=JSON.parse(localStorage.getItem('flutter.current_user')||'{}');fetch('https://d5d1q7q3j6q0b2e7qhf0.apigw.yandexcloud.net/create_invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:u.email||'',driverName:n})}).catch(function(){});}catch(e){}
   refreshV();closeModal();
+  alert('Водитель добавлен!\n\nКод приглашения: '+code+'\n\nПередайте этот код водителю для входа в приложение.');
 }
 function editDriver(i){var d=DR[i];modal('<h3>Редактировать</h3><label>ФИО</label><input id="df1" value="'+H(d.displayName||'')+'"><label>Телефон</label><input id="df2" value="'+H(d.phone||'')+'"><div style="margin-top:12px"><button class="btn btn-p" onclick="saveEditD('+i+')">Сохранить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');}
 function saveEditD(i){DR[i].displayName=document.getElementById('df1').value;DR[i].phone=document.getElementById('df2').value;refreshV();closeModal();}
 function delDriver(i){if(confirm('Удалить '+DR[i].displayName+'?')){DR.splice(i,1);refreshV();}}
 
-function refreshV(){S('vehicles',V);S('drivers',DR);}
+function refreshV(){S('vehicles',V);S('drivers',DR);saveInvites();}
 
 // ===== TRIPS =====
 function Rtrips(){
@@ -317,6 +360,12 @@ function exportCSV(type){
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=type+'.csv';a.click();
 }
 </script>
+<div id="pwa-banner" style="display:none;position:fixed;bottom:80px;left:12px;right:12px;background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 4px 24px rgba(0,0,0,.15);z-index:1000;align-items:center;gap:12px;border:1px solid #cbd5e1">
+<div style="flex:1;text-align:left"><div style="font-weight:700;font-size:.9rem">Установите Numino</div><div style="font-size:.78rem;color:#64748b">Как приложение, без браузера</div></div>
+<button onclick="installPWA()" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer">Установить</button>
+<button onclick="this.parentElement.style.display='none'" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#64748b;padding:4px 8px">✕</button>
+</div>
+<script>var _dp=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();_dp=e;document.getElementById('pwa-banner').style.display='flex';});function installPWA(){if(!_dp)return;_dp.prompt();_dp.userChoice.then(function(){_dp=null;document.getElementById('pwa-banner').style.display='none';});}</script>
 <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js',{scope:'/cabinet/'});}</script>
 </body>
 </html>
