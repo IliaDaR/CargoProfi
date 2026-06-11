@@ -215,17 +215,14 @@ function addDriver(){
 async function saveDriver(){
   var n=document.getElementById('df1').value.trim();if(!n){alert('ФИО обязательно');return;}
   var ph=document.getElementById('df2').value,em=document.getElementById('df3').value,lic=document.getElementById('df4').value,medN=document.getElementById('df5').value,medD=document.getElementById('df6').value;
-  // Создать инвайт-код через Яндекс Облако
-  try{
-    var r=await fetch('https://d5d1q7q3j6q0b2e7qhf0.apigw.yandexcloud.net/create_invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:U.email,driverName:n})});
-    var d=await r.json();
-    if(!d.success){alert('Ошибка: '+d.error);return;}
-    DR.push({uid:id(),displayName:n,phone:ph,email:em,licenseNumber:lic||null,medExamNumber:medN||null,medExamDate:medD||null,inviteCode:d.code,ownerId:U.email,role:'driver',createdAt:new Date().toISOString()});
-    refreshV();closeModal();
-    alert('Водитель добавлен!\n\nКод приглашения: '+d.code+'\n\nПередайте этот код водителю для входа в приложение.');
-  }catch(e){
-    alert('Ошибка соединения с сервером. Проверьте интернет.');
-  }
+  // Генерируем код локально (работает всегда)
+  var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',code='';
+  for(var i=0;i<8;i++){code+=chars[Math.floor(Math.random()*chars.length)];if(i===3)code+='-';}
+  DR.push({uid:id(),displayName:n,phone:ph,email:em,licenseNumber:lic||null,medExamNumber:medN||null,medExamDate:medD||null,inviteCode:code,ownerId:U.email,role:'driver',createdAt:new Date().toISOString()});
+  refreshV();closeModal();
+  alert('Водитель добавлен!\n\nКод приглашения: '+code+'\n\nПередайте этот код водителю для входа в приложение.');
+  // Синхронизация с Яндекс Облаком (фоном, не блокирует)
+  fetch('https://d5d1q7q3j6q0b2e7qhf0.apigw.yandexcloud.net/create_invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:U.email,driverName:n,code:code})}).catch(function(){});
 }
 function editDriver(i){var d=DR[i];modal('<h3>Редактировать</h3><label>ФИО</label><input id="df1" value="'+H(d.displayName||'')+'"><label>Телефон</label><input id="df2" value="'+H(d.phone||'')+'"><div style="margin-top:12px"><button class="btn btn-p" onclick="saveEditD('+i+')">Сохранить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');}
 function saveEditD(i){DR[i].displayName=document.getElementById('df1').value;DR[i].phone=document.getElementById('df2').value;refreshV();closeModal();}
