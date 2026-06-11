@@ -1,14 +1,33 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/trip.dart';
 import '../models/expense.dart';
 import '../utils/constants.dart';
 import '../services/local_storage.dart';
 
-/// Stub-сервис облачных функций (Firebase удалён, Yandex CF — через HTTP).
-/// Все методы возвращают fallback на localStorage.
+/// Сервис вызова Yandex Cloud Functions через HTTP.
+/// При недоступности — fallback на localStorage.
 class CloudFunctionsService {
+  static const String _baseUrl = 'https://d5d1q7q3j6q0b2e7qhf0.apigw.yandexcloud.net';
   final LocalStorage _local;
 
   CloudFunctionsService(this._local);
+
+  Future<Map<String, dynamic>?> _call(String endpoint, Map<String, dynamic> body) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/$endpoint'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      ).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   // ===== РЕЙСЫ =====
 
@@ -48,8 +67,6 @@ class CloudFunctionsService {
     return id;
   }
 
-  // ===== РЕДАКТИРОВАНИЕ РЕЙСА =====
-
   Future<void> updateTrip({
     required String tripId,
     String? routeDescription, String? cargoDescription,
@@ -59,14 +76,16 @@ class CloudFunctionsService {
   // ===== ПУТЕВОЙ ЛИСТ =====
 
   Future<String?> generateWaybill(String tripId) async => null;
-
   Future<Map<String, dynamic>?> signWaybill(String tripId) async => null;
 
-  Future<Map<String, dynamic>?> validateInviteCode(String code) async => null;
+  // ===== ИНВАЙТ-КОДЫ =====
+
+  Future<Map<String, dynamic>?> validateInviteCode(String code) async {
+    return _call('validate_invite', {'code': code});
+  }
 
   // ===== ЗАРПЛАТА =====
 
   Future<void> setSalaryRule({required String driverId, required String type, double? percentValue, double? fixedValue}) async {}
-
   Future<Map<String, dynamic>> calculateSalary({required String driverId, required String periodStart, required String periodEnd}) async => {};
 }
