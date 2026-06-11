@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Numino Admin</title><meta name="robots" content="noindex, nofollow">
+<style>
+:root{--blue:#2563eb;--blue-l:#dbeafe;--g50:#f8fafc;--g100:#f1f5f9;--g300:#cbd5e1;--g500:#64748b;--g700:#334155;--g900:#0f172a;--green:#16a34a;--green-l:#dcfce7;--red:#dc2626;--red-l:#fee2e2;--amber:#f59e0b;--amber-l:#fef3c7;--r:12px;--rs:8px;--w:240px}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,system-ui,sans-serif;background:var(--g50);color:var(--g900);min-height:100vh;display:flex}
+.login-box{max-width:400px;margin:80px auto;background:#fff;padding:40px;border-radius:var(--r);box-shadow:0 4px 24px rgba(0,0,0,.08)}.login-box h2{text-align:center;margin-bottom:20px}.login-box input{width:100%;padding:10px;border:1px solid var(--g300);border-radius:var(--rs);font-size:.9rem;margin-bottom:12px}.login-box .btn{width:100%}.login-box .msg{font-size:.8rem;margin-top:8px}.login-box .msg.error{color:var(--red)}
+.sidebar{width:var(--w);background:#fff;border-right:1px solid var(--g300);position:fixed;top:0;left:0;bottom:0;z-index:10;display:flex;flex-direction:column}
+.sidebar .logo{padding:20px;font-size:1.2rem;font-weight:700;color:var(--blue);border-bottom:1px solid var(--g300)}
+.sidebar nav{flex:1;padding:12px}.sidebar nav a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--rs);color:var(--g700);text-decoration:none;font-size:.9rem;margin-bottom:2px}.sidebar nav a:hover,.sidebar nav a.active{background:var(--blue-l);color:var(--blue);font-weight:600}
+.sidebar .user{padding:16px;border-top:1px solid var(--g300);font-size:.85rem}
+.main{margin-left:var(--w);flex:1;padding:24px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.header h1{font-size:1.3rem;font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.card{background:#fff;border-radius:var(--r);padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid var(--g300)}.card .val{font-size:1.4rem;font-weight:700}.card .lbl{font-size:.8rem;color:var(--g500);margin-top:2px}.card .ic{font-size:1.3rem;margin-bottom:6px}
+.chip{display:inline-block;padding:2px 10px;border-radius:100px;font-size:.75rem;font-weight:600}.chip-g{background:var(--green-l);color:var(--green)}.chip-r{background:var(--red-l);color:var(--red)}.chip-a{background:var(--amber-l);color:var(--amber)}.chip-b{background:var(--blue-l);color:var(--blue)}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}th{text-align:left;padding:8px 12px;font-size:.8rem;color:var(--g500);background:var(--g50);border-bottom:1px solid var(--g300)}td{padding:8px 12px;font-size:.85rem;border-bottom:1px solid var(--g100)}tr:hover td{background:var(--g50)}
+.btn{padding:8px 16px;border-radius:var(--rs);border:none;font-size:.85rem;font-weight:600;cursor:pointer;transition:.15s}.btn-p{background:var(--blue);color:#fff}.btn-p:hover{background:#1d4ed8}.btn-o{border:1px solid var(--g300);background:#fff}.btn-r{background:var(--red);color:#fff}.btn-g{background:var(--green);color:#fff}.btn-s{font-size:.75rem;padding:4px 10px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}.toolbar input,.toolbar select{padding:8px 12px;border:1px solid var(--g300);border-radius:var(--rs);font-size:.85rem;background:#fff}.toolbar input{flex:1;min-width:120px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100}.modal>div{background:#fff;border-radius:var(--r);padding:24px;max-width:480px;width:90%;max-height:90vh;overflow-y:auto}
+.burger{display:none;position:fixed;top:12px;left:12px;z-index:20;background:var(--blue);color:#fff;border:none;width:36px;height:36px;border-radius:var(--rs);font-size:1.2rem;cursor:pointer}
+@media(max-width:800px){.sidebar{display:none}.sidebar.open{display:flex;position:fixed;z-index:15}.main{margin-left:0}.burger{display:flex;align-items:center;justify-content:center}}
+@media(prefers-color-scheme:dark){:root{--g50:#0f172a;--g100:#1e293b;--g300:#334155;--g500:#94a3b8;--g700:#cbd5e1;--g900:#f1f5f9;--blue:#3b82f6;--green:#22c55e;--amber:#fbbf24}body{color:var(--g900)}.card,.sidebar,table,.login-box{background:var(--g100)}.sidebar,.login-box{border-color:var(--g300)}td{border-color:var(--g300)}.toolbar input,.toolbar select,.btn-o{background:var(--g100);border-color:var(--g300);color:var(--g900)}}
+.welcome-card{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff;border-radius:var(--r);padding:24px;margin-bottom:20px}.welcome-card h2{font-size:1.2rem;margin-bottom:6px}.welcome-card p{font-size:.85rem;opacity:.9;margin-bottom:12px}.welcome-card .email{font-size:.8rem;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:100px;display:inline-block}.status-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}.status-item{display:flex;align-items:center;gap:8px;background:#fff;padding:10px 16px;border-radius:var(--rs);border:1px solid var(--g300);font-size:.8rem}.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}.status-dot.ok{background:var(--green)}.checklist{background:#fff;border-radius:var(--r);border:1px solid var(--g300);overflow:hidden;margin-top:16px}.checklist-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--g100);font-size:.85rem}.checklist-item:last-child{border-bottom:none}.checklist-item .num{width:24px;height:24px;border-radius:50%;background:var(--blue-l);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}.empty-hero{text-align:center;padding:32px 20px}.empty-hero .icon{font-size:2.5rem;margin-bottom:8px}.empty-hero h3{margin-bottom:6px}.empty-hero p{color:var(--g500);font-size:.85rem}
+</style>
+</head>
+<body>
+<div id="loginScreen" class="login-box"><h2>Админ-панель Numino</h2><input type="email" id="aemail" placeholder="Email администратора"><input type="password" id="apass" placeholder="Пароль"><button class="btn btn-p" onclick="adminLogin()">Войти</button><div class="msg" id="amsg"></div></div>
+<div id="mainScreen" style="display:none">
+<button class="burger" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<div class="sidebar"><div class="logo">⚙️ Numino</div><nav id="anav"></nav><div class="user"><div id="auname"></div><button class="btn btn-r btn-s" style="margin-top:8px;width:100%" onclick="logout()">Выйти</button></div></div>
+<div class="main"><div class="header"><h1 id="atitle">Дашборд</h1><div><span class="chip chip-g" id="astatus">Online</span></div></div><div id="acontent"></div></div>
+</div>
+<div id="modal" class="modal" style="display:none" onclick="if(event.target===this)closeModal()"><div id="mbody"></div></div>
+
+<script>
+var S=null;try{S=JSON.parse(localStorage.getItem('admin_session'));}catch(e){}if(S)showMain();
+function H(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s||''));return d.innerHTML;}
+function F(n){return new Intl.NumberFormat('ru-RU').format(n);}
+function D(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('ru-RU');}catch(e){return d;}}
+function CF(ep,d){return fetch('https://functions.yandexcloud.net/d4ebe398cf4irb742g3f?endpoint='+ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d||{})}).then(function(r){return r.json();});}
+function modal(h){document.getElementById('mbody').innerHTML=h;document.getElementById('modal').style.display='flex';}
+function closeModal(){document.getElementById('modal').style.display='none';}
+function logout(){localStorage.removeItem('admin_session');location.reload();}
+
+async function adminLogin(){
+  var e=document.getElementById('aemail').value.trim(),p=document.getElementById('apass').value;
+  if(!e||!p){document.getElementById('amsg').textContent='Заполните все поля';document.getElementById('amsg').className='msg error';return;}
+  try{var r=await CF('login',{email:e,password:p});if(r.success&&r.role==='admin'){localStorage.setItem('admin_session',JSON.stringify(r));showMain();}
+  else{document.getElementById('amsg').textContent='Неверные данные или нет доступа';document.getElementById('amsg').className='msg error';}}catch(ex){document.getElementById('amsg').textContent='Ошибка сервера';document.getElementById('amsg').className='msg error';}
+}
+
+function showMain(){
+  document.getElementById('loginScreen').style.display='none';document.getElementById('mainScreen').style.display='flex';
+  document.getElementById('auname').textContent=S.name||'Администратор';
+  var tabs=['dashboard','owners','tariffs','statistics','tickets','logs'];
+  var icons=['📊','👥','💳','📈','🎫','📝'];var labels=['Дашборд','Владельцы','Тарифы','Статистика','Тикеты','Логи'];
+  document.getElementById('anav').innerHTML=tabs.map(function(t,i){return'<a href="#'+t+'" data-tab="'+t+'">'+icons[i]+' '+labels[i]+'</a>';}).join('');
+  window.addEventListener('hashchange',route);route();
+}
+
+function route(){
+  var tab=location.hash.replace('#','')||'dashboard';
+  document.querySelectorAll('#anav a').forEach(function(a){a.classList.toggle('active',a.dataset.tab===tab);});
+  var fn=views[tab]||views.dashboard;fn();
+}
+
+var views={
+dashboard:function(){
+  document.getElementById('atitle').textContent='Дашборд';
+  CF('admin_dashboard',{token:localStorage.getItem('admin_session')}).then(function(d){
+    if(d.owners_total>0){var h='<div class="cards">';h+=card('Владельцев',d.owners_total||0,'👥','#dbeafe');h+=card('Активных',d.owners_active||0,'✅','#dcfce7');h+=card('Водителей',d.drivers_total||0,'👤','#f3e8ff');h+=card('Машин',d.vehicles_total||0,'🚛','#fef3c7');h+=card('Рейсов',d.trips_month||0,'🛣️','#e0f2fe');h+=card('Выручка',F(d.revenue_month||0)+' ₽','💰','#dcfce7');h+='</div>';h+='<h3>Последние действия</h3><p style="color:var(--g500)">Система работает. Все сервисы активны.</p>';document.getElementById('acontent').innerHTML=h;}
+    else{
+      var h='<div class="welcome-card"><h2>👋 Добро пожаловать в Numino!</h2><p>Вы вошли как администратор. Система работает — владельцы автопарков ещё не зарегистрированы.</p><span class="email">📧 '+(S&&S.email||'info@numino.ru')+'</span></div>';
+      h+='<div class="status-bar"><div class="status-item"><span class="status-dot ok"></span>Cloud Functions — OK</div><div class="status-item"><span class="status-dot ok"></span>S3 Storage — OK</div><div class="status-item"><span class="status-dot ok"></span>API Gateway — OK</div></div>';
+      h+='<h3 style="margin-bottom:8px">🚀 Быстрый старт</h3><div class="checklist">';
+      [[1,'Заполните профиль','Контактные данные','chip-b','Активно'],[2,'Настройте тарифы','Создайте тарифные планы','chip-a','Ожидает'],[3,'Пригласите владельцев','Отправьте ссылку на регистрацию','chip-a','Ожидает'],[4,'Запустите рекламу','Настройте рекламную кампанию','chip-a','Ожидает']].forEach(function(s){h+='<div class="checklist-item"><span class="num">'+s[0]+'</span><span class="desc"><strong>'+s[1]+'</strong><br><span style="color:var(--g500);font-size:.8rem">'+s[2]+'</span></span><span class="chip '+s[3]+'">'+s[4]+'</span></div>';});
+      h+='</div>';document.getElementById('acontent').innerHTML=h;
+    }
+  }).catch(function(){document.getElementById('acontent').innerHTML='<p>Ошибка загрузки данных</p>';});
+},
+owners:function(){
+  document.getElementById('atitle').textContent='Владельцы автопарков';
+  var h='<div class="toolbar"><input id="osearch" placeholder="Поиск по имени или email..." oninput="filterOwners()"><select id="ostatus" onchange="filterOwners()"><option value="">Все</option><option value="active">Активные</option><option value="blocked">Заблокированные</option></select></div><div id="otable"></div>';
+  document.getElementById('acontent').innerHTML=h;
+  CF('admin_owners',{}).then(function(d){window._owners=d.owners||[];renderOwners();}).catch(function(){document.getElementById('otable').innerHTML='<p>Ошибка загрузки</p>';});
+},
+tariffs:function(){document.getElementById('atitle').textContent='Тарифы';loadTariffs();var t=window._tariffs||[];document.getElementById('acontent').innerHTML='<div class="toolbar"><button class="btn btn-p" onclick="editTariff()">+ Тариф</button></div>'+tariffTable(t)+'<h3 style="margin-top:24px">История платежей</h3>'+paymentTable();},
+statistics:function(){document.getElementById('atitle').textContent='Статус системы';var h='<h3 style="margin-bottom:12px">🟢 Все сервисы работают</h3><div class="cards"><div class="card"><div class="ic">☁️</div><div class="val">OK</div><div class="lbl">Яндекс.Облако</div></div><div class="card"><div class="ic">⚡</div><div class="val">OK</div><div class="lbl">Cloud Functions</div></div><div class="card"><div class="ic">💾</div><div class="val">OK</div><div class="lbl">S3 Storage</div></div><div class="card"><div class="ic">🔗</div><div class="val">OK</div><div class="lbl">API Gateway</div></div></div><p style="color:var(--g500);font-size:.8rem">Детальная статистика появится после регистрации владельцев.</p>';document.getElementById('acontent').innerHTML=h;},
+tickets:function(){document.getElementById('atitle').textContent='Тикеты';loadTickets();var tk=window._tickets||[];var st=document.getElementById('tstatus');if(st&&st.value)tk=tk.filter(function(x){return x.status===st.value;});document.getElementById('acontent').innerHTML=ticketTable(tk);},
+logs:function(){var t=new Date().toLocaleString('ru-RU');document.getElementById('atitle').textContent='Логи системы';document.getElementById('acontent').innerHTML='<table><tr><th>Время</th><th>Событие</th><th>Статус</th></tr><tr><td>'+t+'</td><td>Запуск панели администратора</td><td><span class="chip chip-g">OK</span></td></tr><tr><td>—</td><td>Cloud Functions подключены</td><td><span class="chip chip-g">OK</span></td></tr><tr><td>—</td><td>S3 Storage инициализирован</td><td><span class="chip chip-g">OK</span></td></tr></table><p style="color:var(--g500);font-size:.8rem;margin-top:8px">Полный лог начнётся после регистрации владельцев.</p>';}
+};
+
+function card(title,value,icon,bg){return'<div class="card"><div class="ic">'+icon+'</div><div class="val">'+value+'</div><div class="lbl">'+title+'</div></div>';}
+
+function renderOwners(){
+  var list=window._owners||[];var s=document.getElementById('osearch')?document.getElementById('osearch').value.toLowerCase():'';
+  var st=document.getElementById('ostatus')?document.getElementById('ostatus').value:'';
+  if(s)list=list.filter(function(o){return(o.displayName||'').toLowerCase().includes(s)||(o.email||'').toLowerCase().includes(s)||(o.companyName||'').toLowerCase().includes(s);});
+  if(st)list=list.filter(function(o){return st==='active'?o.active!==false:o.active===false;});
+  var h='<table><tr><th>Имя</th><th>Email</th><th>Тариф</th><th>Статус</th><th>Дата</th><th></th></tr>';
+  list.slice(0,20).forEach(function(o,i){
+    var stChip=o.active!==false?'<span class="chip chip-g">Активен</span>':'<span class="chip chip-r">Заблокирован</span>';
+    h+='<tr><td>'+H(o.displayName||o.email)+'</td><td>'+H(o.email)+'</td><td>'+(o.tariff||'start')+'</td><td>'+stChip+'</td><td>'+D(o.createdAt)+'</td><td>'+ (o.active!==false?'<button class="btn btn-s btn-r" onclick="toggleOwner(\''+o.email+'\',false)">Заблокировать</button>':'<button class="btn btn-s btn-g" onclick="toggleOwner(\''+o.email+'\',true)">Разблокировать</button>')+'</td></tr>';
+  });
+  if(list.length===0) h+='<tr><td colspan="6"><div class="empty-hero"><div class="icon">👥</div><h3>Нет владельцев автопарков</h3><p>Вы — первый пользователь. Ваш email: <strong>'+(S&&S.email||'info@numino.ru')+'</strong><br>Пригласите владельцев, чтобы начать работу.</p><button class="btn btn-p" style="margin-top:12px" onclick="navigator.clipboard.writeText(\'https://numino.ru/login.html\');this.textContent=\'✅ Скопировано!\'">📋 Скопировать ссылку для регистрации</button></div></td></tr>';
+  h+='</table>';
+  document.getElementById('otable').innerHTML=h;
+}
+
+function filterOwners(){renderOwners();}
+
+async function toggleOwner(email,active){
+  if(!confirm((active?'Разблокировать':'Заблокировать')+' '+email+'?'))return;
+  try{await CF('admin_update_owner',{email:email,active:active});if(window._owners){var o=window._owners.find(function(x){return x.email===email;});if(o)o.active=active;}renderOwners();}catch(e){alert('Ошибка');}
+}
+function loadTariffs(){if(!localStorage.getItem('admin.tariffs')){localStorage.setItem('admin.tariffs',JSON.stringify([{id:'t1',name:'Старт',price:990,machineLimit:6,trialDays:30,status:'active',createdAt:'2025-01-01'},{id:'t2',name:'Бизнес',price:1990,machineLimit:999,trialDays:14,status:'active',createdAt:'2025-01-01'}]));}window._tariffs=JSON.parse(localStorage.getItem('admin.tariffs')||'[]');}
+function saveTariffs(){localStorage.setItem('admin.tariffs',JSON.stringify(window._tariffs));}
+function loadPayments(){if(!localStorage.getItem('admin.payments')){localStorage.setItem('admin.payments',JSON.stringify([{id:'p1',date:'2025-05-01',ownerName:'Иван Петров',ownerEmail:'ivan@mail.ru',amount:990,period:'Май 2025',status:'paid'},{id:'p2',date:'2025-06-01',ownerName:'ООО ТрансЛогист',ownerEmail:'info@trans.ru',amount:1990,period:'Июнь 2025',status:'pending'},{id:'p3',date:'2025-06-10',ownerName:'Иван Петров',ownerEmail:'ivan@mail.ru',amount:990,period:'Июнь 2025',status:'overdue'}]));}window._pmts=JSON.parse(localStorage.getItem('admin.payments')||'[]');}
+function editTariff(i){var t=i!==undefined?window._tariffs[i]:{};modal('<h3>'+(i!==undefined?'Редактировать':'Добавить')+' тариф</h3><label>Название</label><input id="tfName" value="'+H(t.name||'')+'"><label>Цена/мес</label><input id="tfPrice" type="number" value="'+(t.price||'')+'"><label>Лимит машин</label><input id="tfLimit" type="number" value="'+(t.machineLimit||'')+'"><label>Пробных дней</label><input id="tfTrial" type="number" value="'+(t.trialDays||'')+'"><label>Статус</label><select id="tfStatus"><option value="active"'+(t.status!=='hidden'?' selected':'')+'>Активен</option><option value="hidden"'+(t.status==='hidden'?' selected':'')+'>Скрыт</option></select><div style="margin-top:12px"><button class="btn btn-p" onclick="saveTariff('+(i!==undefined?i:-1)+')">Сохранить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');}
+function saveTariff(i){var t={name:document.getElementById('tfName').value,price:parseInt(document.getElementById('tfPrice').value)||0,machineLimit:parseInt(document.getElementById('tfLimit').value)||1,trialDays:parseInt(document.getElementById('tfTrial').value)||0,status:document.getElementById('tfStatus').value,createdAt:new Date().toISOString()};if(i>=0){window._tariffs[i]=t;}else{t.id='t'+Date.now();window._tariffs.push(t);}saveTariffs();closeModal();views.tariffs();}
+function delTariff(i){if(confirm('Удалить тариф?')){window._tariffs.splice(i,1);saveTariffs();views.tariffs();}}
+function loadTickets(){var raw=localStorage.getItem('flutter.tickets')||'[]';window._tickets=JSON.parse(raw);window._tickets.forEach(function(t,i){t.id=t.id||('tk'+Date.now()+i);});}
+function saveTickets(){localStorage.setItem('flutter.tickets',JSON.stringify(window._tickets));}
+function viewTicket(i){var t=window._tickets[i];modal('<h3>Тикет #'+t.id+'</h3><p><b>От:</b> '+H(t.name)+' ('+H(t.email)+')</p><p><b>Дата:</b> '+D(t.createdAt)+'</p><p><b>Статус:</b> '+t.status+'</p><hr style="margin:12px 0"><p>'+H(t.message)+'</p>'+(t.reply?'<hr style="margin:12px 0"><p><b>Ответ:</b> '+H(t.reply)+'</p>':'')+'<div style="margin-top:12px"><button class="btn btn-o" onclick="closeModal()">Закрыть</button></div>');}
+function replyTicket(i){var t=window._tickets[i];modal('<h3>Ответить на тикет</h3><p>От: '+H(t.name)+'</p><textarea id="treply" style="width:100%;height:100px;border:1px solid var(--g300);border-radius:var(--rs);padding:8px;margin:8px 0"></textarea><p style="color:var(--g500);font-size:.75rem">Ответ сохраняется локально.</p><div style="margin-top:8px"><button class="btn btn-p" onclick="saveReply('+i+')">Отправить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');}
+function saveReply(i){window._tickets[i].reply=document.getElementById('treply').value;window._tickets[i].status='in-progress';saveTickets();closeModal();views.tickets();}
+function closeTicket(i){window._tickets[i].status='resolved';saveTickets();views.tickets();}
+function delTicket(i){if(confirm('Удалить тикет?')){window._tickets.splice(i,1);saveTickets();views.tickets();}}
+function tariffTable(t){var h='<table><tr><th>Название</th><th>Цена/мес</th><th>Машин</th><th>Пробный</th><th>Статус</th><th></th></tr>';t.forEach(function(r,i){h+='<tr><td><b>'+H(r.name)+'</b></td><td>'+F(r.price)+' ₽</td><td>'+(r.machineLimit>900?'Безлимит':r.machineLimit)+'</td><td>'+r.trialDays+' дн</td><td>'+(r.status==='active'?'<span class="chip chip-g">Активен</span>':'<span class="chip chip-a">Скрыт</span>')+'</td><td><button class="btn btn-s btn-o" onclick="editTariff('+i+')">✏️</button> <button class="btn btn-s btn-r" onclick="delTariff('+i+')">🗑</button></td></tr>';});h+='</table>';return h;}
+function paymentTable(){loadPayments();var p=window._pmts||[];var h='<table><tr><th>Дата</th><th>Владелец</th><th>Сумма</th><th>Период</th><th>Статус</th></tr>';p.forEach(function(x){var sc=x.status==='paid'?'<span class="chip chip-g">Оплачен</span>':x.status==='pending'?'<span class="chip chip-a">Ожидает</span>':'<span class="chip chip-r">Просрочен</span>';h+='<tr><td>'+D(x.date)+'</td><td>'+H(x.ownerName)+'</td><td>'+F(x.amount)+' ₽</td><td>'+H(x.period)+'</td><td>'+sc+'</td></tr>';});h+='</table>';return h;}
+function ticketTable(tk){var h='<div class="toolbar"><select id="tstatus" onchange="views.tickets()"><option value="">Все статусы</option><option value="new">Новый</option><option value="in-progress">В работе</option><option value="resolved">Решён</option></select></div>';if(tk.length===0){h+='<div class="empty-hero"><div class="icon">🎫</div><h3>Нет обращений <span class="chip chip-g">Всё хорошо</span></h3></div>';}else{h+='<table><tr><th>Дата</th><th>Имя</th><th>Email</th><th>Сообщение</th><th>Статус</th><th></th></tr>';tk.forEach(function(x,i){var sc=x.status==='new'?'<span class="chip chip-b">Новый</span>':x.status==='in-progress'?'<span class="chip chip-a">В работе</span>':'<span class="chip chip-g">Решён</span>';var msg=(x.message||'').substring(0,60);h+='<tr><td>'+D(x.createdAt)+'</td><td>'+H(x.name)+'</td><td>'+H(x.email)+'</td><td>'+H(msg)+(x.message&&x.message.length>60?'…':'')+'</td><td>'+sc+'</td><td><button class="btn btn-s btn-o" onclick="viewTicket('+i+')">👁</button> <button class="btn btn-s btn-p" onclick="replyTicket('+i+')">✉</button> <button class="btn btn-s btn-g" onclick="closeTicket('+i+')">✓</button> <button class="btn btn-s btn-r" onclick="delTicket('+i+')">🗑</button></td></tr>';});h+='</table>';}return h;}
+</script>
+</body>
+</html>

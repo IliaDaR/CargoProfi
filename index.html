@@ -5,14 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Numino — Рабочий кабинет перевозчика</title>
   <meta name="description" content="GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты водителей — всё в одном сервисе.">
+  <meta property="og:title" content="Numino — Рабочий кабинет перевозчика">
+  <meta property="og:description" content="Управляйте автопарком из одного кабинета. GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты водителей.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://numino.ru">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Numino — Рабочий кабинет перевозчика">
+  <meta name="twitter:description" content="GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты водителей.">
   <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#2563eb">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://formsubmit.co https://identitytoolkit.googleapis.com; frame-src 'none'; object-src 'none'; form-action 'self' https://formsubmit.co;">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="alternate icon" type="image/png" href="admin/favicon.png">
+  <link rel="canonical" href="https://numino.ru">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="css/style.css">
+  <!-- Firebase SDK (замените apiKey на реальный после создания проекта) -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js';
+    window._firebaseReady = false;
+    try {
+      window._firebaseApp = initializeApp({
+        apiKey: 'YOUR_API_KEY',
+        authDomain: 'YOUR_PROJECT.firebaseapp.com',
+        projectId: 'YOUR_PROJECT',
+        storageBucket: 'YOUR_PROJECT.appspot.com',
+        messagingSenderId: '000000000000',
+        appId: '1:000000000000:web:abc123'
+      });
+      window._firebaseAuth = getAuth(window._firebaseApp);
+      window._firebaseReady = true;
+    } catch(e) { console.log('Firebase not configured, using localStorage fallback'); }
+  </script>
 </head>
 <body>
+  <a href="#features" class="skip-link">Пропустить навигацию</a>
 
   <header class="header" id="header">
     <div class="container header__inner">
@@ -20,7 +51,7 @@
         <img src="assets/logo.svg" alt="Numino" width="36" height="36">
         <span>Numino</span>
       </a>
-      <button class="burger" id="burgerBtn" aria-label="Меню">
+      <button type="button" class="burger" id="burgerBtn" aria-label="Меню">
         <span></span><span></span><span></span>
       </button>
       <nav class="nav" id="mainNav">
@@ -29,278 +60,278 @@
         <a href="#pricing">Тарифы</a>
         <a href="#contact">Контакты</a>
       </nav>
-      <button class="btn btn--sm btn--primary login-btn">Войти</button>
+      <button type="button" class="btn btn--sm btn--primary" onclick="location.href='login.html'">Войти</button>
     </div>
   </header>
 
-  <!-- HERO -->
-  <section class="hero">
-    <div class="container hero__inner">
-      <div class="hero__text">
-        <h1>Полный контроль автопарка <span class="gradient">в одном кабинете</span></h1>
-        <p>GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты — всё в одном кабинете для владельца автопарка.</p>
-        <div class="hero__stats">
-          <span>🚛 3 роли</span>
-          <span>📍 GPS онлайн</span>
-          <span>📄 PDF по Минтрансу</span>
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container hero__inner">
+        <div class="hero__text">
+          <h1>Полный контроль автопарка <span class="gradient">в одном кабинете</span></h1>
+          <p>GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты — всё в одном кабинете для владельца автопарка.</p>
+          <div class="hero__stats">
+            <span>🚛 3 роли</span>
+            <span>📍 GPS онлайн</span>
+            <span>📄 PDF по Минтрансу</span>
+          </div>
+          <div class="hero__btns">
+            <button type="button" class="btn btn--primary btn--lg" onclick="location.href='login.html'">Войти в кабинет</button>
+            <button type="button" class="btn btn--outline btn--lg" onclick="location.href='login.html#register'">Создать аккаунт</button>
+            <a href="#download" class="btn btn--outline btn--lg">Скачать приложение</a>
+          </div>
         </div>
-        <div class="hero__btns">
-          <button class="btn btn--primary btn--lg login-btn">Войти в кабинет</button>
-          <a href="#download" class="btn btn--outline btn--lg">Скачать приложение</a>
+        <div class="hero__img">
+          <img src="assets/dashboard-preview.svg" alt="Дашборд" width="540" height="405">
         </div>
       </div>
-      <div class="hero__img">
-        <img src="assets/dashboard-preview.svg" alt="Дашборд">
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- FEATURES -->
-  <section class="features" id="features">
-    <div class="container">
-      <h2 class="section__title">Что внутри</h2>
+    <!-- FEATURES -->
+    <section class="features" id="features">
+      <div class="container">
+        <h2 class="section__title">Что внутри</h2>
 
-      <div class="carousel" id="featuresCarousel" role="region" aria-live="polite" aria-label="Возможности">
-        <div class="carousel__track" id="featuresTrack">
+        <div class="carousel" id="featuresCarousel" role="region" aria-live="polite" aria-label="Возможности">
+          <div class="carousel__track" id="featuresTrack">
 
-          <div class="feat-card">
-            <div class="feat-card__icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
-                <circle cx="12" cy="12" r="10"/><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-              </svg>
+            <div class="feat-card">
+              <div class="feat-card__icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
+                  <circle cx="12" cy="12" r="10"/><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                </svg>
+              </div>
+              <h3>GPS-трекинг рейсов</h3>
+              <p>Водитель нажимает «Начать рейс» — система фиксирует координаты каждую минуту. Пробег считается по формуле гаверсинусов: сумма расстояний между всеми GPS-точками. Данные пишутся в Firestore и доступны владельцу в реальном времени. При обрыве связи точки копятся локально и синхронизируются при подключении.</p>
+              <div class="feat-card__tags">
+                <span>Формула гаверсинусов</span>
+                <span>Раз в 60 сек</span>
+                <span>Offline-буфер</span>
+              </div>
             </div>
-            <h3>GPS-трекинг рейсов</h3>
-            <p>Водитель нажимает «Начать рейс» — система фиксирует координаты каждую минуту. Пробег считается по формуле гаверсинусов: сумма расстояний между всеми GPS-точками. Данные пишутся в Firestore и доступны владельцу в реальном времени. При обрыве связи точки копятся локально и синхронизируются при подключении.</p>
-            <div class="feat-card__tags">
-              <span>Формула гаверсинусов</span>
-              <span>Раз в 60 сек</span>
-              <span>Offline-буфер</span>
+
+            <div class="feat-card">
+              <div class="feat-card__icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+              </div>
+              <h3>Путевые листы</h3>
+              <p>Генерация PDF по форме, утверждённой Приказом Минтранса России. Владелец нажимает одну кнопку — и готовый документ с датой, госномером, ФИО водителя, пробегом, временем выезда и возврата. Все поля подставляются из данных рейса автоматически.</p>
+              <div class="feat-card__tags">
+                <span>PDF одним кликом</span>
+                <span>Приказ Минтранса</span>
+                <span>Автозаполнение</span>
+              </div>
             </div>
+
+            <div class="feat-card">
+              <div class="feat-card__icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
+                  <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+                </svg>
+              </div>
+              <h3>Учёт расходов</h3>
+              <p>Водитель добавляет расход прямо во время рейса: сумма, категория (топливо, стоянка, ремонт, дорожный сбор, мойка, шины, страховка, прочее) и фото чека. GPS-координаты и время прикрепляются автоматически. Владелец видит сводную таблицу по категориям и может открыть фото любого чека.</p>
+              <div class="feat-card__tags">
+                <span>8 категорий</span>
+                <span>Фото чеков</span>
+                <span>GPS-метка</span>
+                <span>Сводка</span>
+              </div>
+            </div>
+
+            <div class="feat-card">
+              <div class="feat-card__icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
+                  <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <h3>Расчёт зарплаты</h3>
+              <p>Владелец задаёт правило для каждого водителя: процент от дохода рейса или фиксированная сумма за рейс. Расчёт зарплаты за любой период — один клик. Система соберёт все завершённые рейсы водителя, вычислит сумму и сохранит в ведомость с историей.</p>
+              <div class="feat-card__tags">
+                <span>% или фикс</span>
+                <span>За период</span>
+                <span>Ведомость</span>
+                <span>История</span>
+              </div>
+            </div>
+
+            <div class="feat-card">
+              <div class="feat-card__icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
+                  <rect x="1" y="3" width="15" height="13"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8"/><circle cx="5" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>
+                </svg>
+              </div>
+              <h3>Контроль автопарка</h3>
+              <p>Все машины на одном дашборде с индикатором статуса: «в рейсе» или «свободен». Владелец видит историю рейсов по каждому автомобилю, общий пробег, статистику использования. Добавление новой машины — госномер, марка, модель, год и VIN.</p>
+              <div class="feat-card__tags">
+                <span>Статус онлайн</span>
+                <span>История</span>
+                <span>Статистика</span>
+              </div>
+            </div>
+
+            <div class="feat-card">
+              <div class="feat-card__icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </div>
+              <h3>Ролевой доступ</h3>
+              <p>Водитель видит только свои рейсы и расходы. Владелец — все данные по парку. Каждый запрос к базе проверяется правилами Firestore на уровне сервера. Авторизация через Firebase Authentication: email/пароль или телефон.</p>
+              <div class="feat-card__tags">
+                <span>Firebase Auth</span>
+                <span>Роли owner/driver</span>
+                <span>Server-side rules</span>
+              </div>
+            </div>
+
           </div>
 
-          <div class="feat-card">
-            <div class="feat-card__icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-              </svg>
-            </div>
-            <h3>Путевые листы</h3>
-            <p>Генерация PDF по форме, утверждённой Приказом Минтранса России. Владелец нажимает одну кнопку — и готовый документ с датой, госномером, ФИО водителя, пробегом, временем выезда и возврата. Все поля подставляются из данных рейса автоматически.</p>
-            <div class="feat-card__tags">
-              <span>PDF одним кликом</span>
-              <span>Приказ Минтранса</span>
-              <span>Автозаполнение</span>
-            </div>
+          <div class="carousel__nav">
+            <button type="button" class="carousel__btn carousel__btn--prev" id="carouselPrev" aria-label="Предыдущий">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
+            </button>
+            <div class="carousel__dots" id="carouselDots"></div>
+            <button type="button" class="carousel__btn carousel__btn--next" id="carouselNext" aria-label="Следующий">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
+            </button>
           </div>
-
-          <div class="feat-card">
-            <div class="feat-card__icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
-                <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
-              </svg>
-            </div>
-            <h3>Учёт расходов</h3>
-            <p>Водитель добавляет расход прямо во время рейса: сумма, категория (топливо, стоянка, ремонт, дорожный сбор, мойка, шины, страховка, прочее) и фото чека. GPS-координаты и время прикрепляются автоматически. Владелец видит сводную таблицу по категориям и может открыть фото любого чека.</p>
-            <div class="feat-card__tags">
-              <span>8 категорий</span>
-              <span>Фото чеков</span>
-              <span>GPS-метка</span>
-              <span>Сводка</span>
-            </div>
-          </div>
-
-          <div class="feat-card">
-            <div class="feat-card__icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
-                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-              </svg>
-            </div>
-            <h3>Расчёт зарплаты</h3>
-            <p>Владелец задаёт правило для каждого водителя: процент от дохода рейса или фиксированная сумма за рейс. Расчёт зарплаты за любой период — один клик. Система соберёт все завершённые рейсы водителя, вычислит сумму и сохранит в ведомость с историей.</p>
-            <div class="feat-card__tags">
-              <span>% или фикс</span>
-              <span>За период</span>
-              <span>Ведомость</span>
-              <span>История</span>
-            </div>
-          </div>
-
-          <div class="feat-card">
-            <div class="feat-card__icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
-                <rect x="1" y="3" width="15" height="13"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8"/><circle cx="5" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>
-              </svg>
-            </div>
-            <h3>Контроль автопарка</h3>
-            <p>Все машины на одном дашборде с индикатором статуса: «в рейсе» или «свободен». Владелец видит историю рейсов по каждому автомобилю, общий пробег, статистику использования. Добавление новой машины — госномер, марка, модель, год и VIN.</p>
-            <div class="feat-card__tags">
-              <span>Статус онлайн</span>
-              <span>История</span>
-              <span>Статистика</span>
-            </div>
-          </div>
-
-          <div class="feat-card">
-            <div class="feat-card__icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8">
-                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-            </div>
-            <h3>Ролевой доступ</h3>
-            <p>Водитель видит только свои рейсы и расходы. Владелец — все данные по парку. Каждый запрос к базе проверяется правилами Firestore на уровне сервера. Авторизация через Firebase Authentication: email/пароль или телефон.</p>
-            <div class="feat-card__tags">
-              <span>Firebase Auth</span>
-              <span>Роли owner/driver</span>
-              <span>Server-side rules</span>
-            </div>
-          </div>
-
         </div>
 
-        <div class="carousel__nav">
-          <button class="carousel__btn carousel__btn--prev" id="carouselPrev" aria-label="Предыдущий">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
+      </div>
+    </section>
+
+    <!-- HOW -->
+    <section class="how" id="how">
+      <div class="container">
+        <h2 class="section__title">4 шага</h2>
+        <div class="carousel" id="howCarousel" role="region" aria-live="polite" aria-label="Как работает">
+          <div class="carousel__track" id="howTrack">
+            <div class="step-card"><span>1</span><h3>Регистрация</h3><p>Владелец создаёт аккаунт, добавляет машины и водителей в систему.</p></div>
+            <div class="step-card"><span>2</span><h3>Рейс</h3><p>Водитель нажимает «Начать рейс» — включается GPS-трекинг.</p></div>
+            <div class="step-card"><span>3</span><h3>Учёт</h3><p>В пути фиксируются расходы с фото чеков, пробег считается автоматически.</p></div>
+            <div class="step-card"><span>4</span><h3>Результат</h3><p>Владелец получает путевой лист, сводку расходов и расчёт зарплаты.</p></div>
+          </div>
+          <div class="carousel__nav">
+            <button type="button" class="carousel__btn carousel__btn--prev" id="howPrev" aria-label="Предыдущий">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
+            </button>
+            <div class="carousel__dots" id="howDots"></div>
+            <button type="button" class="carousel__btn carousel__btn--next" id="howNext" aria-label="Следующий">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
+            </button>
+          </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="pricing" id="pricing">
+      <div class="container">
+        <h2 class="section__title">Тарифы</h2>
+        <div class="pricing__grid">
+          <div class="plan plan--pop">
+            <div class="plan__badge">Популярный</div>
+            <h3>Старт</h3>
+            <p style="font-size:2rem;margin-bottom:4px">🚚</p>
+            <p class="plan__cars">1–6 машин</p>
+            <div class="plan__price">990 ₽<span>/мес</span></div>
+            <ul>
+              <li>GPS-трекинг</li>
+              <li>Путевые листы по Минтрансу</li>
+              <li>Учёт расходов</li>
+              <li>Расчёт зарплаты</li>
+              <li>Email-поддержка</li>
+            </ul>
+            <p class="plan__trial">Первые 30 дней бесплатно</p>
+            <button type="button" class="btn btn--primary btn--full" onclick="location.href='login.html#register'">Попробовать</button>
+          </div>
+          <div class="plan">
+            <h3>Бизнес</h3>
+            <p style="font-size:2rem;margin-bottom:4px">🚛</p>
+            <p class="plan__cars">от 7 машин</p>
+            <div class="plan__price">1 990 ₽<span>/мес</span></div>
+            <ul>
+              <li>Всё из Старта</li>
+              <li>Сводка по расходам</li>
+              <li>Приоритетная поддержка</li>
+              <li>Персональный менеджер</li>
+            </ul>
+            <button type="button" class="btn btn--outline btn--full" onclick="location.href='login.html#register'">Попробовать</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOWNLOAD -->
+    <section class="download" id="download">
+      <div class="container download__inner">
+        <div class="download__img">
+          <img src="assets/app-mockup.svg" alt="Приложение" loading="lazy">
+        </div>
+        <div class="download__text">
+          <h2>Приложение для водителя</h2>
+          <p>GPS-трекинг, фото чеков, история рейсов — всегда под рукой на Android.</p>
+          <button type="button" class="btn btn--download" onclick="window.open('/downloads/numino-driver.apk','_blank')" id="downloadApk">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.9 17.39c-.26-.8-1.01-1.39-1.9-1.39h-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3H7c-.89 0-1.64.59-1.9 1.39L3.53 22h15.94l-1.57-4.61zM12 2L8 6h3v5h2V6h3l-4-4z"/></svg>
+            Скачать APK
           </button>
-          <div class="carousel__dots" id="carouselDots"></div>
-          <button class="carousel__btn carousel__btn--next" id="carouselNext" aria-label="Следующий">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
-          </button>
+          <p class="download__ver">Версия 1.0 &bull; Android 8+ &bull; ~15 MB</p>
         </div>
       </div>
+    </section>
 
-    </div>
-  </section>
-
-  <!-- HOW -->
-  <section class="how" id="how">
-    <div class="container">
-      <h2 class="section__title">4 шага</h2>
-      <div class="carousel" id="howCarousel" role="region" aria-live="polite" aria-label="Как работает">
-        <div class="carousel__track" id="howTrack">
-          <div class="step-card"><span>1</span><h3>Регистрация</h3><p>Владелец создаёт аккаунт, добавляет машины и водителей в систему.</p></div>
-          <div class="step-card"><span>2</span><h3>Рейс</h3><p>Водитель нажимает «Начать рейс» — включается GPS-трекинг.</p></div>
-          <div class="step-card"><span>3</span><h3>Учёт</h3><p>В пути фиксируются расходы с фото чеков, пробег считается автоматически.</p></div>
-          <div class="step-card"><span>4</span><h3>Результат</h3><p>Владелец получает путевой лист, сводку расходов и расчёт зарплаты.</p></div>
-        </div>
-        <div class="carousel__nav">
-          <button class="carousel__btn carousel__btn--prev" id="howPrev" aria-label="Предыдущий">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
-          </button>
-          <div class="carousel__dots" id="howDots"></div>
-          <button class="carousel__btn carousel__btn--next" id="howNext" aria-label="Следующий">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PRICING -->
-  <section class="pricing" id="pricing">
-    <div class="container">
-      <h2 class="section__title">Тарифы</h2>
-      <div class="pricing__grid">
-        <div class="plan">
-          <h3>Старт</h3>
-          <p style="font-size:2rem;margin-bottom:4px">🚚</p>
-          <p class="plan__cars">1–2 машины</p>
-          <div class="plan__price">990 ₽<span>/мес</span></div>
-          <ul>
-            <li>GPS-трекинг</li>
-            <li>Путевые листы</li>
-            <li>Учёт расходов</li>
-            <li>Email-поддержка</li>
-          </ul>
-          <p class="plan__trial">Первые 21 день бесплатно</p>
-          <button class="btn btn--outline btn--full login-btn">Начать</button>
-        </div>
-        <div class="plan plan--pop">
-          <div class="plan__badge">Популярный</div>
-          <h3>Бизнес</h3>
-          <p style="font-size:2rem;margin-bottom:4px">🚛</p>
-          <p class="plan__cars">3–5 машин</p>
-          <div class="plan__price">1 990 ₽<span>/мес</span></div>
-          <ul>
-            <li>Всё из Старта</li>
-            <li>Расчёт зарплаты</li>
-            <li>Сводка по расходам</li>
-            <li>Приоритетная поддержка</li>
-          </ul>
-          <button class="btn btn--primary btn--full login-btn">Попробовать</button>
-        </div>
-        <div class="plan">
-          <h3>Корпоративный</h3>
-          <p style="font-size:2rem;margin-bottom:4px">🏢</p>
-          <p class="plan__cars">от 6 машин</p>
-          <div class="plan__price">Индивидуально</div>
-          <ul>
-            <li>Всё из Бизнеса</li>
-            <li>API-доступ</li>
-            <li>Интеграция с 1С</li>
-            <li>Персональный менеджер</li>
-          </ul>
-          <a href="#contact" class="btn btn--outline btn--full">Связаться</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- DOWNLOAD -->
-  <section class="download" id="download">
-    <div class="container download__inner">
-      <div class="download__img">
-        <img src="assets/app-mockup.svg" alt="Приложение">
-      </div>
-      <div class="download__text">
-        <h2>Приложение для водителя</h2>
-        <p>GPS-трекинг, фото чеков, история рейсов — всегда под рукой на Android.</p>
-        <a href="https://github.com/IliaDaR/CargoProfi/releases" class="btn btn--download" target="_blank" id="downloadApk">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.9 17.39c-.26-.8-1.01-1.39-1.9-1.39h-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3H7c-.89 0-1.64.59-1.9 1.39L3.53 22h15.94l-1.57-4.61zM12 2L8 6h3v5h2V6h3l-4-4z"/></svg>
-          Скачать APK
-        </a>
-        <p class="download__ver">Версия 1.0 &bull; Android 8+ &bull; ~15 MB</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- TESTIMONIALS -->
-  <section class="testimonials">
-    <div class="container" style="text-align:center">
-      <h2 class="section__title">Нам доверяют</h2>
+    <!-- TESTIMONIALS -->
+    <section class="testimonials">
+      <div class="container" style="text-align:center">
+        <h2 class="section__title">Нам доверяют</h2>
+      <div class="testimonials__grid">
       <div class="testimonials__card">
-        <p class="testimonials__quote">«С Numino перестали терять чеки и путаться в зарплате водителей. Раньше уходило полдня на бумажки — теперь всё в телефоне.»</p>
+        <p class="testimonials__quote">С Numino перестали терять чеки и путаться в зарплате водителей. Раньше уходило полдня на бумажки — теперь всё в телефоне.</p>
         <p class="testimonials__author">— Алексей, владелец парка на 4 машины</p>
       </div>
+      <div class="testimonials__card">
+        <p class="testimonials__quote">GPS-трекинг и авторасчёт пробега — то, чего не хватало годами. Водители довольны, я спокоен.</p>
+        <p class="testimonials__author">— Дмитрий, транспортная компания «Грузовик»</p>
       </div>
-    </div>
-  </section>
+      <div class="testimonials__card">
+        <p class="testimonials__quote">Путевые листы по Минтрансу в один клик — это сэкономило нам 20 часов в месяц. Спасибо!</p>
+        <p class="testimonials__author">— Ольга, бухгалтер автопарка</p>
+      </div>
+      </div>
+    </section>
 
-  <!-- CONTACT -->
-  <section class="contact" id="contact">
-    <div class="container contact__inner">
-      <div>
-        <h2>Остались вопросы?</h2>
-        <p>Напишите нам — поможем с настройкой и подберём тариф.</p>
-        <div class="contact__links">
-          <a href="mailto:ilia.davkin@ya.ru">ilia.davkin@ya.ru</a>
-          <a href="tel:+79183951315">+7 (918) 395-13-15</a>
-          <span class="contact__tag">MAX</span>
+    <!-- CONTACT -->
+    <section class="contact" id="contact">
+      <div class="container contact__inner">
+        <div>
+          <h2>Остались вопросы?</h2>
+          <p>Напишите нам — поможем с настройкой и подберём тариф.</p>
+          <div class="contact__links">
+            <a href="mailto:info@numino.ru">info@numino.ru</a>
+            <a href="tel:+79183951315">+7 (918) 395-13-15</a>
+            <span class="contact__tag">MAX</span>
+          </div>
         </div>
+        <form class="contact__form" id="contactForm" action="https://formsubmit.co/info@numino.ru" method="POST">
+          <label class="sr-only" for="contactName">Имя</label>
+          <input type="text" id="contactName" name="name" placeholder="Имя" required autocomplete="name">
+          <label class="sr-only" for="contactEmail">Email</label>
+          <input type="email" id="contactEmail" name="email" placeholder="Email" required autocomplete="email">
+          <label class="sr-only" for="contactMsg">Сообщение</label>
+          <textarea id="contactMsg" placeholder="Сообщение" rows="3" name="message" required></textarea>
+          <!-- Honeypot: скрытое поле для ботов -->
+          <input type="text" name="_honeypot" style="position:absolute;left:-9999px;opacity:0" tabindex="-1" autocomplete="off">
+          <input type="hidden" name="_subject" value="Новое сообщение с Numino">
+          <input type="hidden" name="_captcha" value="true">
+          <input type="hidden" name="_next" value="thanks.html">
+          <button type="submit" class="btn btn--primary btn--full">Отправить</button>
+        </form>
       </div>
-      <form class="contact__form" id="contactForm" action="https://formsubmit.co/ilia.davkin@ya.ru" method="POST">
-        <label class="sr-only" for="contactName">Имя</label>
-        <input type="text" id="contactName" name="name" placeholder="Имя" required autocomplete="name">
-        <label class="sr-only" for="contactEmail">Email</label>
-        <input type="email" id="contactEmail" name="email" placeholder="Email" required autocomplete="email">
-        <label class="sr-only" for="contactMsg">Сообщение</label>
-        <textarea id="contactMsg" placeholder="Сообщение" rows="3" name="message" required></textarea>
-        <input type="hidden" name="_subject" value="Новое сообщение с Numino">
-        <input type="hidden" name="_captcha" value="true">
-        <input type="hidden" name="_next" value="https://numino.ru/thanks">
-        <button type="submit" class="btn btn--primary btn--full">Отправить</button>
-      </form>
-    </div>
-  </section>
+    </section>
+  </main>
 
   <!-- FOOTER -->
   <footer class="footer">
@@ -310,30 +341,18 @@
         <a href="#features">Функции</a>
         <a href="#pricing">Тарифы</a>
         <a href="#download">Приложение</a>
-        <a href="#login" class="login-btn">Войти</a>
+        <a href="eula.html">Условия</a>
+        <a href="privacy.html">Конфиденциальность</a>
+         <a href="login.html">Войти</a>
       </nav>
     </div>
   </footer>
 
-  <!-- LOGIN MODAL -->
-  <div class="modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal__bg"></div>
-    <div class="modal__box">
-      <button class="modal__x" id="closeModal">&times;</button>
-      <h3 id="modalTitle">Вход в кабинет</h3>
-      <p id="modalSub">Владелец автопарка или администратор</p>
-      <form id="loginForm">
-        <label>Email</label>
-        <input type="email" placeholder="ivan@company.ru" required autocomplete="email">
-        <label>Пароль</label>
-        <input type="password" placeholder="••••••" required autocomplete="current-password" minlength="6">
-        <button type="submit" class="btn btn--primary btn--full" id="modalSubmit">Войти</button>
-      </form>
-      <p class="modal__switch"><a href="#" id="showRegister">Зарегистрироваться</a></p>
-      <p class="modal__msg" id="loginMessage"></p>
-    </div>
-  </div>
+  <!-- Модалка входа удалена — вход через отдельную страницу /login.html -->
 
   <script src="js/main.js"></script>
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Numino","applicationCategory":"BusinessApplication","description":"Сервис учёта грузоперевозок. GPS-трекинг, путевые листы, учёт расходов и расчёт зарплаты водителей."}
+  </script>
 </body>
 </html>

@@ -6,6 +6,10 @@
 (function () {
   'use strict';
 
+  // ===== РЕФЕРАЛЬНЫЙ КОД =====
+  var refCode = new URLSearchParams(window.location.search).get('ref');
+  if (refCode) { localStorage.setItem('numino_ref', refCode); }
+
   // ===== BURGER MENU =====
   var burgerBtn = document.getElementById('burgerBtn');
   var mainNav = document.getElementById('mainNav');
@@ -27,6 +31,7 @@
   scrollBtn.className = 'scroll-top';
   scrollBtn.innerHTML = '&#8593;';
   scrollBtn.setAttribute('aria-label', 'Наверх');
+  scrollBtn.setAttribute('type', 'button');
   scrollBtn.addEventListener('click', function() { window.scrollTo({top:0,behavior:'smooth'}); });
   document.body.appendChild(scrollBtn);
   window.addEventListener('scroll', function() {
@@ -38,153 +43,73 @@
   });
 
   // ===== MODAL =====
-  var modal = document.getElementById('loginModal');
-  var msgEl = document.getElementById('loginMessage');
+  // Модалка входа удалена — вход через отдельную страницу /login.html
 
-  function openModal() {
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeModal() {
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
-    msgEl.textContent = '';
-    msgEl.className = 'modal__msg';
-  }
-
-  document.querySelectorAll('.login-btn').forEach(function (b) {
-    b.addEventListener('click', function (e) {
-      e.preventDefault();
-      openModal();
-    });
-  });
-
-  document.getElementById('closeModal').addEventListener('click', closeModal);
-  modal.querySelector('.modal__bg').addEventListener('click', closeModal);
-
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
-  });
-
-  // Focus trap
-  modal.addEventListener('keydown', function(e) {
-    if (e.key !== 'Tab' || !modal.classList.contains('active')) return;
-    var focusable = modal.querySelectorAll('input,button,a');
-    if (focusable.length === 0) return;
-    var first = focusable[0], last = focusable[focusable.length - 1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-  });
-
-  // ===== LOGIN / REGISTER TOGGLE =====
-  var isReg = false;
-  var registerNameField = null;
-
-  function buildNameField() {
-    var g = document.createElement('div');
-    g.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-top:2px';
-    g.innerHTML = '<label>Имя</label><input type="text" placeholder="Иван Петров" required autocomplete="name">';
-    return g;
-  }
-
-  document.getElementById('showRegister').addEventListener('click', function (e) {
-    e.preventDefault();
-    isReg = !isReg;
-    var form = document.getElementById('loginForm');
-    var submitBtn = document.getElementById('modalSubmit');
-    if (isReg) {
-      document.getElementById('modalTitle').textContent = 'Регистрация';
-      document.getElementById('modalSub').textContent = 'Владелец автопарка';
-      submitBtn.textContent = 'Зарегистрироваться';
-      registerNameField = buildNameField();
-      form.insertBefore(registerNameField, form.children[0]);
-    } else {
-      document.getElementById('modalTitle').textContent = 'Вход в кабинет';
-      document.getElementById('modalSub').textContent = 'Владелец автопарка или водитель';
-      submitBtn.textContent = 'Войти';
-      if (registerNameField) { registerNameField.remove(); registerNameField = null; }
+  // ===== ХЭШ-ПАРОЛЬ (SHA-256, async) =====
+  async function hashPassword(pass, salt) {
+    if (window.crypto && window.crypto.subtle) {
+      var buf = new TextEncoder().encode((salt || '') + pass);
+      var hash = await window.crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(hash)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
     }
-  });
-
-  // ===== LOGIN / REGISTER — localStorage-based auth =====
-  function getUsers() {
-    try { return JSON.parse(localStorage.getItem('numino_users')) || {}; } catch(_) { return {}; }
+    // Fallback без crypto — сохраняем как есть (демо-режим)
+    return 'plain:' + pass;
   }
-  function saveUsers(u) { localStorage.setItem('numino_users', JSON.stringify(u)); }
 
-  // Создаём админа при первом запуске
-  (function() {
+  function generateSalt() {
+    var bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes).map(function(b) { return b.toString(16).padStart(2,'0'); }).join('');
+  }
+
+  async function verifyPassword(pass, storedHash, storedSalt) {
+    if (storedSalt) return await hashPassword(pass, storedSalt) === storedHash;
+    return await hashPassword(pass, '') === storedHash;
+  }
+
+  // SharedPreferences на Flutter Web добавляет префикс "flutter." ко всем ключам
+  function getUsers() {
+    try { return JSON.parse(localStorage.getItem('flutter.numino_users')) || {}; } catch(_) { return {}; }
+  }
+  function saveUsers(u) { localStorage.setItem('flutter.numino_users', JSON.stringify(u)); }
+
+  // Предустановленные аккаунты (пароли хэшируются)
+  (async function() {
     var u = getUsers();
     if (!u['admin@numino.ru']) {
-      u['admin@numino.ru'] = { pass: 'admin123', name: 'Администратор', role: 'admin' };
-      u['owner@numino.ru'] = { pass: 'owner123', name: 'Владелец парка', role: 'owner' };
+      u['admin@numino.ru'] = { pass: await hashPassword('admin123', 'fixed_salt_admin_01'), passSalt: 'fixed_salt_admin_01', name: 'Администратор', role: 'admin' };
+      u['owner@numino.ru'] = { pass: await hashPassword('owner123', 'fixed_salt_owner_01'), passSalt: 'fixed_salt_owner_01', name: 'Владелец парка', role: 'owner' };
       saveUsers(u);
     }
   })();
 
-  document.getElementById('loginForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var email = '', pass = '', name = '';
-    var inputs = e.target.querySelectorAll('input');
-    for (var i = 0; i < inputs.length; i++) {
-      if (inputs[i].type === 'email') email = inputs[i].value.trim().toLowerCase();
-      if (inputs[i].type === 'password') pass = inputs[i].value;
-      if (inputs[i].type === 'text') name = inputs[i].value.trim();
-    }
-    if (!email || !pass) { msgEl.textContent = 'Заполните все поля'; msgEl.className = 'modal__msg error'; return; }
-
-    var users = getUsers();
-
-    if (isReg) {
-      // Регистрация
-      if (!name) { msgEl.textContent = 'Введите имя'; msgEl.className = 'modal__msg error'; return; }
-      if (users[email]) { msgEl.textContent = 'Пользователь уже существует'; msgEl.className = 'modal__msg error'; return; }
-      if (pass.length < 6) { msgEl.textContent = 'Пароль минимум 6 символов'; msgEl.className = 'modal__msg error'; return; }
-      users[email] = { pass: pass, name: name, role: 'owner' };
-      saveUsers(users);
-      msgEl.textContent = 'Регистрация успешна! Выполните вход.';
-      msgEl.className = 'modal__msg success';
-      isReg = true; document.getElementById('showRegister').click(); // переключаем на режим входа
-      return;
-    }
-
-    // Вход
-    var user = users[email];
-    if (!user || user.pass !== pass) {
-      msgEl.textContent = 'Неверный email или пароль';
-      msgEl.className = 'modal__msg error';
-      return;
-    }
-
-    msgEl.textContent = '⏳ Выполняется вход...';
-    msgEl.className = 'modal__msg success';
-    // Блокируем кнопку
-    var btn = e.target.querySelector('button[type="submit"]');
-    if (btn) { btn.disabled = true; btn.textContent = 'Загрузка...'; }
-    // Передаём только роль и имя, без пароля
-    var role = user.role || 'owner';
-    setTimeout(function () {
-      window.location.href = 'admin/index.html?role=' + role + '&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(user.name);
-    }, 600);
-  });
-
-  // ===== CONTACT FORM — отправляется через FormSubmit =====
+  // ===== CONTACT FORM — отправляется через FormSubmit + сохраняет тикет локально =====
   var contactForm = document.getElementById('contactForm');
   if (contactForm) {
-    // Bot honey-pot
-    var hp = document.createElement('input');
-    hp.type = 'text';
-    hp.name = '_honey';
-    hp.style.cssText = 'position:absolute;left:-9999px;opacity:0;height:0;width:0';
-    hp.tabIndex = -1;
-    hp.autocomplete = 'off';
-    contactForm.appendChild(hp);
+    // Honeypot в HTML (index.html), здесь только сохраняем тикет
+    contactForm.addEventListener('submit', function() {
+      var name = contactForm.querySelector('[name="name"]')?.value || '';
+      var email = contactForm.querySelector('[name="email"]')?.value || '';
+      var msg = contactForm.querySelector('[name="message"]')?.value || '';
+      if (name && email && msg) {
+        var tickets = JSON.parse(localStorage.getItem('numino_tickets') || '[]');
+        tickets.push({name: name, email: email, message: msg, status: 'new', createdAt: new Date().toISOString()});
+        localStorage.setItem('flutter.tickets', JSON.stringify(tickets));
+      }
+      // Визуальная обратная связь
+      var btn = contactForm.querySelector('button[type="submit"]');
+      if (btn) { btn.textContent = 'Отправляется...'; btn.disabled = true;
+        setTimeout(function() { if (btn) { btn.textContent = 'Отправить'; btn.disabled = false; } }, 3000); }
+    });
   }
 
   // ===== DOWNLOAD APK — handled via direct href to GitHub releases =====
 
   // ===== CAROUSEL FACTORY =====
+  var _carouselIntervals = [];
+  window.addEventListener('pagehide', function() { _carouselIntervals.forEach(function(id) { clearInterval(id); }); _carouselIntervals = []; });
+  window.addEventListener('beforeunload', function() { _carouselIntervals.forEach(function(id) { clearInterval(id); }); });
+
   function createCarousel(trackId, prevId, nextId, dotsId) {
     var track = document.getElementById(trackId);
     var prevBtn = document.getElementById(prevId);
@@ -221,7 +146,7 @@
     nextBtn.addEventListener('click', function () { goTo(current + 1); });
     prevBtn.addEventListener('click', function () { goTo(current - 1); });
 
-    function startAuto() { autoTimer = setInterval(function () { goTo(current + 1); }, INTERVAL); }
+    function startAuto() { autoTimer = setInterval(function () { goTo(current + 1); }, INTERVAL); _carouselIntervals.push(autoTimer); }
     function resetAuto() { clearInterval(autoTimer); startAuto(); }
 
     // Touch swipe
@@ -244,27 +169,26 @@
     });
     track.addEventListener('mouseup', function (e) {
       if (!isDragging) return;
-      isDragging = false; track.classList.remove('dragging'); startAuto();
+      isDragging = false; track.classList.remove('dragging'); resetAuto();
       var diff = startX - e.pageX;
       if (Math.abs(diff) > 50) goTo(diff > 0 ? current + 1 : current - 1);
     });
     track.addEventListener('mouseleave', function () {
-      if (isDragging) { isDragging = false; track.classList.remove('dragging'); startAuto(); }
+      if (isDragging) { isDragging = false; track.classList.remove('dragging'); resetAuto(); }
     });
 
     // Pause on hover
     track.addEventListener('mouseenter', function () { clearInterval(autoTimer); });
-    track.addEventListener('mouseleave', function () { startAuto(); });
+    track.addEventListener('mouseleave', function () { resetAuto(); });
 
     goTo(0);
-    startAuto();
   }
 
   // Init both carousels
   createCarousel('featuresTrack', 'carouselPrev', 'carouselNext', 'carouselDots');
   createCarousel('howTrack', 'howPrev', 'howNext', 'howDots');
 
-  // ===== SCROLL ANIMATIONS =====
+  // ===== SCROLL ANIMATIONS (IntersectionObserver) =====
   (function() {
     var items = document.querySelectorAll('.feat-card, .step-card, .plan, .hero__text, .hero__img');
     items.forEach(function(el) {
@@ -272,19 +196,25 @@
       el.style.transform = 'translateY(30px)';
       el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
     });
-    function check() {
-      var h = window.innerHeight;
-      items.forEach(function(el) {
-        var rect = el.getBoundingClientRect();
-        if (rect.top < h - 80) {
-          el.style.opacity = '1';
-          el.style.transform = 'translateY(0)';
-        }
-      });
+    if (window.IntersectionObserver) {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+      items.forEach(function(el) { observer.observe(el); });
     }
-    window.addEventListener('scroll', check, {passive: true});
-    window.addEventListener('resize', check);
-    check();
+    // Fallback: через 3 секунды показать все элементы
+    setTimeout(function() {
+      items.forEach(function(el) {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      });
+    }, 3000);
   })();
 
   // ===== SMOOTH SCROLL =====
@@ -297,13 +227,14 @@
     });
   });
 
-  // ===== SANITIZE INPUTS =====
-  function sanitize(s) {
-    return String(s).replace(/[<>]/g, '');
+  // ===== EMAIL VALIDATION =====
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
-  document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea').forEach(function (el) {
-    el.addEventListener('input', function () {
-      el.value = sanitize(el.value);
-    });
+
+  // ===== CLEANUP =====
+  window.addEventListener('pagehide', function() {
+    _carouselIntervals.forEach(function(id) { clearInterval(id); });
+    _carouselIntervals = [];
   });
 })();
