@@ -222,7 +222,7 @@ async function saveDriver(){
   refreshV();closeModal();
   alert('Водитель добавлен!\n\nКод приглашения: '+code+'\n\nПередайте этот код водителю для входа в приложение.');
   // Синхронизация с Яндекс Облаком (фоном, не блокирует)
-  fetch('https://d5d1q7q3j6q0b2e7qhf0.apigw.yandexcloud.net/create_invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:U.email,driverName:n,code:code})}).catch(function(){});
+  fetch('https://d5duqmvvsoilrgj91lbs.kr8f6hld.apigw.yandexcloud.net/create_invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:U.email,driverName:n,code:code})}).catch(function(){});
 }
 function editDriver(i){var d=DR[i];modal('<h3>Редактировать</h3><label>ФИО</label><input id="df1" value="'+H(d.displayName||'')+'"><label>Телефон</label><input id="df2" value="'+H(d.phone||'')+'"><div style="margin-top:12px"><button class="btn btn-p" onclick="saveEditD('+i+')">Сохранить</button> <button class="btn btn-o" onclick="closeModal()">Отмена</button></div>');}
 function saveEditD(i){DR[i].displayName=document.getElementById('df1').value;DR[i].phone=document.getElementById('df2').value;refreshV();closeModal();}

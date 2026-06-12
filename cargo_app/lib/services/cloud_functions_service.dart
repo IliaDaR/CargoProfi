@@ -8,7 +8,7 @@ import '../services/local_storage.dart';
 /// Сервис вызова Yandex Cloud Functions через HTTP.
 /// При недоступности — fallback на localStorage.
 class CloudFunctionsService {
-  static const String _baseUrl = 'https://d5d1q7q3j6q0b2e7qhf0.apigw.yandexcloud.net';
+  static const String _baseUrl = 'https://d5duqmvvsoilrgj91lbs.kr8f6hld.apigw.yandexcloud.net';
   final LocalStorage _local;
 
   CloudFunctionsService(this._local);
