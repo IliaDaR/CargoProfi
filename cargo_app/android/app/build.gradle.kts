@@ -14,6 +14,12 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.numino.cargo_app"
     compileSdk = 36
+    
+    // Suppress AAR metadata checks for dependencies compiled with older SDKs
+    dependenciesInfo {
+        includeInApk = false
+    }
+
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
