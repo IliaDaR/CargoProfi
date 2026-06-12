@@ -222,7 +222,7 @@ async function saveDriver(){
   // Показываем статус синхронизации
   var se=document.createElement('div');se.style.cssText='position:fixed;top:16px;right:16px;background:#2563eb;color:#fff;padding:12px 20px;border-radius:8px;z-index:9999;font-size:.9rem';se.textContent='Синхронизация с облаком...';document.body.appendChild(se);
   try{
-    var r=await fetch('https://d5duqmvvsoilrgj91lbs.kr8f6hld.apigw.yandexcloud.net/create_invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:U.email,driverName:n,code:code})});
+    var r=await fetch('https://d5duqmvvsoilrgj91lbs.kr8f6hld.apigw.yandexcloud.net/create_invite',{method:'POST',body:JSON.stringify({email:U.email,driverName:n,code:code})});
     var d=await r.json();
     if(d.success){se.style.background='#16a34a';se.textContent='✓ Код '+code+' сохранён в облаке';}
     else{se.style.background='#dc2626';se.textContent='Ошибка: '+d.error;}
