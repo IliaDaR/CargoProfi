@@ -1,24 +1,86 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'services/notification_service.dart';
 import 'services/local_storage.dart';
 import 'services/cloud_functions_service.dart';
+import 'providers/settings_provider.dart';
 import 'screens/driver/driver_home_screen.dart';
+
+/// Global references for background GPS tracking callback access.
+LocalStorage? globalStorage;
+CloudFunctionsService? globalCloudFn;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize foreground task for background GPS tracking
+  FlutterForegroundTask.init(
+    androidNotificationOptions: AndroidNotificationOptions(
+      channelId: 'cargo_tracking',
+      channelName: 'Отслеживание рейса',
+      channelDescription: 'Уведомление о работе GPS-трекинга',
+      channelImportance: NotificationChannelImportance.HIGH,
+      priority: NotificationPriority.HIGH,
+    ),
+    iosNotificationOptions: const IOSNotificationOptions(),
+    foregroundTaskOptions: ForegroundTaskOptions(
+      eventAction: ForegroundTaskEventAction.repeat(60000),
+    ),
+  );
+
+  // Request notification permission (required for Android 13+)
+  await FlutterForegroundTask.requestNotificationPermission();
+
   final storage = LocalStorage();
   await storage.init();
-  final cloudFn = CloudFunctionsService(storage);
 
-  runApp(MaterialApp(
-    title: 'Numino Driver',
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1565C0), brightness: Brightness.light),
-      useMaterial3: true,
+  // Store globals for background GPS callback access
+  globalStorage = storage;
+
+  final cloudFn = CloudFunctionsService(storage);
+  globalCloudFn = cloudFn;
+
+  final prefs = await SharedPreferences.getInstance();
+  await NotificationService.init();
+  final settingsProvider = SettingsProvider(prefs);
+
+
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<LocalStorage>.value(value: storage),
+        Provider<CloudFunctionsService>.value(value: cloudFn),
+        ChangeNotifierProvider<SettingsProvider>.value(value: settingsProvider),
+      ],
+      child: Consumer<SettingsProvider>(
+        builder: (context, settings, _) {
+          return MaterialApp(
+            title: 'Numino Driver',
+            debugShowCheckedModeBanner: false,
+            themeMode: settings.darkMode ? ThemeMode.dark : ThemeMode.light,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF1565C0),
+                brightness: Brightness.light,
+              ),
+              useMaterial3: true,
+            ),
+            darkTheme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF1565C0),
+                brightness: Brightness.dark,
+              ),
+              useMaterial3: true,
+            ),
+            home: DriverGateScreen(storage: storage, cloudFn: cloudFn),
+          );
+        },
+      ),
     ),
-    home: DriverGateScreen(storage: storage, cloudFn: cloudFn),
-  ));
+  );
 }
 
 /// Screen that checks auth and routes accordingly

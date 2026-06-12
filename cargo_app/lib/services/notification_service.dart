@@ -1,79 +1,115 @@
 import 'dart:convert';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/trip.dart';
-import '../models/expense.dart';
 
-/// Система уведомлений: сохраняет события локально,
-/// показывает в дашборде владельца и водителя.
 class NotificationService {
-  static const _kNotifications = 'notifications';
+  static final _plugin = FlutterLocalNotificationsPlugin();
   static SharedPreferences? _prefs;
+  static const _kHistory = 'notifications_history';
 
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    await _plugin.initialize(const InitializationSettings(android: android));
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(const AndroidNotificationChannel(
+          'cargo_alerts',
+          'Уведомления Numino',
+          importance: Importance.high,
+        ));
   }
 
-  static List<Map<String, dynamic>> get all {
-    final raw = _prefs?.getString(_kNotifications);
-    if (raw == null || raw.isEmpty) return [];
-    return List<Map<String, dynamic>>.from(jsonDecode(raw) as List);
-  }
-
-  static List<Map<String, dynamic>> get unread => all.where((n) => n['read'] != true).toList();
-
-  static int get unreadCount => unread.length;
-
-  static void _save(List<Map<String, dynamic>> list) {
-    _prefs?.setString(_kNotifications, jsonEncode(list));
-  }
-
-  static void add(String title, String body, {String? type}) {
-    final list = all;
-    list.insert(0, {
+  static Future<void> notify(String title, String body, {String? type}) async {
+    _saveToHistory({
       'title': title,
       'body': body,
       'type': type ?? 'info',
       'time': DateTime.now().toIso8601String(),
-      'read': false,
     });
-    // Оставляем только последние 50
-    if (list.length > 50) list.removeRange(50, list.length);
-    _save(list);
+    await _plugin.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'cargo_alerts',
+          'Уведомления Numino',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+      ),
+    );
   }
 
+  static void _saveToHistory(Map<String, dynamic> item) {
+    final list = history;
+    item['read'] = false;
+    list.add(item);
+    if (list.length > 50) list.removeRange(0, list.length - 50);
+    _prefs?.setString(_kHistory, jsonEncode(list));
+  }
+
+  static List<Map<String, dynamic>> get history {
+    try {
+      final raw = _prefs?.getString(_kHistory);
+      if (raw != null) {
+        return (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  static List<Map<String, dynamic>> get all => history;
+
+  static int get unreadCount =>
+      history.where((n) => n['read'] != true).length;
+
   static void markAllRead() {
-    final list = all;
-    for (var n in list) { n['read'] = true; }
-    _save(list);
+    final list = history;
+    if (list.isEmpty) return;
+    for (final n in list) {
+      n['read'] = true;
+    }
+    _prefs?.setString(_kHistory, jsonEncode(list));
   }
 
   static void clear() {
-    _prefs?.remove(_kNotifications);
+    _prefs?.remove(_kHistory);
   }
 
-  // ===== Автоматические уведомления =====
+  static void tripStarted(String driverName) =>
+      notify('Рейс начат', 'Водитель $driverName начал рейс', type: 'trip');
 
-  /// Рейс начат
-  static void tripStarted(Trip trip, String driverName) {
-    add('🚛 Рейс начат', '$driverName начал рейс: ${trip.routeDescription ?? "без маршрута"}', type: 'trip_start');
-  }
+  static void tripCompleted(double mileage, double? income) => notify(
+        'Рейс завершён',
+        'Пробег: ${mileage.toStringAsFixed(0)} км${income != null ? ', доход: ${income.toStringAsFixed(0)} ₽' : ''}',
+        type: 'trip',
+      );
 
-  /// Рейс завершён
-  static void tripCompleted(Trip trip, String driverName) {
-    add('✅ Рейс завершён', '$driverName завершил рейс. Пробег: ${trip.mileage.toStringAsFixed(1)} км, доход: ${trip.income?.toStringAsFixed(0) ?? 0} ₽', type: 'trip_end');
-  }
+  static void expenseAdded(String category, double amount) => notify(
+        'Добавлен расход',
+        '$category: ${amount.toStringAsFixed(0)} ₽',
+        type: 'expense',
+      );
 
-  /// Превышение расхода (> 10 000 ₽)
-  static void highExpense(Expense expense, String driverName) {
-    if (expense.amount >= 10000) {
-      add('⚠️ Крупный расход', '$driverName: ${expense.amount.toStringAsFixed(0)} ₽ (${expense.description ?? "без описания"})', type: 'warning');
-    }
-  }
+  static void highExpense(String category, double amount) => notify(
+        'Крупный расход',
+        '$category: ${amount.toStringAsFixed(0)} ₽',
+        type: 'warning',
+      );
 
-  /// Напоминание о ТО
-  static void maintenanceReminder(String plateNumber, double mileage) {
-    if (mileage > 0 && mileage % 10000 < 100) {
-      add('🔧 ТО: $plateNumber', 'Пробег $mileage км — пора на техобслуживание', type: 'maintenance');
-    }
-  }
+  static void movementDetected() => notify(
+        'Обнаружено движение',
+        'Не забудьте начать рейс',
+        type: 'reminder',
+      );
+
+  static void carFreed(String plate) =>
+      notify('Машина освобождена', 'Госномер: $plate', type: 'info');
+
+  static void medExamReminder(String date) =>
+      notify('Медосмотр', 'Срок медосмотра: $date', type: 'warning');
 }

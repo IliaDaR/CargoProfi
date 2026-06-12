@@ -175,12 +175,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Рейс начат!'), backgroundColor: Colors.green));
     // Синхронизация с облаком (если доступно)
     try { context.read<dynamic>().startTrip(vehicleId: chosenId, latitude: lat, longitude: lon, cargoDescription: cargo, routeDescription: route); } catch (_) {}
-    NotificationService.tripStarted(Trip(
-      id: tripId, driverId: widget.driverId, vehicleId: chosenId, status: TripStatus.active,
-      startTime: now, startLatitude: lat, startLongitude: lon,
-      routeDescription: route, cargoDescription: cargo,
-      createdAt: now, mileage: 0, mileageSource: MileageSource.auto,
-    ), 'Водитель');
+    NotificationService.tripStarted('Водитель');
   }
 
   @override
@@ -450,8 +445,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
           context.read<LocalStorage>().addExpense(Expense(id: now.millisecondsSinceEpoch.toString(), tripId: widget.tripId, driverId: widget.driverId, amount: a, category: cat, description: descCtrl.text, latitude: lat, longitude: lon, photoTimestamp: now, createdAt: now, receiptUrl: receiptUrl));
           // Уведомление при крупных расходах
           if (a >= 10000) {
-            final driverName = context.read<LocalStorage>().drivers.where((d) => d['uid'] == widget.driverId).firstOrNull?['displayName'] ?? 'Водитель';
-            NotificationService.highExpense(Expense(id: '', tripId: widget.tripId, driverId: widget.driverId, amount: a, category: cat, latitude: lat, longitude: lon, photoTimestamp: now, createdAt: now), driverName);
+            NotificationService.highExpense(expenseCategoryLabel(cat), a);
           }
           // Синхронизация с облаком
           try { context.read<dynamic>().addExpense(tripId: widget.tripId, amount: a, category: cat.name, latitude: lat, longitude: lon, description: descCtrl.text); } catch (_) {}
@@ -519,7 +513,7 @@ class _ActiveTripScreenState extends State<ActiveTripScreen> with WidgetsBinding
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => DriverHomeScreen(driverId: widget.driverId)));
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Рейс завершён!'), backgroundColor: Colors.green));
           final completed = store.trips[idx];
-          NotificationService.tripCompleted(completed, 'Водитель');
+          NotificationService.tripCompleted(completed.mileage, completed.income);
         }, child: const Text('Завершить')),
       ],
     ));
