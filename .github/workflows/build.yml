@@ -54,13 +54,13 @@ jobs:
         working-directory: cargo_app
         run: flutter pub get
 
-      - name: Сборка APK водителя (release + split per ABI)
+      - name: Сборка APK водителя
         working-directory: cargo_app
-        run: flutter build apk --release --split-per-abi -t lib/main_driver.dart
+        run: flutter build apk --debug -t lib/main_driver.dart
 
       - name: Артефакт
         uses: actions/upload-artifact@v4
         with:
-          name: numino-driver-apks
-          path: cargo_app/build/app/outputs/flutter-apk/app-*-release.apk
+          name: numino-driver
+          path: cargo_app/build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 30
