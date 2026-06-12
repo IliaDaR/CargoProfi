@@ -1,5 +1,5 @@
 const crypto=require("crypto"),fs=require("fs"),https=require("https");
-const corsHeaders={"Access-Control-Allow-Origin":"https://numino.ru","Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization","Content-Type":"application/json; charset=utf-8"};
+const corsHeaders={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"GET,POST,OPTIONS","Access-Control-Allow-Headers":"Content-Type,Authorization","Content-Type":"application/json; charset=utf-8"};
 const BUCKET="numino-files",S3_HOST="storage.yandexcloud.net",USERS_FILE="/tmp/users.json";
 const S3_KEY=process.env.S3_KEY_ID||"",S3_SECRET=process.env.S3_SECRET||"";
 
